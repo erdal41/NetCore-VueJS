@@ -75,9 +75,28 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> Edit([FromQuery]int term)
         {
             var termResult = await _termService.GetTermUpdateDtoAsync(term);
-            var seoResult = await _seoService.GetSeoObjectSettingUpdateDtoAsync(term, termResult.Data.TermType);
-            var result = new { termResult, seoResult };
-            return new JsonResult(result);
+            if (termResult.ResultStatus == ResultStatus.Success)
+            {
+                var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
+                var seoResult = await _seoService.GetSeoObjectSettingUpdateDtoAsync(term, termResult.Data.TermType);
+
+                var termViewModel = new TermViewModel
+                {
+                    TermUpdateDto = termResult.Data,
+                    IsActiveCategorySeoSetting = seoGeneralResult.Data.IsActiveCategorySeoSetting,
+                    IsActiveTagSeoSetting = seoGeneralResult.Data.IsActiveTagSeoSetting,
+                    SeoObjectSettingUpdateDto = seoResult.Data
+                };
+                return new JsonResult(termViewModel);
+            }
+            else
+            {
+                var termViewModel = new TermViewModel
+                {
+                    TermUpdateDto = null
+                };
+                return new JsonResult(termViewModel);
+            }            
         }
 
         [HttpPost]
@@ -86,14 +105,14 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         {
             var termResult = await _termService.UpdateAsync(termViewModel.TermUpdateDto);
             var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
-            if (termResult.Data.Term.TermType == SubObjectType.category && seoGeneralResult.Data.IsActiveCategorySeoSetting)
+            if (termResult.Data.Term.TermType == SubObjectType.category)
             {
                 var seoResult = await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, 1);
 
                 var result = new { termResult, seoResult };               
                 return new JsonResult(result);
             }
-            else if (termResult.Data.Term.TermType == SubObjectType.tag && seoGeneralResult.Data.IsActiveTagSeoSetting)
+            else if (termResult.Data.Term.TermType == SubObjectType.tag)
             {
                 var seoResult = await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, 1);
 

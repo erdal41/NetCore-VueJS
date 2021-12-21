@@ -148,6 +148,7 @@ namespace VueJS.Services.Concrete
             if (oldSeoObjectSetting != null)
             {
                 var seoObjectSetting = Mapper.Map<SeoObjectSettingUpdateDto, SeoObjectSetting>(seoObjectSettingUpdateDto, oldSeoObjectSetting);
+                seoObjectSetting.SubObjectType = subSeoObjectType;
                 seoObjectSetting.UserId = userId;
                 seoObjectSetting.ModifiedDate = DateTime.Now;
                 var updatedSeoSetting = await UnitOfWork.SeoObjectSettings.UpdateAsync(seoObjectSetting);

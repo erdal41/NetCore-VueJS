@@ -41,14 +41,14 @@
                     <b-list-group-item v-for="upload in uploads" :key="upload.Id"
                                        class="image-list"
                                        @click="imageClick(upload.Id, upload.FileName, upload.AltText)">
-                        <b-form-radio v-model="selectedRadio"
+                        <b-form-radio v-model="selectedImageId"
                                       name="radio"
                                       :value="upload.Id"
                                       class="custom-control-success check-image">
                         </b-form-radio>
                         <b-img rounded
                                :key="upload.Id"
-                               :src="require('@/assets/images/media/' + upload.FileName)"
+                               :src="upload.FileName == null ? '' : require('@/assets/images/media/' + upload.FileName)"
                                :alt="upload.AltText"
                                class="d-inline-block select-image" />
                     </b-list-group-item>
@@ -108,13 +108,7 @@
                 selectedImageFileName: '',
                 selectedImageAltText: '',
                 isHiddenMultiDeleteButton: false,
-                isHiddenRowActions: false,
-                fields: [
-                    { key: 'Id', sortable: false, thStyle: { width: "20px" } },
-                    { key: 'Name', label: 'İSİM', sortable: true, thStyle: { width: "200px" } },
-                    { key: 'Description', label: 'Açıklama', sortable: true },
-                    { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }],
+                isHiddenRowActions: false,             
                 checkedRows: [],
                 checkedRowsCount: 0
             }
@@ -283,7 +277,6 @@
                         }
                     })
                     .catch((error) => {
-                        console.log(error);
                         this.$toast({
                             component: ToastificationContent,
                             props: {

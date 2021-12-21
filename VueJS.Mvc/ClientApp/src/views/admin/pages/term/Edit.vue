@@ -1,222 +1,236 @@
 ﻿<template>
-    <b-row>
-        <modal-media v-bind:show="modalShow"
-                     @changeImage="imageChange"
-                     ref="modalMedia"></modal-media>
-        <b-col md="12"
-               lg="4">
-            <b-card :title="formTitle">
-                <validation-observer ref="simpleRules">
-                    <b-form>
-                        <b-row>
-                            <b-col cols="12">
-                                <b-form-group label-for="Name"
-                                              description="Sitenizde gösterilecek olan isim.">
-                                    <validation-provider #default="{ errors }"
-                                                         name="Name"
-                                                         vid="Name"
-                                                         rules="required">
-                                        <b-form-input id="Name"
-                                                      v-model="termUpdateDto.Name"
-                                                      :state="errors.length > 0 ? false:null"
-                                                      type="text"
-                                                      :placeholder="namePlaceholder" />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
-                                </b-form-group>
-
-                                <b-form-group label-for="slug"
-                                              description="'slug' yazı isminin URL versiyonudur. Genellikle tümü küçük harflerden oluşur, sadece harf, rakam ve tire içerir.">
-                                    <b-form-input id="slug"
-                                                  v-model="termUpdateDto.Slug"
-                                                  type="text"
-                                                  placeholder="Kısa İsim" />
-                                </b-form-group>
-
-                                <b-form-group v-show="isParent"
-                                              label-for="parentTerms"
-                                              description="Mevcut kategori için üst kategoriyi buradan seçebilirsiniz.">
-                                    <v-select id="parentTerms"
-                                              v-model="selected"
-                                              :options="allParentTerms"
-                                              label="Name"
-                                              :reduce="(option) => option.Id"
-                                              placeholder="Üst Kategori Seçiniz..."
-                                              @input="onChangeMethod($event)" />
-                                </b-form-group>
-
-                                <b-form-textarea id="description"
-                                                 v-model="termUpdateDto.Description"
-                                                 placeholder="Açıklama"
-                                                 rows="3" />
-
-                                <!-- reset button -->
-                                <b-button variant="primary"
-                                          class="float-right mt-1"
-                                          type="submit"
-                                          @click.prevent="validationForm">
-                                    Güncelle
-                                </b-button>
-                            </b-col>
-                        </b-row>
-                    </b-form>
-                </validation-observer>
-            </b-card>
-        </b-col>
-        <b-col md="12"
-               lg="8">
-            <b-card title="SEO Ayarları">
-                <b-tabs>
-                    <b-tab title="Genel"
-                           active>
+    <div v-if="doHaveData === true">
+        <b-row>
+            <modal-media v-bind:show="modalShow"
+                         @changeImage="imageChange"
+                         ref="modalMedia"></modal-media>
+            <b-col md="12"
+                   lg="4">
+                <b-card :title="formTitle">
+                    <validation-observer ref="simpleRules">
                         <b-form>
                             <b-row>
                                 <b-col cols="12">
-                                    <b-form-group label-for="SeoTitle"
-                                                  description="Arama motoru optimizasyonu için geçerli olan SEO Başlığının uzunluğu 60 karakter olarak önerilir.">
-                                        <b-form-input id="SeoTitle"
-                                                      v-model="seoObjectSettingUpdateDto.SeoTitle"
+                                    <b-form-group label-for="Name"
+                                                  description="Sitenizde gösterilecek olan isim.">
+                                        <validation-provider #default="{ errors }"
+                                                             name="Name"
+                                                             vid="Name"
+                                                             rules="required">
+                                            <b-form-input id="Name"
+                                                          v-model="termUpdateDto.Name"
+                                                          :state="errors.length > 0 ? false:null"
+                                                          type="text"
+                                                          :placeholder="namePlaceholder" />
+                                            <small class="text-danger">{{ errors[0] }}</small>
+                                        </validation-provider>
+                                    </b-form-group>
+
+                                    <b-form-group label-for="Slug"
+                                                  description="'slug' yazı isminin URL versiyonudur. Genellikle tümü küçük harflerden oluşur, sadece harf, rakam ve tire içerir.">
+                                        <b-form-input id="Slug"
+                                                      v-model="termUpdateDto.Slug"
                                                       type="text"
-                                                      placeholder="Seo Başlığı" />
-                                    </b-form-group>
-                                    <b-form-group label-for="keyword"
-                                                  description="Bazı arama motorları için hala geçerli olan kelimeler, içerikle ilgili olacak şekilde maksimum 5 adet girilmesi önerilir.">
-                                        <b-form-tags v-model="keywords"
-                                                     input-id="tags-basic"
-                                                     id="keyword"
-                                                     class="mb-2"
-                                                     placeholder="Anahtar kelime giriniz." />
+                                                      placeholder="Kısa İsim" />
                                     </b-form-group>
 
-                                    <b-form-group label-for="SeoDescription"
-                                                  description="Arama motoru optimizayonu için geçerli olan SEO açıklamasının uzunluğu 50-160 karakter arasında girilmesi önerilir.">
-                                        <b-form-textarea id="SeoDescription"
-                                                         v-model="seoObjectSettingUpdateDto.SeoDescription"
-                                                         placeholder="Meta Açıklama"
-                                                         rows="3" />
+                                    <b-form-group v-show="isParent"
+                                                  label-for="parentTerms"
+                                                  description="Mevcut kategori için üst kategoriyi buradan seçebilirsiniz.">
+                                        <v-select id="parentTerms"
+                                                  v-model="selected"
+                                                  :options="allParentTerms"
+                                                  label="Name"
+                                                  :reduce="(option) => option.Id"
+                                                  placeholder="Üst Kategori Seçiniz..."
+                                                  @input="onChangeMethod($event)" />
                                     </b-form-group>
 
-                                    <b-form-group label-for="CanonicalUrl"
-                                                  description="Geçerli terim ile benzer içeriğe sahip olan terimin linkini giriniz.">
-                                        <b-form-input id="CanonicalUrl"
-                                                      v-model="seoObjectSettingUpdateDto.CanonicalUrl"
-                                                      type="text"
-                                                      placeholder="Benzer Link" />
-                                    </b-form-group>
+                                    <b-form-textarea id="description"
+                                                     v-model="termUpdateDto.Description"
+                                                     placeholder="Açıklama"
+                                                     rows="3" />
 
-                                    <b-form-group>
-                                        <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoIndex"
-                                                         name="check-button"
-                                                         switch
-                                                         inline>
-                                            Arama motorlarının bu terimi arama sonuçlarında göstermesini istiyor musunuz?
-                                        </b-form-checkbox>
-                                    </b-form-group>
+                                    <!-- reset button -->
+                                    <b-button variant="primary"
+                                              class="float-right mt-1"
+                                              type="submit"
+                                              @click.prevent="validationForm">
+                                        Güncelle
+                                    </b-button>
+                                    <b-button variant="flat-danger"
+                                              class="float-right mt-1 mr-1"
+                                              type="button"
+                                              @click="deleteData">
+                                        Kalıcı Sil
+                                    </b-button>
                                 </b-col>
                             </b-row>
                         </b-form>
-                    </b-tab>
-                    <b-tab title="Sosyal Medya">
+                    </validation-observer>
+                </b-card>
+            </b-col>
+            <b-col md="12"
+                   lg="8">
+                <b-card title="SEO Ayarları">
+                    <b-tabs>
+                        <b-tab title="Genel"
+                               active>
+                            <b-form>
+                                <b-row>
+                                    <b-col cols="12">
+                                        <b-form-group label-for="SeoTitle"
+                                                      description="Arama motoru optimizasyonu için geçerli olan SEO Başlığının uzunluğu 60 karakter olarak önerilir.">
+                                            <b-form-input id="SeoTitle"
+                                                          v-model="seoObjectSettingUpdateDto.SeoTitle"
+                                                          type="text"
+                                                          placeholder="Seo Başlığı" />
+                                        </b-form-group>
+                                        <b-form-group label-for="keyword"
+                                                      description="Bazı arama motorları için hala geçerli olan kelimeler, içerikle ilgili olacak şekilde maksimum 5 adet girilmesi önerilir.">
+                                            <b-form-tags v-model="keywords"
+                                                         input-id="tags-basic"
+                                                         id="keyword"
+                                                         class="mb-2"
+                                                         placeholder="Anahtar kelime giriniz." />
+                                        </b-form-group>
 
-                        <b-row class="kb-search-content-info match-height">
+                                        <b-form-group label-for="SeoDescription"
+                                                      description="Arama motoru optimizayonu için geçerli olan SEO açıklamasının uzunluğu 50-160 karakter arasında girilmesi önerilir.">
+                                            <b-form-textarea id="SeoDescription"
+                                                             v-model="seoObjectSettingUpdateDto.SeoDescription"
+                                                             placeholder="Meta Açıklama"
+                                                             rows="3" />
+                                        </b-form-group>
 
-                            <b-col lg="4"
-                                   md="4"
-                                   sm="6"
-                                   class="kb-search-content">
-                                <b-img rounded
-                                       :src="require('@/assets/images/media' + openGraphImage.fileName)"
-                                       :alt="openGraphImage.altText"
-                                       class="d-inline-block mr-1 mb-1 w-100 h-100" />
-                            </b-col>
-                            <b-col lg="3"
-                                   md="3"
-                                   sm="6">
-                                <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                          variant="primary"
-                                          size="sm"
-                                          class="mb-75 mr-75"
-                                          v-b-modal.modal-media
-                                          @click="selectedOpenGraphImage">
-                                    Resim Seç
-                                </b-button>
-                                <!--/ upload button -->
-                                <!-- reset -->
-                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                          variant="outline-secondary"
-                                          size="sm"
-                                          class="mb-75 mr-75">
-                                    Resmi Kaldır
-                                </b-button>
-                                <b-input type="text"
-                                         v-model="openGraphImage.id"></b-input>
-                            </b-col>
-                        </b-row>
+                                        <b-form-group label-for="CanonicalUrl"
+                                                      description="Geçerli terim ile benzer içeriğe sahip olan terimin linkini giriniz.">
+                                            <b-form-input id="CanonicalUrl"
+                                                          v-model="seoObjectSettingUpdateDto.CanonicalUrl"
+                                                          type="text"
+                                                          placeholder="Benzer Link" />
+                                        </b-form-group>
 
-                        <b-form-group>
-                            <b-form-input id="OpenGraphTitle"
-                                          v-model="seoObjectSettingUpdateDto.OpenGraphTitle"
-                                          type="text"
-                                          placeholder="Sosyal Medya Başlığı" />
-                        </b-form-group>
-                        <b-form-group>
-                            <b-form-textarea id="OpenGraphDescription"
-                                             v-model="seoObjectSettingUpdateDto.OpenGraphDescription"
-                                             placeholder="Sosyal Medya Açıklaması"
-                                             rows="3" />
-                        </b-form-group>
-                    </b-tab>
-                    <b-tab title="Twitter">
-                        <b-row class="kb-search-content-info match-height">
-                            <b-col lg="4"
-                                   md="4"
-                                   sm="6"
-                                   class="kb-search-content">
-                                <b-img rounded
-                                       :src="require('@/assets/images/media' + twitterImage.fileName)"
-                                       :alt="twitterImage.altText"
-                                       class="d-inline-block mr-1 mb-1 w-100 h-100" />
-                            </b-col>
-                            <b-col lg="3"
-                                   md="3"
-                                   sm="6">
-                                <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                          variant="primary"
-                                          size="sm"
-                                          class="mb-75 mr-75"
-                                          v-b-modal.modal-media
-                                          @click="selectedTwitterImage">
-                                    Resim Seç
-                                </b-button>
-                                <!--/ upload button -->
-                                <!-- reset -->
-                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                          variant="outline-secondary"
-                                          size="sm"
-                                          class="mb-75 mr-75">
-                                    Resmi Kaldır
-                                </b-button>
-                                <b-input type="text"
-                                         v-model="twitterImage.id"></b-input>
-                            </b-col>
-                        </b-row>
-                        <b-form-group>
-                            <b-form-input id="TwitterTitle"
-                                          v-model="seoObjectSettingUpdateDto.TwitterTitle"
-                                          type="text"
-                                          placeholder="Twitter Başlığı" />
-                        </b-form-group>
-                        <b-form-group>
-                            <b-form-textarea id="TwitterDescription"
-                                             v-model="seoObjectSettingUpdateDto.TwitterDescription"
-                                             placeholder="Twitter Açıklaması"
-                                             rows="3" />
-                        </b-form-group>
-                    </b-tab>
-                </b-tabs>
-            </b-card>
-        </b-col>
-    </b-row>
+                                        <b-form-group>
+                                            <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoIndex"
+                                                             name="check-button"
+                                                             switch
+                                                             inline>
+                                                Arama motorlarının bu terimi arama sonuçlarında göstermesini istiyor musunuz?
+                                            </b-form-checkbox>
+                                        </b-form-group>
+                                    </b-col>
+                                </b-row>
+                            </b-form>
+                        </b-tab>
+                        <b-tab title="Sosyal Medya">
+
+                            <b-row class="kb-search-content-info match-height">
+
+                                <b-col lg="4"
+                                       md="4"
+                                       sm="6"
+                                       class="image-thumb ml-1">
+                                    <b-img rounded
+                                           v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
+                                           :alt="openGraphImage.altText" />
+                                </b-col>
+                                <b-col lg="3"
+                                       md="3"
+                                       sm="6">
+                                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                                              variant="primary"
+                                              size="sm"
+                                              class="mb-75 mr-75"
+                                              v-b-modal.modal-media
+                                              @click="selectedOpenGraphImage">
+                                        Resim Seç
+                                    </b-button>
+                                    <!--/ upload button -->
+                                    <!-- reset -->
+                                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                              variant="outline-secondary"
+                                              size="sm"
+                                              class="mb-75 mr-75"
+                                              @click="removedOpenGraphImage">
+                                        Resmi Kaldır
+                                    </b-button>
+                                    <b-form-input type="text"
+                                                  hidden
+                                                  v-model="openGraphImage.id"></b-form-input>
+                                </b-col>
+                            </b-row>
+
+                            <b-form-group class="mt-1">
+                                <b-form-input id="OpenGraphTitle"
+                                              v-model="seoObjectSettingUpdateDto.OpenGraphTitle"
+                                              type="text"
+                                              placeholder="Sosyal Medya Başlığı" />
+                            </b-form-group>
+                            <b-form-group>
+                                <b-form-textarea id="OpenGraphDescription"
+                                                 v-model="seoObjectSettingUpdateDto.OpenGraphDescription"
+                                                 placeholder="Sosyal Medya Açıklaması"
+                                                 rows="3" />
+                            </b-form-group>
+                        </b-tab>
+                        <b-tab title="Twitter">
+                            <b-row class="kb-search-content-info match-height">
+                                <b-col lg="4"
+                                       md="4"
+                                       sm="6"
+                                       class="image-thumb ml-1">
+                                    <b-img rounded
+                                           v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
+                                           :alt="twitterImage.altText" />
+                                </b-col>
+                                <b-col lg="3"
+                                       md="3"
+                                       sm="6">
+                                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                                              variant="primary"
+                                              size="sm"
+                                              class="mb-75 mr-75"
+                                              v-b-modal.modal-media
+                                              @click="selectedTwitterImage">
+                                        Resim Seç
+                                    </b-button>
+                                    <!--/ upload button -->
+                                    <!-- reset -->
+                                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                              variant="outline-secondary"
+                                              size="sm"
+                                              class="mb-75 mr-75"
+                                              @click="removedTwitterImage">
+                                        Resmi Kaldır
+                                    </b-button>
+                                    <b-form-input type="text"
+                                                  hidden
+                                                  v-model="twitterImage.id"></b-form-input>
+                                </b-col>
+                            </b-row>
+                            <b-form-group class="mt-1">
+                                <b-form-input id="TwitterTitle"
+                                              v-model="seoObjectSettingUpdateDto.TwitterTitle"
+                                              type="text"
+                                              placeholder="Twitter Başlığı" />
+                            </b-form-group>
+                            <b-form-group>
+                                <b-form-textarea id="TwitterDescription"
+                                                 v-model="seoObjectSettingUpdateDto.TwitterDescription"
+                                                 placeholder="Twitter Açıklaması"
+                                                 rows="3" />
+                            </b-form-group>
+                        </b-tab>
+                    </b-tabs>
+                </b-card>
+            </b-col>
+        </b-row>
+    </div>
+    <div v-else-if="doHaveData === false"
+         class="error-message">
+        Mevcut olmayan bir ögeyi düzenlemeye çalıştınız. Belki daha önceden silinmiş olabilir mi?
+    </div>
 </template>
 
 <script>
@@ -281,6 +295,7 @@
         },
         data() {
             return {
+                doHaveData: Boolean,
                 required,
                 min,
                 confirmed,
@@ -289,7 +304,6 @@
                 isParent: false,
                 selected: '',
                 selectedValue: null,
-                name: "",
                 fields: [{ key: 'Id', sortable: false, thStyle: { width: "20px", padding: "0.72rem !important" } }, { key: 'Name', label: 'İSİM', sortable: true, thStyle: { padding: "0.72rem  !important" } }, { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "50px", padding: "0.72rem  !important" } }, { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "80px", padding: "0.72rem  !important", textalign: "center" } }],
                 formTitle: "",
                 namePlaceholder: "",
@@ -302,7 +316,9 @@
                     TermType: "",
                 },
                 seoObjectSettingUpdateDto: {
+                    Id: "",
                     SeoTitle: "",
+                    FocusKeyword: "",
                     SeoDescription: "",
                     CanonicalUrl: "",
                     IsRobotsNoIndex: false,
@@ -314,24 +330,22 @@
                     TwitterDescription: "",
                 },
                 keywords: [],
-                openGraphImage: "",
-                twitterImage: "",
                 modalShow: false,
+                noImage: require('@/assets/images/default/default-post-image.jpg'),
                 openGraphImage: {
-                    id: 1,
-                    fileName: '1',
-                    altText: '1'
+                    id: null,
+                    fileName: null,
+                    altText: null
                 },
                 twitterImage: {
-                    id: 1,
-                    fileName: '1',
-                    altText: '1'
+                    id: null,
+                    fileName: null,
+                    altText: null
                 },
                 isOpenGraphImageChoose: false,
                 isTwitterImageChoose: false,
             }
         },
-
         methods: {
             imageChange(id, name, altText) {
                 if (this.isOpenGraphImageChoose == true) {
@@ -350,9 +364,19 @@
                 this.isOpenGraphImageChoose = true;
                 this.modalShow = true;
             },
-            selectedTwitterImage(twitterImage) {
+            selectedTwitterImage() {
                 this.isTwitterImageChoose = true;
                 this.modalShow = true;
+            },
+            removedOpenGraphImage() {
+                this.openGraphImage.id = null;
+                this.openGraphImage.fileName = null;
+                this.openGraphImage.altText = null;
+            },
+            removedTwitterImage() {
+                this.twitterImage.id = null;
+                this.twitterImage.fileName = null;
+                this.twitterImage.altText = null;
             },
             onChangeMethod(value) {
                 this.termUpdateDto.ParentId = value;
@@ -360,6 +384,9 @@
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
+                        this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
+                        this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
+                        this.seoObjectSettingUpdateDto.TwitterImageId = this.twitterImage.id;
                         axios.post('/admin/term/edit',
                             {
                                 TermUpdateDto: this.termUpdateDto,
@@ -392,10 +419,10 @@
                     }
                 })
             },
-            singleDeleteData(id, name) {
+            deleteData() {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " isimli terim kalıcı olarak silinecektir?",
+                    text: this.termUpdateDto.Name + " isimli terim kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -407,32 +434,34 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/term/delete',
-                            {
-                                term: id
-                            })
+                        axios.post('/admin/term/delete?term=' + this.termUpdateDto.Id)
                             .then((response) => {
                                 if (response.data.ResultStatus === 0) {
+                                    if (this.termUpdateDto.TermType === 2) {
+                                        this.$router.push({ path: '/admin/categories' });
+                                    }
+                                    else if (this.termUpdateDto.TermType === 3) {
+                                        this.$router.push({ path: '/admin/tags' });
+                                    }
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
                                             variant: 'success',
                                             title: 'Başarılı İşlem!',
                                             icon: 'CheckIcon',
-                                            text: response.data.Message
+                                            text: this.termUpdateDto.Name + ' adlı terim silindi.',
                                         }
                                     })
-                                    this.getAllData();
                                 }
                             })
-                            .catch(function (error) {
+                            .catch((error) => {
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
                                         variant: 'danger',
                                         title: 'Hata Oluştu!',
                                         icon: 'AlertOctagonIcon',
-                                        text: error,
+                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
                                     },
                                 })
                             });
@@ -440,66 +469,65 @@
                 })
             },
             getData() {
-                console.log(ModalMedia.selectedRadio)
                 axios.get('/admin/term/edit?term=' + this.$route.query.edit)
                     .then((response) => {
-                        if (response.data.termResult.ResultStatus === 0) {
-                            this.termUpdateDto.Name = response.data.termResult.Data.Name;
-                            this.termUpdateDto.Slug = response.data.termResult.Data.Slug;
+                        if (response.data.TermUpdateDto != null) {
+                            this.doHaveData = true;
+                            this.termUpdateDto.Name = response.data.TermUpdateDto.Name;
+                            this.termUpdateDto.Slug = response.data.TermUpdateDto.Slug;
 
-                            this.termUpdateDto.ParentId = response.data.termResult.Data.ParentId;
-                            this.termUpdateDto.Description = response.data.termResult.Data.Description;
-                            this.termUpdateDto.TermType = response.data.termResult.Data.TermType;
+                            this.termUpdateDto.ParentId = response.data.TermUpdateDto.ParentId;
+                            this.termUpdateDto.Description = response.data.TermUpdateDto.Description;
+                            this.termUpdateDto.TermType = response.data.TermUpdateDto.TermType;
 
-                            this.seoObjectSettingUpdateDto.SeoTitle = response.data.seoResult.Data.SeoTitle;
-                            this.seoObjectSettingUpdateDto.SeoDescription = response.data.seoResult.Data.SeoDescription;
-                            this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.seoResult.Data.CanonicalUrl;
-                            this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.seoResult.Data.IsRobotsNoIndex;
-                            this.seoObjectSettingUpdateDto.OpenGraphImageId = response.data.seoResult.Data.OpenGraphImageId;
-                            this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.seoResult.Data.OpenGraphTitle;
-                            this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.seoResult.Data.OpenGraphDescription;
-                            this.seoObjectSettingUpdateDto.TwitterImageId = response.data.seoResult.Data.TwitterImageId;
-                            this.seoObjectSettingUpdateDto.TwitterTitle = response.data.seoResult.Data.TwitterTitle;
-                            this.seoObjectSettingUpdateDto.TwitterDescription = response.data.seoResult.Data.TwitterDescription;
+                            this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
+                            this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
+                            this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
+                            this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
+                            this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
 
-                            this.keywords = response.data.seoResult.Data.FocusKeyword == null ? [] : response.data.seoResult.Data.FocusKeyword.split(',');
+    
+                            this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
+                            this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
+                            
+                            this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
+                            this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
 
-                            if (response.data.seoResult.Data.OpenGraphImage != null) {
-                                this.openGraphImage = response.data.seoResult.Data.OpenGraphImage.FileName;
+                            this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
+
+                            if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
+                                this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
+                                this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
+                                this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
                             }
 
-                            if (response.data.seoResult.Data.TwitterImage != null) {
-                                this.twitterImage = response.data.seoResult.Data.TwitterImage.FileName;
+                            if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
+                                this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
+                                this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
+                                this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
                             }
 
-                            if (response.data.termResult.Data.TermType === 2) {
+                            if (response.data.TermUpdateDto.TermType === 2) {
                                 this.isParent = true;
-                                this.selected = {
-                                    Id: response.data.Data.Parent.Id,
-                                    Name: response.data.Data.Parent.Name,
+                                if (response.data.TermUpdateDto.Parent != null) {
+                                    this.selected = {
+                                        Id: response.data.TermUpdateDto.Parent.Id,
+                                        Name: response.data.TermUpdateDto.Parent.Name,
+                                    }
                                 }
                                 this.formTitle = "Kategori Ekle";
                                 this.namePlaceholder = "Kategori Adı";
                             }
-                            else if (response.data.termResult.Data.TermType === 3) {
+                            else if (response.data.TermUpdateDto.TermType === 3) {
                                 this.formTitle = "Etiket Ekle";
                                 this.namePlaceholder = "Etiket Adı";
                             }
                         }
                         else {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: response.data.termResult.Message,
-                                }
-                            })
+                            this.doHaveData = false;
                         }
                     })
                     .catch((error) => {
-                        console.log(error)
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -551,4 +579,36 @@
 
 <style lang="scss">
     @import '@core/scss/vue/libs/vue-select.scss';
+
+    .error-message {
+        background: #ffffff !important;
+        padding: 25px;
+        text-align: center;
+        border-radius: 5px;
+        -webkit-box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
+        -moz-box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
+        box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
+    }
+
+    .image-thumb {
+        width: 100%;
+        height: 200px;
+        -webkit-box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
+        -moz-box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
+        box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
+        position: relative;
+        border-radius: 5px;
+    }
+
+    .image-thumb img {
+        max-height: 100%;
+        max-width: 100%;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        padding: 5px;
+    }
 </style>
