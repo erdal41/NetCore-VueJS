@@ -16,11 +16,11 @@
             },
             {
                 title: 'Kategoriler',
-                route: { name: 'pages-category-list' }
+                route: { name: 'pages-category-list', query: { term_type: 'category' } }
             },
             {
                 title: 'Etiketler',
-                route: { name: 'pages-tag-list' }
+                route: { name: 'pages-tag-list', query: { term_type: 'tag' } }
             },
         ],
     },

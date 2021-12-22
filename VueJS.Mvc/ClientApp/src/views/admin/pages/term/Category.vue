@@ -67,131 +67,127 @@
                             ref="refreshData"
                             @refresh="getAllData()"
                             no-body>
-                <div>
-                    <b-card-body>
-                        <div class="d-flex justify-content-between flex-wrap">
-                            <b-form-group v-if="isHiddenMultiDeleteButton === true"
-                                          class="mb-0">
-                                <b-button variant="danger"
-                                          size="sm">
-                                    <feather-icon icon="Trash2Icon"
-                                                  class="mr-50" />
-                                    <span class="align-middle">{{ checkedRowsCount }} Kategoriyi Sil</span>
-                                </b-button>
-                                <b-button v-b-tooltip.hover
-                                          title="Seçili kayıtları kalıcı olarak siler. Bu işlem geri alınamaz."
-                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                          variant="flat-secondary"
-                                          size="sm"
-                                          class="btn-icon rounded-circle ml-0">
-                                    <feather-icon icon="InfoIcon" />
-                                </b-button>
-                            </b-form-group>
-                            <div></div>
-                            <!-- filter -->
-                            <b-form-group class="mb-0">
-                                <b-input-group size="sm">
-                                    <b-form-input id="filterInput"
-                                                  v-model="filter"
-                                                  type="search"
-                                                  placeholder="Aranacak kelimeyi giriniz..." />
-                                    <b-input-group-append>
-                                        <b-button :disabled="!filter"
-                                                  @click="filter = ''">
-                                            Temizle
-                                        </b-button>
-                                    </b-input-group-append>
-                                </b-input-group>
-                            </b-form-group>
-                        </div>
-                    </b-card-body>
-                    <b-table :items="terms"
-                             :fields="fields"
-                             :per-page="perPage"
-                             ref="table"
-                             :current-page="currentPage"
-                             :filter="filter"
-                             :filter-included-fields="filterOn"
-                             @filtered="onFiltered"
-                             class="mb-0"
-                             @row-hovered="rowHovered"
-                             @row-unhovered="rowUnHovered">
-                        <template #head(Id)="slot">
-                            <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(Id)="row">
-                            <b-form-checkbox :value="row.item.Id.toString()"
-                                             :id="row.item.Id.toString()"
-                                             v-model="checkedRows"
-                                             @change="checkChange($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(Name)="row">
-                            <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
-                                <b>{{row.item.Name}}</b>
-                            </b-link>
-                            <div class="row-actions">
-                                <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
-                                            class="text-primary small">Görüntüle</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
-                                            class="text-success small"
-                                            variant="flat-danger">Düzenle</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link href=""
-                                            no-prefetch
-                                            class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
-                                </div>
-                            </div>
-                        </template>
-                    </b-table>
-
-                    <b-card-body class="d-flex justify-content-between flex-wrap pt-1">
-
-                        <!-- page length -->
-                        <b-form-group label="Kayıt Sayısı: "
-                                      label-cols="6"
-                                      label-align="left"
-                                      label-size="sm"
-                                      label-for="sortBySelect"
-                                      class="text-nowrap mb-md-0 mr-1">
-                            <b-form-select id="perPageSelect"
-                                           v-model="perPage"
-                                           size="sm"
-                                           inline
-                                           :options="pageOptions" />
+                <b-card-body>
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <b-form-group v-if="isHiddenMultiDeleteButton === true"
+                                      class="mb-0">
+                            <b-button variant="danger"
+                                      size="sm">
+                                <feather-icon icon="Trash2Icon"
+                                              class="mr-50" />
+                                <span class="align-middle">{{ checkedRowsCount }} Kategoriyi Sil</span>
+                            </b-button>
+                            <b-button v-b-tooltip.hover
+                                      title="Seçili kayıtları kalıcı olarak siler. Bu işlem geri alınamaz."
+                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                      variant="flat-secondary"
+                                      size="sm"
+                                      class="btn-icon rounded-circle ml-0">
+                                <feather-icon icon="InfoIcon" />
+                            </b-button>
                         </b-form-group>
-
-                        <!-- pagination -->
-                        <div>
-                            <b-pagination v-model="currentPage"
-                                          :total-rows="totalRows"
-                                          :per-page="perPage"
-                                          first-number
-                                          last-number
-                                          prev-class="prev-item"
-                                          next-class="next-item"
-                                          class="mb-0">
-                                <template #prev-text>
-                                    <feather-icon icon="ChevronLeftIcon"
-                                                  size="18" />
-
-
-                                </template>
-
-
-                                <template #next-text>
-                                    <feather-icon icon="ChevronRightIcon"
-                                                  size="18" />
-                                </template>
-                            </b-pagination>
+                        <div></div>
+                        <!-- filter -->
+                        <b-form-group class="mb-0">
+                            <b-input-group size="sm">
+                                <b-form-input id="filterInput"
+                                              v-model="filter"
+                                              type="search"
+                                              placeholder="Aranacak kelimeyi giriniz..." />
+                                <b-input-group-append>
+                                    <b-button :disabled="!filter"
+                                              @click="filter = ''">
+                                        Temizle
+                                    </b-button>
+                                </b-input-group-append>
+                            </b-input-group>
+                        </b-form-group>
+                    </div>
+                </b-card-body>
+                <b-table :items="terms"
+                         :fields="fields"
+                         :per-page="perPage"
+                         ref="table"
+                         :current-page="currentPage"
+                         :filter="filter"
+                         :filter-included-fields="filterOn"
+                         @filtered="onFiltered"
+                         class="mb-0"
+                         @row-hovered="rowHovered"
+                         @row-unhovered="rowUnHovered">
+                    <template #head(Id)="slot">
+                        <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Id)="row">
+                        <b-form-checkbox :value="row.item.Id.toString()"
+                                         :id="row.item.Id.toString()"
+                                         v-model="checkedRows"
+                                         @change="checkChange($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Name)="row">
+                        <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
+                            <b>{{row.item.Name}}</b>
+                        </b-link>
+                        <div class="row-actions">
+                            <div v-if="isHovered(row.item) && isHiddenRowActions">
+                                <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                        class="text-primary small">Görüntüle</b-link>
+                                <small class="text-muted"> | </small>
+                                <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                        class="text-success small"
+                                        variant="flat-danger">Düzenle</b-link>
+                                <small class="text-muted"> | </small>
+                                <b-link href="javascript:;"
+                                        no-prefetch
+                                        class="text-danger small"
+                                        @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
+                            </div>
                         </div>
-                    </b-card-body>
-                </div>
-                <!--<template #code>
-                    {{ codeRowDetailsSupport }}
-                </template>-->
+                    </template>
+                </b-table>
+                <div v-show="terms.length <= 0"
+                     class="text-center mt-1">{{ dataNullMessage  }}</div>
+                <b-card-body class="d-flex justify-content-between flex-wrap pt-1">
+
+                    <!-- page length -->
+                    <b-form-group label="Kayıt Sayısı: "
+                                  label-cols="6"
+                                  label-align="left"
+                                  label-size="sm"
+                                  label-for="sortBySelect"
+                                  class="text-nowrap mb-md-0 mr-1">
+                        <b-form-select id="perPageSelect"
+                                       v-model="perPage"
+                                       size="sm"
+                                       inline
+                                       :options="pageOptions" />
+                    </b-form-group>
+
+                    <!-- pagination -->
+                    <div>
+                        <b-pagination v-model="currentPage"
+                                      :total-rows="totalRows"
+                                      :per-page="perPage"
+                                      first-number
+                                      last-number
+                                      prev-class="prev-item"
+                                      next-class="next-item"
+                                      class="mb-0">
+                            <template #prev-text>
+                                <feather-icon icon="ChevronLeftIcon"
+                                              size="18" />
+
+
+                            </template>
+
+
+                            <template #next-text>
+                                <feather-icon icon="ChevronRightIcon"
+                                              size="18" />
+                            </template>
+                        </b-pagination>
+                    </div>
+                </b-card-body>
             </b-card-actions>
         </b-col>
     </b-row>
@@ -259,6 +255,7 @@
                 filter: null,
                 filterOn: [],
                 terms: [],
+                dataNullMessage: '',
                 allParentTerms: [],
                 selected: '',
                 selectedValue: null,
@@ -406,7 +403,7 @@
                                             variant: 'danger',
                                             title: 'Başarısız İşlem!',
                                             icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
+                                            text: response.data.Message
                                         },
                                     })
                                 }
@@ -437,19 +434,12 @@
                             this.terms = response.data.Terms;
                             this.allParentTerms = response.data.Terms;
                             this.$refs['refreshData'].showLoading = false;
-                            console.log(this.checkedRows)
-
                         }
                         else {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: this.title + ' listelenirken hata oluştu. ',
-                                }
-                            })
+                            this.$refs['refreshData'].showLoading = false;
+                            this.terms = [];
+                            this.allParentTerms = [];
+                            this.dataNullMessage = response.data.Message;
                         }
                     })
                     .catch((error) => {
@@ -459,7 +449,7 @@
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: this.title + ' listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });

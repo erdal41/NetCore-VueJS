@@ -38,27 +38,17 @@
 
             public static string Add(string categoryName)
             {
-                return $"{categoryName} adlı kategori başarıyla eklenmiştir.";
+                return $"{categoryName} adlı kategori başarıyla eklendi.";
             }
 
             public static string Update(string categoryName)
             {
-                return $"{categoryName} adlı kategori başarıyla güncellenmiştir.";
+                return $"{categoryName} adlı kategori başarıyla güncellendi.";
             }
 
             public static string Delete(string categoryName)
             {
-                return $"{categoryName} adlı kategori başarıyla silinmiştir.";
-            }
-
-            public static string HardDelete(string categoryName)
-            {
-                return $"{categoryName} adlı kategori başarıyla veritabanından silinmiştir.";
-            }
-
-            public static string UndoDelete(string categoryName)
-            {
-                return $"{categoryName} adlı kategori başarıyla arşivden geri getirilmiştir.";
+                return $"{categoryName} adlı kategori başarıyla silindi.";
             }
         }
 
@@ -82,27 +72,17 @@
 
             public static string Add(string tagName)
             {
-                return $"{tagName} adlı etiket başarıyla eklenmiştir.";
+                return $"{tagName} adlı etiket başarıyla eklendi.";
             }
 
             public static string Update(string tagName)
             {
-                return $"{tagName} adlı etiket başarıyla güncellenmiştir.";
+                return $"{tagName} adlı etiket başarıyla güncellendi.";
             }
 
             public static string Delete(string tagName)
             {
-                return $"{tagName} adlı etiket başarıyla silinmiştir.";
-            }
-
-            public static string HardDelete(string tagName)
-            {
-                return $"{tagName} adlı etiket başarıyla veritabanından silinmiştir.";
-            }
-
-            public static string UndoDelete(string tagName)
-            {
-                return $"{tagName} adlı etiket başarıyla arşivden geri getirilmiştir.";
+                return $"{tagName} adlı etiket başarıyla silindi.";
             }
         }
 
@@ -126,27 +106,27 @@
 
             public static string Add(string articleTitle)
             {
-                return $"{articleTitle} başlıklı makale başarıyla eklenmiştir.";
+                return $"{articleTitle} başlıklı makale başarıyla eklendi.";
             }
 
             public static string Update(string articleTitle)
             {
-                return $"{articleTitle} başlıklı makale başarıyla güncellenmiştir.";
+                return $"{articleTitle} başlıklı makale başarıyla güncellendi.";
             }
 
             public static string Delete(string articleTitle)
             {
-                return $"{articleTitle} başlıklı makale başarıyla silinmiştir.";
+                return $"{articleTitle} başlıklı makale başarıyla silindi.";
             }
 
             public static string HardDelete(string articleTitle)
             {
-                return $"{articleTitle} başlıklı makale başarıyla veritabanından silinmiştir.";
+                return $"{articleTitle} başlıklı makale başarıyla veritabanından silindi.";
             }
 
             public static string UndoDelete(string articleTitle)
             {
-                return $"{articleTitle} başlıklı makale başarıyla arşivden geri getirilmiştir.";
+                return $"{articleTitle} başlıklı makale başarıyla arşivden geri getirildi.";
             }
 
             public static string IncreaseViewCount(string articleTitle)
@@ -165,27 +145,27 @@
 
             public static string Add(string pageTitle)
             {
-                return $"{pageTitle} başlıklı sayfa başarıyla eklenmiştir.";
+                return $"{pageTitle} başlıklı sayfa başarıyla eklendi.";
             }
 
             public static string Update(string pageTitle)
             {
-                return $"{pageTitle} başlıklı sayfa başarıyla güncellenmiştir.";
+                return $"{pageTitle} başlıklı sayfa başarıyla güncellendi.";
             }
 
             public static string Delete(string pageTitle)
             {
-                return $"{pageTitle} başlıklı sayfa başarıyla silinmiştir.";
+                return $"{pageTitle} başlıklı sayfa başarıyla silindi.";
             }
 
             public static string HardDelete(string pageTitle)
             {
-                return $"{pageTitle} başlıklı sayfa başarıyla veritabanından silinmiştir.";
+                return $"{pageTitle} başlıklı sayfa başarıyla veritabanından silindi.";
             }
 
             public static string UndoDelete(string pageTitle)
             {
-                return $"{pageTitle} başlıklı sayfa başarıyla arşivden geri getirilmiştir.";
+                return $"{pageTitle} başlıklı sayfa başarıyla arşivden geri getirildi.";
             }
         }
 
@@ -253,17 +233,17 @@
 
             public static string Add(string uploadFileName)
             {
-                return $"{uploadFileName} adlı medya dosyası başarıyla eklenmiştir.";
+                return $"{uploadFileName} adlı medya dosyası başarıyla eklendi.";
             }
 
             public static string Update(string uploadFileName)
             {
-                return $"{uploadFileName} adlı medya dosyası başarıyla güncellenmiştir.";
+                return $"{uploadFileName} adlı medya dosyası başarıyla güncellendi.";
             }
 
             public static string Delete(string uploadFileName)
             {
-                return $"{uploadFileName} adlı medya dosyası başarıyla silinmiştir.";
+                return $"{uploadFileName} adlı medya dosyası başarıyla silindi.";
             }
         }
 
@@ -282,27 +262,27 @@
 
             public static string Add(string urlRedirectName)
             {
-                return $"{urlRedirectName} url başarıyla eklenmiştir.";
+                return $"{urlRedirectName} url başarıyla eklendi.";
             }
 
             public static string Update(string urlRedirectName)
             {
-                return $"{urlRedirectName} url başarıyla güncellenmiştir.";
+                return $"{urlRedirectName} url başarıyla güncellendi.";
             }
 
             public static string Delete(string urlRedirectName)
             {
-                return $"{urlRedirectName} url başarıyla silinmiştir.";
+                return $"{urlRedirectName} url başarıyla silindi.";
             }
 
             public static string HardDelete(string urlRedirectName)
             {
-                return $"{urlRedirectName} url başarıyla veritabanından silinmiştir.";
+                return $"{urlRedirectName} url başarıyla veritabanından silindi.";
             }
 
             public static string UndoDelete(string urlRedirectName)
             {
-                return $"{urlRedirectName} url başarıyla arşivden geri getirilmiştir.";
+                return $"{urlRedirectName} url başarıyla arşivden geri getirildi.";
             }
         }
 
@@ -326,27 +306,27 @@
 
             public static string Add(string productTitle)
             {
-                return $"{productTitle} başlıklı ürün başarıyla eklenmiştir.";
+                return $"{productTitle} başlıklı ürün başarıyla eklendi.";
             }
 
             public static string Update(string productTitle)
             {
-                return $"{productTitle} başlıklı ürün başarıyla güncellenmiştir.";
+                return $"{productTitle} başlıklı ürün başarıyla güncellendi.";
             }
 
             public static string Delete(string productTitle)
             {
-                return $"{productTitle} başlıklı ürün başarıyla silinmiştir.";
+                return $"{productTitle} başlıklı ürün başarıyla silindi.";
             }
 
             public static string HardDelete(string productTitle)
             {
-                return $"{productTitle} başlıklı ürün başarıyla veritabanından silinmiştir.";
+                return $"{productTitle} başlıklı ürün başarıyla veritabanından silindi.";
             }
 
             public static string UndoDelete(string productTitle)
             {
-                return $"{productTitle} başlıklı ürün başarıyla arşivden geri getirilmiştir.";
+                return $"{productTitle} başlıklı ürün başarıyla arşivden geri getirildi.";
             }
         }
 

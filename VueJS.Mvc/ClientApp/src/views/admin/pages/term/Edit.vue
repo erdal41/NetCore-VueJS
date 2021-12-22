@@ -393,15 +393,26 @@
                                 SeoObjectSettingUpdateDto: this.seoObjectSettingUpdateDto
                             })
                             .then((response) => {
-                                if (response.data.termResult.ResultStatus === 0) {
+                                if (response.data.TermDto.ResultStatus == 0) {
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
                                             variant: 'success',
                                             title: 'Başarılı İşlem!',
                                             icon: 'CheckIcon',
-                                            text: response.data.termResult.Message
+                                            text: response.data.TermDto.Message
                                         }
+                                    })
+                                }
+                                else {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'danger',
+                                            title: 'Başarısız İşlem!',
+                                            icon: 'AlertOctagonIcon',
+                                            text: response.data.TermDto.Message,
+                                        },
                                     })
                                 }
                             })
@@ -449,7 +460,7 @@
                                             variant: 'success',
                                             title: 'Başarılı İşlem!',
                                             icon: 'CheckIcon',
-                                            text: this.termUpdateDto.Name + ' adlı terim silindi.',
+                                            text: response.data.Message,
                                         }
                                     })
                                 }
@@ -471,6 +482,7 @@
             getData() {
                 axios.get('/admin/term/edit?term=' + this.$route.query.edit)
                     .then((response) => {
+                        console.log(response.data);
                         if (response.data.TermUpdateDto != null) {
                             this.doHaveData = true;
                             this.termUpdateDto.Name = response.data.TermUpdateDto.Name;

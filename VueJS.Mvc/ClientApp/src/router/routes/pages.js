@@ -9,14 +9,20 @@ export default [
         },
     },
     {
-        path: '/admin/categories',
+        path: '/admin/terms:term_type',
         name: 'pages-category-list',
         component: () => import('@/views/admin/pages/term/Category.vue'),
+        meta: {
+            resource: 'Auth',
+        }
     },
     {
-        path: '/admin/tags',
+        path: '/admin/terms/',
         name: 'pages-tag-list',
-        component: () => import('@/views/admin/pages/term/Tag.vue'),
+        component: () => import('@/views/admin/pages/term/Term.vue'),
+        meta: {
+            resource: 'Auth',
+        }
     },
     {
         path: '/admin/term',

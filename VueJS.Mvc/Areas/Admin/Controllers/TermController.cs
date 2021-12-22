@@ -38,7 +38,6 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> GetParentList(int? termId, string search)
         {
             var result = await _termService.GetAllParentAsync(termId, search);
-
             return new JsonResult(result.Data);
         }
 
@@ -52,51 +51,46 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             {
                 var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termViewModel.TermAddDto.TermType, termResult.Data.Term.Id, termViewModel.SeoObjectSettingAddDto, 1);
                 //await FileHelper.CreateSitemapInRootDirectoryAsync();
-
-                var termViewAjaxModel = new TermViewModel
+                var termViewModelJson = new TermViewModel
                 {
                     TermDto = termResult.Data,
                     SeoObjectSettingDto = seoResult.Data
                 };
-                return new JsonResult(termViewAjaxModel);
+                return new JsonResult(termViewModelJson);
             }
             else
             {
-                var termViewAjaxModel = new TermViewModel
+                var termViewModelJsonError = new TermViewModel
                 {
-                    TermDto = termResult.Data,
+                    TermDto = termResult.Data
                 };
-                return new JsonResult(termViewAjaxModel);
+                return new JsonResult(termViewModelJsonError);
             }
         }
 
         [HttpGet]
         [Route("/admin/term/edit")]
-        public async Task<JsonResult> Edit([FromQuery]int term)
+        public async Task<JsonResult> Edit([FromQuery] int term)
         {
             var termResult = await _termService.GetTermUpdateDtoAsync(term);
-            if (termResult.ResultStatus == ResultStatus.Success)
+            var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
+            if (termResult.ResultStatus == ResultStatus.Success && seoGeneralResult.ResultStatus == ResultStatus.Success)
             {
-                var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
                 var seoResult = await _seoService.GetSeoObjectSettingUpdateDtoAsync(term, termResult.Data.TermType);
-
-                var termViewModel = new TermViewModel
+                var termViewModelJson = new TermViewModel
                 {
                     TermUpdateDto = termResult.Data,
                     IsActiveCategorySeoSetting = seoGeneralResult.Data.IsActiveCategorySeoSetting,
                     IsActiveTagSeoSetting = seoGeneralResult.Data.IsActiveTagSeoSetting,
                     SeoObjectSettingUpdateDto = seoResult.Data
                 };
-                return new JsonResult(termViewModel);
+                return new JsonResult(termViewModelJson);
             }
-            else
+            var termViewModelJsonError = new TermViewModel
             {
-                var termViewModel = new TermViewModel
-                {
-                    TermUpdateDto = null
-                };
-                return new JsonResult(termViewModel);
-            }            
+                TermUpdateDto = termResult.Data
+            };
+            return new JsonResult(termViewModelJsonError);
         }
 
         [HttpPost]
@@ -104,31 +98,27 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> Edit(TermViewModel termViewModel)
         {
             var termResult = await _termService.UpdateAsync(termViewModel.TermUpdateDto);
-            var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
-            if (termResult.Data.Term.TermType == SubObjectType.category)
-            {
-                var seoResult = await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, 1);
 
-                var result = new { termResult, seoResult };               
-                return new JsonResult(result);
-            }
-            else if (termResult.Data.Term.TermType == SubObjectType.tag)
+            if (termResult.ResultStatus == ResultStatus.Success)
             {
-                var seoResult = await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, 1);
+                await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, 1);
 
-                var result = new { termResult, seoResult };
-                return new JsonResult(result);
+                var termViewModelJson = new TermViewModel
+                {
+                    TermDto = termResult.Data
+                };
+                return new JsonResult(termViewModelJson);
             }
-            else
+            var termViewModelJsonError = new TermViewModel
             {
-                var result = new { termResult };
-                return new JsonResult(result);
-            }
+                TermDto = termResult.Data
+            };
+            return new JsonResult(termViewModelJsonError);
         }
 
         [HttpPost]
         [Route("/admin/term/delete")]
-        public async Task<IActionResult> Delete([FromQuery]int term)
+        public async Task<IActionResult> Delete([FromQuery] int term)
         {
             var result = await _termService.DeleteAsync(term);
             //await FileHelper.CreateSitemapInRootDirectoryAsync();

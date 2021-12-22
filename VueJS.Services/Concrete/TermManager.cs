@@ -79,39 +79,63 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<TermListDto>> GetAllAsync()
         {
             var terms = await UnitOfWork.Terms.GetAllAsync();
-
-            return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto
+            if (terms.Count > -1)
             {
-                Terms = terms,
-                ResultStatus = ResultStatus.Success
-            });
+                return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto
+                {
+                    Terms = terms,
+                    ResultStatus = ResultStatus.Success
+                });
+            }
+            else
+            {
+                return new DataResult<TermListDto>(ResultStatus.Error, new TermListDto
+                {
+                    Terms = terms,
+                    ResultStatus = ResultStatus.Error,
+                    Message = terms.FirstOrDefault().TermType == SubObjectType.category ? Messages.Category.NotFound(true) : Messages.Tag.NotFound(true)
+                });
+            }
         }
 
         public async Task<IDataResult<TermListDto>> GetAllAsync(SubObjectType termType, string search)
         {
             var terms = await UnitOfWork.Terms.GetAllAsync(t => t.TermType == termType, t => t.Parent, t => t.Children, t => t.PostTerms);
 
-            foreach (var term in terms)
+            if (terms.Count > 0)
             {
-                Term parent = term.Parent;
-                term.Parents = new List<Term>();
-                while (parent != null)
+                foreach (var term in terms)
                 {
-                    term.Parents.Add(parent);
-                    parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
+                    Term parent = term.Parent;
+                    term.Parents = new List<Term>();
+                    while (parent != null)
+                    {
+                        term.Parents.Add(parent);
+                        parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
+                    }
                 }
-            }
 
-            if (!(string.IsNullOrEmpty(search) || string.IsNullOrWhiteSpace(search)))
-            {
-                terms = terms.Where(c => c.Name.ToLower().StartsWith(search.ToLower())).ToList();
-            }
+                if (!(string.IsNullOrEmpty(search) || string.IsNullOrWhiteSpace(search)))
+                {
+                    terms = terms.Where(c => c.Name.ToLower().StartsWith(search.ToLower())).ToList();
+                }
 
-            return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto
+                return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto
+                {
+                    Terms = terms,
+                    ResultStatus = ResultStatus.Success
+                });
+            }
+            else
             {
-                Terms = terms,
-                ResultStatus = ResultStatus.Success
-            });
+                return new DataResult<TermListDto>(ResultStatus.Error, new TermListDto
+                {
+                    Terms = terms,
+                    ResultStatus = ResultStatus.Error,
+                    Message = termType == SubObjectType.category ? Messages.Category.NotFound(true) : Messages.Tag.NotFound(true)
+                });
+            }
+            
         }
 
         public async Task<IDataResult<TermListDto>> GetAllParentAsync(int? termId, string search)
@@ -218,21 +242,30 @@ namespace VueJS.Services.Concrete
                 }
                 var addedTerm = await UnitOfWork.Terms.AddAsync(term);
                 await UnitOfWork.SaveAsync();
-                return new DataResult<TermDto>(ResultStatus.Success, Messages.Term.Add(addedTerm.Name), new TermDto
-                {
-                    Term = addedTerm,
-                    ResultStatus = ResultStatus.Success,
-                    Message = Messages.Term.Add(addedTerm.Name)
-                });
+
+                return new DataResult<TermDto>(ResultStatus.Success,
+                    termAddDto.TermType == SubObjectType.category
+                    ? Messages.Category.Add(addedTerm.Name)
+                    : Messages.Tag.Add(addedTerm.Name),
+                    new TermDto
+                    {
+                        Term = addedTerm,
+                        ResultStatus = ResultStatus.Success,
+                        Message = termAddDto.TermType == SubObjectType.category ? Messages.Category.Add(addedTerm.Name) : Messages.Tag.Add(addedTerm.Name)
+                    });
             }
             else
             {
-                return new DataResult<TermDto>(ResultStatus.Error, Messages.Term.NameCheck(), new TermDto
-                {
-                    Term = null,
-                    ResultStatus = ResultStatus.Error,
-                    Message = Messages.Term.UrlCheck()
-                });
+                return new DataResult<TermDto>(ResultStatus.Error,
+                    termAddDto.TermType == SubObjectType.category
+                    ? Messages.Category.UrlCheck()
+                    : Messages.Tag.UrlCheck(),
+                    new TermDto
+                    {
+                        Term = null,
+                        ResultStatus = ResultStatus.Error,
+                        Message = termAddDto.TermType == SubObjectType.category ? Messages.Category.UrlCheck() : Messages.Tag.UrlCheck()
+                    });
             }
         }
 
@@ -269,21 +302,31 @@ namespace VueJS.Services.Concrete
                 var term = Mapper.Map<TermUpdateDto, Term>(termUpdateDto, oldTerm);
                 var updatedTerm = await UnitOfWork.Terms.UpdateAsync(term);
                 await UnitOfWork.SaveAsync();
-                return new DataResult<TermDto>(ResultStatus.Success, Messages.Term.Update(term.Name), new TermDto
-                {
-                    Term = term,
-                    ResultStatus = ResultStatus.Success,
-                    Message = Messages.Category.Add(term.Name)
-                });
+
+                return new DataResult<TermDto>(ResultStatus.Success,
+                    termUpdateDto.TermType == SubObjectType.category
+                    ? Messages.Category.Update(term.Name)
+                    : Messages.Tag.Update(term.Name),
+                    new TermDto
+                    {
+                        Term = term,
+                        ResultStatus = ResultStatus.Success,
+                        Message = termUpdateDto.TermType == SubObjectType.category ? Messages.Category.Update(term.Name) : Messages.Tag.Update(term.Name)
+                    });
             }
             else
             {
-                return new DataResult<TermDto>(ResultStatus.Error, Messages.Term.UrlCheck(), new TermDto
-                {
-                    Term = null,
-                    ResultStatus = ResultStatus.Error,
-                    Message = Messages.Category.UrlCheck()
-                });
+                return new DataResult<TermDto>(ResultStatus.Error,
+                    termUpdateDto.TermType == SubObjectType.category
+                    ? Messages.Category.UrlCheck()
+                    : Messages.Tag.UrlCheck(),
+                    new TermDto
+                    {
+                        Term = null,
+                        ResultStatus = ResultStatus.Error,
+                        Message = termUpdateDto.TermType == SubObjectType.category ? Messages.Category.UrlCheck() : Messages.Tag.UrlCheck()
+                    });
+
             }
         }
 
@@ -313,15 +356,26 @@ namespace VueJS.Services.Concrete
         public async Task<IResult> DeleteAsync(int termId)
         {
             var term = await UnitOfWork.Terms.GetAsync(t => t.Id == termId);
-            var seo = await UnitOfWork.SeoObjectSettings.GetAsync(sos => sos.ObjectId == termId && sos.SubObjectType == term.TermType);
-            if (term != null && seo != null)
+            if (term != null)
             {
+                var seo = await UnitOfWork.SeoObjectSettings.GetAsync(sos => sos.ObjectId == termId && sos.SubObjectType == term.TermType);
+
                 await UnitOfWork.Terms.DeleteAsync(term);
                 await UnitOfWork.SeoObjectSettings.DeleteAsync(seo);
                 await UnitOfWork.SaveAsync();
-                return new Result(ResultStatus.Success, Messages.Term.Delete(term.Name));
+
+                return new Result(ResultStatus.Success,
+                    term.TermType == SubObjectType.category
+                    ? Messages.Category.Delete(term.Name)
+                    : Messages.Tag.Delete(term.Name));
             }
-            return new Result(ResultStatus.Error, Messages.Term.NotFound(isPlural: false));
+            else
+            {
+                return new Result(ResultStatus.Error,
+                    term.TermType == SubObjectType.category
+                    ? Messages.Category.NotFound(isPlural: false)
+                    : Messages.Tag.NotFound(isPlural: false));
+            }
         }
 
         public async Task<IDataResult<TermListDto>> MultiDeleteAsync(List<int> termIds)
@@ -336,15 +390,27 @@ namespace VueJS.Services.Concrete
                 }
                 await UnitOfWork.Terms.MultiDeleteAsync(terms);
                 await UnitOfWork.SaveAsync();
-                return new DataResult<TermListDto>(ResultStatus.Success, "Seçilen terimler silindi.", new TermListDto
-                {
-                    Terms = terms
-                });
+
+                return new DataResult<TermListDto>(ResultStatus.Success,
+                    terms.FirstOrDefault().TermType == SubObjectType.category
+                    ? "Seçilen kategoriler kalıcı olarak silindi."
+                    : "Seçilen etiketler kalıcı olarak silindi.",
+                    new TermListDto
+                    {
+                        Terms = terms
+                    });
             }
-            return new DataResult<TermListDto>(ResultStatus.Error, Messages.Term.NotFound(isPlural: false), new TermListDto
+            else
             {
-                Terms = null,
-            });
+                return new DataResult<TermListDto>(ResultStatus.Error,
+                    terms.FirstOrDefault().TermType == SubObjectType.category
+                    ? Messages.Category.NotFound(isPlural: false)
+                    : Messages.Tag.NotFound(isPlural: false),
+                    new TermListDto
+                    {
+                        Terms = null,
+                    });
+            }
         }
 
         public async Task<IDataResult<int>> CountAsync()
