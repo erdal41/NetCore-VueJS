@@ -1,108 +1,96 @@
 ﻿<template>
     <b-row>
         <b-col md="12"
-               lg="4">
-            <b-card title="Etiket Ekle">
-                <validation-observer ref="simpleRules">
-                    <b-form>
-                        <b-row>
-                            <b-col cols="12">
-                                <b-form-group label-for="name"
-                                              description="Sitenizde gösterilecek olan isim.">
-                                    <validation-provider #default="{ errors }"
-                                                         name="name"
-                                                         vid="name"
-                                                         rules="required">
-                                        <b-form-input id="name"
-                                                      v-model="termAddDto.Name"
-                                                      :state="errors.length > 0 ? false:null"
-                                                      type="text"
-                                                      placeholder="Etiket Adı" />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
-                                </b-form-group>
+               lg="12">
 
-                                <b-form-group label-for="slug"
-                                              description="'slug' yazı isminin URL versiyonudur. Genellikle tümü küçük harflerden oluşur, sadece harf, rakam ve tire içerir.">
-                                    <b-form-input id="slug"
-                                                  v-model="termAddDto.Slug"
-                                                  type="text"
-                                                  placeholder="Kısa İsim" />
-                                </b-form-group>
-
-                                <b-form-textarea id="description"
-                                                 v-model="termAddDto.Description"
-                                                 placeholder="Açıklama"
-                                                 rows="3" />
-
-                                <!-- reset button -->
-                                <b-button variant="primary"
-                                          class="float-right mt-1"
-                                          type="submit"
-                                          @click.prevent="validationForm">
-                                    Ekle
-                                </b-button>
-                            </b-col>
-                        </b-row>
-                    </b-form>
-                </validation-observer>
-            </b-card>
-        </b-col>
-        <b-col md="12"
-               lg="8">
-
-            <b-card-actions title="Tüm Etiketler"
-                            actionRefresh
-                            ref="refreshData"
-                            @refresh="getAllData()"
-                            no-body>
-                    <b-card-body>
-                        <div class="d-flex justify-content-between flex-wrap">
-                            <b-form-group v-if="isHiddenMultiDeleteButton === true"
-                                          class="mb-0">
-                                <b-button variant="danger"
-                                          size="sm"
-                                          @click="multiDeleteData">
-                                    <feather-icon icon="Trash2Icon"
-                                                  class="mr-50" />
-                                    <span class="align-middle">{{ checkedRowsCount }} Etiketi Sil</span>
-                                </b-button>
-                                <b-button v-b-tooltip.hover
-                                          title="Seçili kayıtları kalıcı olarak siler. Bu işlem geri alınamaz."
-                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                          variant="flat-secondary"
-                                          size="sm"
-                                          class="btn-icon rounded-circle ml-0">
-                                    <feather-icon icon="InfoIcon" />
-                                </b-button>
-                            </b-form-group>
-                            <div></div>
-                            <!-- filter -->
-                            <b-form-group class="mb-0">
-                                <b-input-group size="sm">
-                                    <b-form-input id="filterInput"
-                                                  v-model="filter"
-                                                  type="search"
-                                                  placeholder="Aranacak kelimeyi giriniz..." />
-                                    <b-input-group-append>
-                                        <b-button :disabled="!filter"
-                                                  @click="filter = ''">
-                                            Temizle
-                                        </b-button>
-                                    </b-input-group-append>
-                                </b-input-group>
-                            </b-form-group>
-                        </div>
-                    </b-card-body>
-
-                    <b-table :items="terms"
+            <b-card title="Tüm Makaleler"
+                    header-tag="header"
+                    no-body>
+                <template #header>
+                    <h3 class="modal-title">
+                        Tüm Makaleler
+                    </h3>
+                    <div class="ml-auto">
+                        <b-input-group size="sm">
+                            <b-input-group-prepend is-text>
+                                <feather-icon icon="SearchIcon" />
+                            </b-input-group-prepend>
+                            <b-form-input placeholder="Ara..."
+                                          v-model="filterText" />
+                        </b-input-group>
+                    </div>
+                    <div class="ml-auto">
+                        <b-button v-show="publishPostsCount > 0"
+                                  v-b-tooltip.hover
+                                  title="Yayında olan makaleler"
+                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                  variant="fade-secondary"
+                                  size="sm"
+                                  @click="getAllPublishedData()">
+                            <span class="text-primary">Yayında ( {{ publishPostsCount }} )</span>
+                        </b-button>
+                        <b-button v-show="draftPostsCount > -1"
+                                  v-b-tooltip.hover
+                                  title="Taslak olan makaleler"
+                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                  variant="fade-secondary"
+                                  class="btn-icon"
+                                  size="sm"
+                                  @click="getAllDraftedData()">
+                            <span class="text-warning">Taslak ( {{ draftPostsCount }} )</span>
+                        </b-button>
+                        <b-button v-show="trashPostsCount > -1"
+                                  v-b-tooltip.hover
+                                  title="Çöp kutusunda olan makaleler"
+                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                  variant="fade-secondary"
+                                  class="btn-icon mr-1"
+                                  size="sm"
+                                  @click="getAllTrahedData()">
+                            <span class="text-danger">Çöp ( {{ trashPostsCount }} )</span>
+                        </b-button>
+                        <b-button v-b-tooltip.hover
+                                  title="Tabloyu Yenile"
+                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                  variant="fade-secondary"
+                                  class="btn-icon mr-1"
+                                  size="sm"
+                                  @click="getAllData()">
+                            <feather-icon icon="RotateCcwIcon" />
+                        </b-button>
+                    </div>
+                </template>
+                <b-card-body>
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <b-form-group v-if="isHiddenMultiDeleteButton === true"
+                                      class="mb-0">
+                            <b-button variant="danger"
+                                      size="sm"
+                                      @click="multiDeleteData">
+                                <feather-icon icon="Trash2Icon"
+                                              class="mr-50" />
+                                <span class="align-middle">{{ checkedRowsCount }} Makaleyi Sil</span>
+                            </b-button>
+                            <b-button v-b-tooltip.hover
+                                      title="Seçili kayıtları kalıcı olarak siler. Bu işlem geri alınamaz."
+                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                      variant="flat-secondary"
+                                      size="sm"
+                                      class="btn-icon rounded-circle ml-0">
+                                <feather-icon icon="InfoIcon" />
+                            </b-button>
+                        </b-form-group>
+                    </div>
+                </b-card-body>
+                <div v-if="isSpinnerShow == true"
+                     class="text-center mt-2 mb-2">
+                    <b-spinner variant="primary" />
+                </div>
+                <div v-else>
+                    <b-table :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
-                             ref="table"
                              :current-page="currentPage"
-                             :filter="filter"
-                             :filter-included-fields="filterOn"
-                             @filtered="onFiltered"
                              class="mb-0"
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
@@ -115,10 +103,16 @@
                                              v-model="checkedRows"
                                              @change="checkChange($event)"></b-form-checkbox>
                         </template>
-
-                        <template #cell(Name)="row">
+                        <template #cell(FeaturedImage)="row">
+                            <div class="image-thumb">
+                                <b-img rounded
+                                       v-bind:src="row.item.FeaturedImage.FileName == null ? noImage : require('@/assets/images/media/' + row.item.FeaturedImage.FileName)"
+                                       :alt="row.item.FeaturedImage.AltText" />
+                            </div>
+                        </template>
+                        <template #cell(Title)="row">
                             <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
-                                <b>{{row.item.Name}}</b>
+                                <b>{{row.item.Title}}</b>
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
@@ -132,61 +126,74 @@
                                     <b-link href="javascript:;"
                                             no-prefetch
                                             class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
+                                            @click="singleDeleteData(row.item.Id, row.item.Title)">Sil</b-link>
                                 </div>
                             </div>
                         </template>
+                        <template #cell(ModifiedDate)="row">
+                            <b-badge v-if="row.item.PostStatus == 0"
+                                     variant="success">
+                                Yayında
+                            </b-badge>
+                            <b-badge v-if="row.item.PostStatus == 1"
+                                     variant="warning">
+                                Taslak
+                            </b-badge>
+                            <br />
+                            <span class="small">{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>
+                        </template>
                     </b-table>
-                    <div v-show="terms.length <= 0"
-                         class="text-center mt-1">{{ dataNullMessage  }}</div>
-                    <b-card-body>
-                        <div class="d-flex justify-content-between flex-wrap">
-                            <!-- page length -->
-                            <b-form-group label="Kayıt Sayısı: "
-                                          label-cols="6"
-                                          label-align="left"
-                                          label-size="sm"
-                                          label-for="sortBySelect"
-                                          class="text-nowrap mb-md-0 mr-1">
-                                <b-form-select id="perPageSelect"
-                                               v-model="perPage"
-                                               size="sm"
-                                               inline
-                                               :options="pageOptions" />
-                            </b-form-group>
+                </div>
+                <div v-show="posts.length <= 0"
+                     class="text-center mt-1">{{ dataNullMessage  }}</div>
+                <b-card-body>
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <!-- page length -->
+                        <b-form-group label="Kayıt Sayısı: "
+                                      label-cols="6"
+                                      label-align="left"
+                                      label-size="sm"
+                                      label-for="sortBySelect"
+                                      class="text-nowrap mb-md-0 mr-1">
+                            <b-form-select id="perPageSelect"
+                                           v-model="perPage"
+                                           size="sm"
+                                           inline
+                                           :options="pageOptions" />
+                        </b-form-group>
 
-                            <!-- pagination -->
-                            <b-pagination v-model="currentPage"
-                                          :total-rows="totalRows"
-                                          :per-page="perPage"
-                                          first-number
-                                          last-number
-                                          prev-class="prev-item"
-                                          next-class="next-item"
-                                          class="mb-0">
-                                <template #prev-text>
-                                    <feather-icon icon="ChevronLeftIcon"
-                                                  size="18" />
-                                </template>
+                        <!-- pagination -->
+                        <b-pagination v-model="currentPage"
+                                      :total-rows="totalRows"
+                                      :per-page="perPage"
+                                      first-number
+                                      last-number
+                                      prev-class="prev-item"
+                                      next-class="next-item"
+                                      class="mb-0">
+                            <template #prev-text>
+                                <feather-icon icon="ChevronLeftIcon"
+                                              size="18" />
+                            </template>
 
-                                <template #next-text>
-                                    <feather-icon icon="ChevronRightIcon"
-                                                  size="18" />
-                                </template>
-                            </b-pagination>
-                        </div>
-                    </b-card-body>
-            </b-card-actions>
+                            <template #next-text>
+                                <feather-icon icon="ChevronRightIcon"
+                                              size="18" />
+                            </template>
+                        </b-pagination>
+                    </div>
+                </b-card-body>
+            </b-card>
         </b-col>
     </b-row>
 </template>
 
 <script>
-    import BCardActions from '@core/components/b-card-actions/BCardActions.vue'
+    import moment from 'moment'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required, min, confirmed } from '@validations'
     import {
-        BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormGroup, BFormSelect, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupAppend, VBTooltip, BLink
+        BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
@@ -201,28 +208,31 @@
 
     export default {
         components: {
-            BCardActions,
+            BSpinner,
+            BBadge,
             BCardTitle,
             BForm,
+            BFormSelect,
             BTable,
             BButton,
             BFormCheckbox,
+            BImg,
             BFormTextarea,
             BCard,
             BRow,
             BCol,
             BCardBody,
             BFormGroup,
-            BFormSelect,
             BPagination,
             BInputGroup,
             BFormInput,
-            BInputGroupAppend,
+            BInputGroupPrepend,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
             vSelect,
-            BLink
+            BLink,
+            moment
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -230,20 +240,20 @@
         },
         data() {
             return {
+                noImage: require('@/assets/images/default/default-post-image.jpg'),
                 passValue: '',
                 username: '',
                 required,
                 min,
                 confirmed,
+                isSpinnerShow: true,
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],
                 totalRows: 1,
                 currentPage: 1,
-                filter: null,
-                filterOn: [],
-                terms: [],
+                filterText: '',
+                posts: [],
                 dataNullMessage: '',
-                allParentTerms: [],
                 selected: '',
                 selectedValue: null,
                 isHiddenMultiDeleteButton: false,
@@ -251,22 +261,15 @@
                 name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
-                    { key: 'Name', label: 'İSİM', sortable: true, thStyle: { width: "200px" } },
-                    { key: 'Description', label: 'Açıklama', sortable: true },
-                    { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }],
+                    { key: 'FeaturedImage', label: 'Resim', sortable: false, thStyle: { width: "50px" } },
+                    { key: 'Title', label: 'Başlık', sortable: true, thStyle: { width: "200px" } },
+                    { key: 'ModifiedDate', label: 'Tarih', sortable: true, thStyle: { width: "150px" } },
+                    { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }],
                 checkedRows: [],
                 checkedRowsCount: 0,
-                termAddDto: {
-                    Name: "",
-                    Slug: "",
-                    ParentId: null,
-                    Description: "",
-                    TermType: "tag"
-                },
-                seoObjectSettingAddDto: {
-                    SeoTitle: this.Name
-                },
+                publishPostsCount:'',
+                draftPostsCount:'',
+                trashPostsCount:'',
                 hoveredRow: null
             }
         },
@@ -296,7 +299,7 @@
             selectAllRows(value) {
                 if (value === true) {
                     var idList = [];
-                    this.terms.forEach(function (term) {
+                    this.posts.forEach(function (term) {
                         idList.push(term.Id);
                     });
                     this.checkedRows = idList;
@@ -307,58 +310,10 @@
                 }
                 this.checkChange();
             },
-            validationForm() {
-                this.$refs.simpleRules.validate().then(success => {
-                    if (success) {
-                        axios.post('/admin/term/new',
-                            {
-                                TermAddDto: this.termAddDto,
-                                SeoObjectSettingAddDto: this.seoObjectSettingAddDto
-                            })
-                            .then((response) => {
-                                console.log(response.data);
-                                if (response.data.TermDto.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.TermDto.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
             singleDeleteData(id, name) {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " isimli etiket kalıcı olarak silinecektir?",
+                    text: name + " adlı terim kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -413,7 +368,7 @@
             multiDeleteData() {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
-                    text: this.checkedRowsCount + " etiket kalıcı olarak silinecektir?",
+                    text: this.checkedRowsCount + " makale kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -425,9 +380,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post(`/admin/term/multidelete`, {
-                            termsId: this.checkedRows
-                        })
+                        axios.post(`/admin/term/multidelete?posts=` + this.checkedRows)
                             .then((response) => {
                                 console.log(response.data)
                                 if (response.data.ResultStatus === 0) {
@@ -473,21 +426,24 @@
                 console.log(this.checkedRows);
             },
             getAllData() {
-                this.$refs['refreshData'].showLoading = true;
-                axios.get('/admin/term/allterms', {
+                this.isSpinnerShow = true;
+                axios.get('/admin/post/allposts', {
                     params: {
-                        term_type: "tag"
+                        post_type: 'article'
                     }
                 })
                     .then((response) => {
                         console.log(response.data)
-                        if (response.data.ResultStatus === 0) {
-                            this.terms = response.data.Terms;
-                            this.$refs['refreshData'].showLoading = false;
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.posts = response.data.PostListDto.Posts;
+                            this.publishPostsCount = response.data.PublishPostsCount;
+                            this.draftPostsCount = response.data.DraftPostsCount;
+                            this.trashPostsCount = response.data.TrashPostsCount;
+                            this.isSpinnerShow = false;
                         } else {
-                            this.$refs['refreshData'].showLoading = false;
-                            this.terms = [];
-                            this.dataNullMessage = response.data.Message;
+                            this.isSpinnerShow = false;
+                            this.posts = [];
+                            this.dataNullMessage = response.data.PostListDto.Message;
                         }
                     })
                     .catch((error) => {
@@ -497,32 +453,56 @@
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: this.title + ' listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: 'Makaleler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });
             },
-            onFiltered(filteredItems) {
-                // Trigger pagination to update the number of buttons/pages due to filtering
-                this.totalRows = filteredItems.length
-                this.currentPage = 1
+            getAllPublishedData() {
+
             },
+            filterByName: function (data) {
+                // no search, don't filter :
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+
+                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+            },
+        },
+        computed: {
+            filteredData: function () {
+                return this.posts
+                    .filter(this.filterByName);
+            }
         },
         mounted() {
             this.getAllData();
-            this.totalRows = this.terms.length;
+            this.totalRows = this.posts.length;
         }
     }
 </script>
 
-<style lang="scss">
-    @import '@core/scss/vue/libs/vue-select.scss';
-
+<style>
     [dir] .table th, [dir] .table td {
         padding: 0.72rem !important;
     }
 
-    [dir] .table th:last-child, [dir] .table td:last-child {
-        text-align: center;
+    .image-thumb {
+        width: 50px;
+        height: 50px;
+        position: relative;        
     }
+
+        .image-thumb img {
+            max-height: 100%;
+            max-width: 100%;
+            border-radius: 5px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+        }
 </style>

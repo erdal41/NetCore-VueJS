@@ -2,7 +2,7 @@
     <b-row>
         <b-col md="12"
                lg="4">
-            <b-card :title="formTitle">
+            <b-card title="Etiket Ekle">
                 <validation-observer ref="simpleRules">
                     <b-form>
                         <b-row>
@@ -30,18 +30,6 @@
                                                   placeholder="Kısa İsim" />
                                 </b-form-group>
 
-                                <b-form-group v-if="isShowParents"
-                                              label-for="parentTerms"
-                                              description="Mevcut kategori için üst kategoriyi buradan seçebilirsiniz.">
-                                    <v-select id="parentTerms"
-                                              v-model="selected"
-                                              :options="allParentTerms"
-                                              label="Name"
-                                              :reduce="(option) => option.Id"
-                                              placeholder="— Üst Kategori —"
-                                              @input="onChangeMethod($event)" />
-                                </b-form-group>
-
                                 <b-form-textarea id="description"
                                                  v-model="termAddDto.Description"
                                                  placeholder="Açıklama"
@@ -63,11 +51,34 @@
         <b-col md="12"
                lg="8">
 
-            <b-card-actions :title="tableTitle"
-                            actionRefresh
-                            ref="refreshData"
-                            @refresh="getAllData()"
-                            no-body>
+            <b-card title="Tüm Etiketler"
+                    header-tag="header"
+                    no-body>
+                <template #header>
+                    <h3 class="modal-title">
+                        Tüm Etiketler
+                    </h3>
+                    <div class="ml-auto">
+                        <b-input-group size="sm">
+                            <b-input-group-prepend is-text>
+                                <feather-icon icon="SearchIcon" />
+                            </b-input-group-prepend>
+                            <b-form-input placeholder="Ara..."
+                                          v-model="filterText" />
+                        </b-input-group>
+                    </div>
+                    <div class="ml-auto">
+                        <b-button v-b-tooltip.hover
+                                  title="Tabloyu Yenile"
+                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                  variant="fade-secondary"
+                                  class="btn-icon mr-1"
+                                  size="sm"
+                                  @click="getAllData()">
+                            <feather-icon icon="RotateCcwIcon" />
+                        </b-button>
+                    </div>
+                </template>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
                         <b-form-group v-if="isHiddenMultiDeleteButton === true"
@@ -88,67 +99,52 @@
                                 <feather-icon icon="InfoIcon" />
                             </b-button>
                         </b-form-group>
-                        <div></div>
-                        <!-- filter -->
-                        <b-form-group class="mb-0">
-                            <b-input-group size="sm">
-                                <b-form-input id="filterInput"
-                                              v-model="filter"
-                                              type="search"
-                                              placeholder="Aranacak kelimeyi giriniz..." />
-                                <b-input-group-append>
-                                    <b-button :disabled="!filter"
-                                              @click="filter = ''">
-                                        Temizle
-                                    </b-button>
-                                </b-input-group-append>
-                            </b-input-group>
-                        </b-form-group>
                     </div>
                 </b-card-body>
+                <div v-if="isSpinnerShow == true"
+                     class="text-center mt-2 mb-2">
+                    <b-spinner variant="primary" />
+                </div>
+                <div v-else>
+                    <b-table :items="filteredData"
+                             :fields="fields"
+                             :per-page="perPage"
+                             :current-page="currentPage"
+                             class="mb-0"
+                             @row-hovered="rowHovered"
+                             @row-unhovered="rowUnHovered">
+                        <template #head(Id)="slot">
+                            <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
+                        </template>
+                        <template #cell(Id)="row">
+                            <b-form-checkbox :value="row.item.Id.toString()"
+                                             :id="row.item.Id.toString()"
+                                             v-model="checkedRows"
+                                             @change="checkChange($event)"></b-form-checkbox>
+                        </template>
 
-                <b-table :items="terms"
-                         :fields="fields"
-                         :per-page="perPage"
-                         ref="table"
-                         :current-page="currentPage"
-                         :filter="filter"
-                         :filter-included-fields="filterOn"
-                         @filtered="onFiltered"
-                         class="mb-0"
-                         @row-hovered="rowHovered"
-                         @row-unhovered="rowUnHovered">
-                    <template #head(Id)="slot">
-                        <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
-                    </template>
-                    <template #cell(Id)="row">
-                        <b-form-checkbox :value="row.item.Id.toString()"
-                                         :id="row.item.Id.toString()"
-                                         v-model="checkedRows"
-                                         @change="checkChange($event)"></b-form-checkbox>
-                    </template>
-
-                    <template #cell(Name)="row">
-                        <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
-                            <b>{{row.item.Name}}</b>
-                        </b-link>
-                        <div class="row-actions">
-                            <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
-                                        class="text-primary small">Görüntüle</b-link>
-                                <small class="text-muted"> | </small>
-                                <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
-                                        class="text-success small"
-                                        variant="flat-danger">Düzenle</b-link>
-                                <small class="text-muted"> | </small>
-                                <b-link href="javascript:;"
-                                        no-prefetch
-                                        class="text-danger small"
-                                        @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
+                        <template #cell(Name)="row">
+                            <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
+                                <b>{{row.item.Name}}</b>
+                            </b-link>
+                            <div class="row-actions">
+                                <div v-if="isHovered(row.item) && isHiddenRowActions">
+                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                            class="text-primary small">Görüntüle</b-link>
+                                    <small class="text-muted"> | </small>
+                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                            class="text-success small"
+                                            variant="flat-danger">Düzenle</b-link>
+                                    <small class="text-muted"> | </small>
+                                    <b-link href="javascript:;"
+                                            no-prefetch
+                                            class="text-danger small"
+                                            @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
+                                </div>
                             </div>
-                        </div>
-                    </template>
-                </b-table>
+                        </template>
+                    </b-table>
+                </div>
                 <div v-show="terms.length <= 0"
                      class="text-center mt-1">{{ dataNullMessage  }}</div>
                 <b-card-body>
@@ -188,23 +184,23 @@
                         </b-pagination>
                     </div>
                 </b-card-body>
-            </b-card-actions>
+            </b-card>
         </b-col>
     </b-row>
 </template>
 
 <script>
-    import BCardActions from '@core/components/b-card-actions/BCardActions.vue'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required, min, confirmed } from '@validations'
     import {
-        BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormGroup, BFormSelect, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupAppend, VBTooltip, BLink
+        BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
+    import { integer } from '../../../../@core/utils/validations/validations'
 
     extend('required', {
         ...required,
@@ -213,9 +209,10 @@
 
     export default {
         components: {
-            BCardActions,
+            BSpinner,
             BCardTitle,
             BForm,
+            BFormSelect,
             BTable,
             BButton,
             BFormCheckbox,
@@ -225,11 +222,10 @@
             BCol,
             BCardBody,
             BFormGroup,
-            BFormSelect,
             BPagination,
             BInputGroup,
             BFormInput,
-            BInputGroupAppend,
+            BInputGroupPrepend,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
@@ -242,23 +238,20 @@
         },
         data() {
             return {
-                formTitle: '',
-                tableTitle: '',
                 passValue: '',
                 username: '',
                 required,
                 min,
                 confirmed,
+                isSpinnerShow: true,
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],
                 totalRows: 1,
                 currentPage: 1,
-                filter: null,
-                filterOn: [],
+                filterText: '',
+                filterOnData: [],
                 terms: [],
                 dataNullMessage: '',
-                isShowParents: false,
-                allParentTerms: [],
                 selected: '',
                 selectedValue: null,
                 isHiddenMultiDeleteButton: false,
@@ -277,41 +270,12 @@
                     Slug: "",
                     ParentId: null,
                     Description: '',
-                    TermType: ''
+                    TermType: 'tag'
                 },
                 seoObjectSettingAddDto: {
                     SeoTitle: this.Name
                 },
                 hoveredRow: null
-            }
-        },
-        created() {
-            if (this.$route.query.term_type == "category") {
-                this.formTitle = "Kategori Ekle";
-                this.tableTitle = "Kategoriler";
-
-            }
-            else if (this.$route.query.term_type == "tag") {
-                this.formTitle = "Etiket Ekle";
-                this.tableTitle = "Etiketler";
-            }
-            this.getAllData();
-            this.totalRows = this.terms.length;
-        },
-        watch: {
-            '$route'(to, from) {
-                console.log(this.$route.query.term_type);
-                if (this.$route.query.term_type == "category") {
-                    this.formTitle = "Kategori Ekle";
-                    this.tableTitle = "Kategoriler";
-                    this.isShowParents = true;
-                }
-                else if (this.$route.query.term_type == "tag") {
-                    this.formTitle = "Etiket Ekle";
-                    this.tableTitle = "Etiketler";
-                }
-                this.getAllData();
-                this.totalRows = this.terms.length;
             }
         },
         methods: {
@@ -354,7 +318,6 @@
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
-                        this.termAddDto.TermType = this.$route.query.term_type;
                         axios.post('/admin/term/new',
                             {
                                 TermAddDto: this.termAddDto,
@@ -471,9 +434,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post(`/admin/term/multidelete`, {
-                            termsId: this.checkedRows
-                        })
+                        axios.post(`/admin/term/multidelete?terms=` + this.checkedRows)
                             .then((response) => {
                                 console.log(response.data)
                                 if (response.data.ResultStatus === 0) {
@@ -519,19 +480,20 @@
                 console.log(this.checkedRows);
             },
             getAllData() {
-                this.$refs['refreshData'].showLoading = true;
+                this.isSpinnerShow = true;
                 axios.get('/admin/term/allterms', {
                     params: {
-                        term_type: this.$route.query.term_type
+                        term_type: 'tag'
                     }
                 })
                     .then((response) => {
                         console.log(response.data)
                         if (response.data.ResultStatus === 0) {
                             this.terms = response.data.Terms;
-                            this.$refs['refreshData'].showLoading = false;
+                            this.filterOnData = response.data.Terms;
+                            this.isSpinnerShow = false;
                         } else {
-                            this.$refs['refreshData'].showLoading = false;
+                            this.isSpinnerShow = false;
                             this.terms = [];
                             this.dataNullMessage = response.data.Message;
                         }
@@ -548,11 +510,24 @@
                         })
                     });
             },
-            onFiltered(filteredItems) {
-                // Trigger pagination to update the number of buttons/pages due to filtering
-                this.totalRows = filteredItems.length
-                this.currentPage = 1
+            filterByName: function (data) {
+                // no search, don't filter :
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+
+                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
+        },
+        computed: {
+            filteredData: function () {
+                return this.terms
+                    .filter(this.filterByName);
+            }
+        },
+        mounted() {
+            this.getAllData();
+            this.totalRows = this.terms.length;
         }
     }
 </script>

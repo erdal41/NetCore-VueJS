@@ -61,7 +61,7 @@
 
 <script>
     import {
-        BFormCheckbox, BFormRadio, BButton, BImg, BRow, BCol, BFormGroup, BInputGroupPrepend, BListGroup, BListGroupItem, BPagination, BInputGroup, BFormInput, BInputGroupAppend, VBTooltip, BLink
+        BFormCheckbox, BFormRadio, BButton, BImg, BRow, BCol, BFormGroup, BListGroup, BListGroupItem, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'

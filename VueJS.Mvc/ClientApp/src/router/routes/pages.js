@@ -1,4 +1,22 @@
 export default [
+
+    {
+        path: '/admin/basepages',
+        name: 'pages-base-list',
+        component: () => import('@/views/admin/pages/post/BasePage.vue'),
+        meta: {
+            resource: 'Auth',
+        },
+    },
+    {
+        path: '/admin/pages',
+        name: 'pages-post-list',
+        component: () => import('@/views/admin/pages/post/Page.vue'),
+        meta: {
+            resource: 'Auth',
+        },
+    },
+
     // Blog
     {
         path: '/admin/articles',
@@ -9,7 +27,7 @@ export default [
         },
     },
     {
-        path: '/admin/terms:term_type',
+        path: '/admin/categories',
         name: 'pages-category-list',
         component: () => import('@/views/admin/pages/term/Category.vue'),
         meta: {
@@ -17,9 +35,9 @@ export default [
         }
     },
     {
-        path: '/admin/terms/',
+        path: '/admin/tags',
         name: 'pages-tag-list',
-        component: () => import('@/views/admin/pages/term/Term.vue'),
+        component: () => import('@/views/admin/pages/term/Tag.vue'),
         meta: {
             resource: 'Auth',
         }

@@ -34,6 +34,7 @@ namespace VueJS.Services.Extensions
                 options.ValidationInterval = TimeSpan.FromMinutes(15);
             });
             serviceCollection.AddScoped<IUnitOfWork, UnitOfWork>();
+            serviceCollection.AddScoped<IPostService, PostManager>();
             serviceCollection.AddScoped<IUploadService, UploadManager>();
             serviceCollection.AddScoped<ITermService, TermManager>();
             serviceCollection.AddScoped<ISeoService, SeoManager>();

@@ -1,4 +1,36 @@
 ﻿export default [
+
+    {
+        header: 'Sayfa İşlemleri',
+    },
+    {
+        title: 'Temel Sayfalar',
+        icon: 'FileTextIcon',
+        children: [
+            {
+                title: 'Tüm Temel Sayfalar',
+                route: { name: 'pages-base-list' },
+            },
+            {
+                title: 'Yeni Ekle',
+                route: { name: 'apps-invoice-preview', params: { id: 4987 } },
+            },
+        ],
+    },
+    {
+        title: 'Sayfalar',
+        icon: 'FileTextIcon',
+        children: [
+            {
+                title: 'Tüm Sayfalar',
+                route: { name: 'pages-post-list' },
+            },
+            {
+                title: 'Yeni Ekle',
+                route: { name: 'apps-invoice-preview', params: { id: 4987 } },
+            },
+        ],
+    },
     {
         header: 'Blog',
     },
@@ -8,7 +40,7 @@
         children: [
             {
                 title: 'Tüm Makaleler',
-                route: { name: 'pages-term-list', query: { term_type: 'tag' } },
+                route: { name: 'pages-article-list'},
             },
             {
                 title: 'Yeni Ekle',
@@ -16,11 +48,11 @@
             },
             {
                 title: 'Kategoriler',
-                route: { name: 'pages-category-list', query: { term_type: 'category' } }
+                route: { name: 'pages-category-list' }
             },
             {
                 title: 'Etiketler',
-                route: { name: 'pages-tag-list', query: { term_type: 'tag' } }
+                route: { name: 'pages-tag-list' }
             },
         ],
     },

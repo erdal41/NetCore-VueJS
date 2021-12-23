@@ -127,14 +127,14 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("/admin/term/multidelete")]
-        public async Task<IActionResult> MultiDelete(List<int> terms)
+        public async Task<IActionResult> MultiDelete(Array terms)
         {
             List<int> s = null;
             foreach (var item in terms)
             {
                 s.Add(Convert.ToInt32(item));
             }
-            var result = await _termService.MultiDeleteAsync(terms);
+            var result = await _termService.MultiDeleteAsync(s);
             //if (result.ResultStatus == ResultStatus.Success)
             //{
             //    await FileHelper.CreateSitemapInRootDirectoryAsync();
