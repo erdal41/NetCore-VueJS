@@ -23,7 +23,7 @@
         children: [
             {
                 title: 'Tüm Sayfalar',
-                route: { name: 'pages-post-list' },
+                route: { name: 'pages-page-list' },
             },
             {
                 title: 'Yeni Ekle',
@@ -40,7 +40,7 @@
         children: [
             {
                 title: 'Tüm Makaleler',
-                route: { name: 'pages-article-list'},
+                route: { name: 'pages-article-list' },
             },
             {
                 title: 'Yeni Ekle',

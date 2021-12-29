@@ -10,6 +10,13 @@
                     <h3 class="modal-title">
                         Tüm Makaleler
                     </h3>
+                    <b-button v-b-tooltip.hover
+                              title="Yeni makale ekle"
+                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                              variant="primary"
+                              size="sm"
+                              :to="{ name:'pages-article-add'}"
+                              class=" ml-1">Yeni Ekle</b-button>
                     <div class="ml-auto">
                         <b-input-group size="sm">
                             <b-input-group-prepend is-text>
@@ -20,35 +27,33 @@
                         </b-input-group>
                     </div>
                     <div class="ml-auto">
-                        <b-button v-show="publishPostsCount > 0"
-                                  v-b-tooltip.hover
-                                  title="Yayında olan makaleler"
-                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                                  variant="fade-secondary"
-                                  size="sm"
-                                  @click="getAllPublishedData()">
-                            <span class="text-primary">Yayında ( {{ publishPostsCount }} )</span>
-                        </b-button>
-                        <b-button v-show="draftPostsCount > -1"
-                                  v-b-tooltip.hover
-                                  title="Taslak olan makaleler"
-                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                                  variant="fade-secondary"
-                                  class="btn-icon"
-                                  size="sm"
-                                  @click="getAllDraftedData()">
-                            <span class="text-warning">Taslak ( {{ draftPostsCount }} )</span>
-                        </b-button>
-                        <b-button v-show="trashPostsCount > -1"
-                                  v-b-tooltip.hover
-                                  title="Çöp kutusunda olan makaleler"
-                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                                  variant="fade-secondary"
-                                  class="btn-icon mr-1"
-                                  size="sm"
-                                  @click="getAllTrahedData()">
-                            <span class="text-danger">Çöp ( {{ trashPostsCount }} )</span>
-                        </b-button>
+                        <b-link v-b-tooltip.hover
+                                title="Yayında ve taslak olan makaleler"
+                                v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                variant="fade-secondary"
+                                :to="{ name:'pages-article-list'}"
+                                class="text-primary small mr-1">Tümü ( {{ publishPostsCount + draftPostsCount  }} )</b-link>
+                        <b-link v-show="publishPostsCount > 0"
+                                v-b-tooltip.hover
+                                title="Yayında olan makaleler"
+                                v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                variant="fade-secondary"
+                                :to="{ name:'pages-article-list', query: { status : 'publish' } }"
+                                class="text-primary small mr-1">Yayında ( {{ publishPostsCount }} )</b-link>
+                        <b-link v-show="draftPostsCount > 0"
+                                v-b-tooltip.hover
+                                title="Taslak olan makaleler"
+                                v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                variant="fade-secondary"
+                                :to="{ name:'pages-article-list', query: { status : 'draft' } }"
+                                class="text-warning small mr-1">Taslak ( {{ draftPostsCount }} )</b-link>
+                        <b-link v-show="trashPostsCount > 0"
+                                v-b-tooltip.hover
+                                title="Çöp kutusunda olan makaleler"
+                                v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                variant="fade-secondary"
+                                :to="{ name:'pages-article-list', query: { status : 'trash' } }"
+                                class="text-danger small mr-1">Çöp ( {{ trashPostsCount }} )</b-link>
                         <b-button v-b-tooltip.hover
                                   title="Tabloyu Yenile"
                                   v-ripple.400="'rgba(113, 102, 240, 0.15)'"
@@ -267,9 +272,9 @@
                     { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }],
                 checkedRows: [],
                 checkedRowsCount: 0,
-                publishPostsCount:'',
-                draftPostsCount:'',
-                trashPostsCount:'',
+                publishPostsCount: '',
+                draftPostsCount: '',
+                trashPostsCount: '',
                 hoveredRow: null
             }
         },
@@ -426,10 +431,12 @@
                 console.log(this.checkedRows);
             },
             getAllData() {
+                console.log(this.$route.query.status);
                 this.isSpinnerShow = true;
                 axios.get('/admin/post/allposts', {
                     params: {
-                        post_type: 'article'
+                        post_type: 'article',
+                        post_status: this.$route.query.status
                     }
                 })
                     .then((response) => {
@@ -470,6 +477,11 @@
                 return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
+        watch: {
+            $route(to, from) {
+                this.getAllData();
+            }
+        },
         computed: {
             filteredData: function () {
                 return this.posts
@@ -491,7 +503,7 @@
     .image-thumb {
         width: 50px;
         height: 50px;
-        position: relative;        
+        position: relative;
     }
 
         .image-thumb img {
