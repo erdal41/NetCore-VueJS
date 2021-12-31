@@ -8,9 +8,9 @@ namespace VueJS.Shared.Entities.Abstract
         string SeoDescription { get; set; }
         bool IsSearchEngineIndex { get; set; }
         bool IsSearchEngineFollowPageLinks { get; set; }
-        MetaRobotsType MetaRobotsType { get; set; }
         string CanonicalUrl { get; set; }
-        SchemaType SchemaType { get; set; }
+        SchemaPageType SchemaPageType { get; set; }
+        SchemaArticleType SchemaArticleType { get; set; }
         string FacebookImage { get; set; }
         string FacebookTitle { get; set; }
         string FacebookDescription { get; set; }

@@ -29,15 +29,15 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [Route("/admin/term/allterms")]
         public async Task<JsonResult> AllTerms(SubObjectType term_type)
         {
-            var result = await _termService.GetAllAsync(term_type, null);
+            var result = await _termService.GetAllAsync(term_type);
             return new JsonResult(result.Data);
         }
 
         [HttpGet]
         [Route("/admin/term/getparentlist")]
-        public async Task<JsonResult> GetParentList(int? termId, string search)
+        public async Task<JsonResult> GetParentList(int? termId)
         {
-            var result = await _termService.GetAllParentAsync(termId, search);
+            var result = await _termService.GetAllParentAsync(termId);
             return new JsonResult(result.Data);
         }
 

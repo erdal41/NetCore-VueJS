@@ -3,7 +3,7 @@ export default [
     {
         path: '/admin/basepages',
         name: 'pages-basepage-list',
-        component: () => import('@/views/admin/pages/post/BasePage.vue'),
+        component: () => import('@/views/admin/pages/post/basepage/BasePage.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -11,7 +11,7 @@ export default [
     {
         path: '/admin/tags',
         name: 'pages-page-list',
-        component: () => import('@/views/admin/pages/post/Page.vue'),
+        component: () => import('@/views/admin/pages/post/page/Page.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -21,7 +21,7 @@ export default [
     {
         path: '/admin/articles',
         name: 'pages-article-list',
-        component: () => import('@/views/admin/pages/post/Article.vue'),
+        component: () => import('@/views/admin/pages/post/article/Article.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -29,7 +29,7 @@ export default [
     {
         path: '/admin/article/new',
         name: 'pages-article-add',
-        component: () => import('@/views/admin/pages/post/Article.vue'),
+        component: () => import('@/views/admin/pages/post/article/NewArticle.vue'),
         meta: {
             resource: 'Auth',
         },

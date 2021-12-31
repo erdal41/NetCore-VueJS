@@ -2,7 +2,7 @@
 
 namespace VueJS.Entities.ComplexTypes
 {
-    public enum SchemaType
+    public enum SchemaPageType
     {
         [Display(Name = "Sayfalar için varsayılan(Web sayfası)")]
         Default = 0,

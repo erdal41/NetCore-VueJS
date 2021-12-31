@@ -166,7 +166,7 @@ namespace VueJS.Services.Concrete
             });
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllAnotherPostsAsync(SubObjectType postType, int? postId, string search)
+        public async Task<IDataResult<PostListDto>> GetAllAnotherPostsAsync(SubObjectType postType, int? postId)
         {
             if (postType == SubObjectType.page)
             {
@@ -194,11 +194,6 @@ namespace VueJS.Services.Concrete
                     }
                 }
 
-                if (!(string.IsNullOrEmpty(search) || string.IsNullOrWhiteSpace(search)))
-                {
-                    posts = posts.Where(c => c.Title.ToLower().StartsWith(search.ToLower())).ToList();
-                }
-
                 if (posts != null)
                 {
                     return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto
@@ -216,7 +211,7 @@ namespace VueJS.Services.Concrete
             });
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllSubPostsAsync(SubObjectType postType, int? postId, string search)
+        public async Task<IDataResult<PostListDto>> GetAllSubPostsAsync(SubObjectType postType, int? postId)
         {
             if (postType == SubObjectType.page)
             {
@@ -250,11 +245,6 @@ namespace VueJS.Services.Concrete
                     {
                         posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == SubObjectType.page && c.Id != postId.Value);
                     }
-                }
-
-                if (!(string.IsNullOrEmpty(search) || string.IsNullOrWhiteSpace(search)))
-                {
-                    posts = posts.Where(c => c.Title.ToLower().StartsWith(search.ToLower())).ToList();
                 }
 
                 if (posts != null)

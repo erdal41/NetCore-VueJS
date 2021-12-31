@@ -10,9 +10,8 @@ namespace VueJS.Services.Abstract
     {
         Task<IDataResult<TermDto>> GetAsync(int termId);
         Task<IDataResult<TermDto>> GetAsync(SubObjectType termtype, string termSlug);
-        Task<IDataResult<TermListDto>> GetAllAsync();
-        Task<IDataResult<TermListDto>> GetAllAsync(SubObjectType termType, string search);
-        Task<IDataResult<TermListDto>> GetAllParentAsync(int? termId, string search);
+        Task<IDataResult<TermListDto>> GetAllAsync(SubObjectType termType);
+        Task<IDataResult<TermListDto>> GetAllParentAsync(int? termId);
         Task<IDataResult<TermListDto>> GetAllTermPageAsync(int termId);
         Task<IDataResult<TermUpdateDto>> GetTermUpdateDtoAsync(int termId);
         Task<IDataResult<PostTermListDto>> GetAllPostTermAsync(int postId);

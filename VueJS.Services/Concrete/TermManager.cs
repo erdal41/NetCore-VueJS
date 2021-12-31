@@ -76,29 +76,7 @@ namespace VueJS.Services.Concrete
             });
         }
 
-        public async Task<IDataResult<TermListDto>> GetAllAsync()
-        {
-            var terms = await UnitOfWork.Terms.GetAllAsync();
-            if (terms.Count > -1)
-            {
-                return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto
-                {
-                    Terms = terms,
-                    ResultStatus = ResultStatus.Success
-                });
-            }
-            else
-            {
-                return new DataResult<TermListDto>(ResultStatus.Error, new TermListDto
-                {
-                    Terms = terms,
-                    ResultStatus = ResultStatus.Error,
-                    Message = terms.FirstOrDefault().TermType == SubObjectType.category ? Messages.Category.NotFound(true) : Messages.Tag.NotFound(true)
-                });
-            }
-        }
-
-        public async Task<IDataResult<TermListDto>> GetAllAsync(SubObjectType termType, string search)
+        public async Task<IDataResult<TermListDto>> GetAllAsync(SubObjectType termType)
         {
             var terms = await UnitOfWork.Terms.GetAllAsync(t => t.TermType == termType, t => t.Parent, t => t.Children, t => t.PostTerms);
 
@@ -113,12 +91,7 @@ namespace VueJS.Services.Concrete
                         term.Parents.Add(parent);
                         parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
                     }
-                }
-
-                if (!(string.IsNullOrEmpty(search) || string.IsNullOrWhiteSpace(search)))
-                {
-                    terms = terms.Where(c => c.Name.ToLower().StartsWith(search.ToLower())).ToList();
-                }
+                }               
 
                 return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto
                 {
@@ -138,7 +111,7 @@ namespace VueJS.Services.Concrete
             
         }
 
-        public async Task<IDataResult<TermListDto>> GetAllParentAsync(int? termId, string search)
+        public async Task<IDataResult<TermListDto>> GetAllParentAsync(int? termId)
         {
             IList<Term> terms = null;
             if (termId == null)
@@ -176,12 +149,6 @@ namespace VueJS.Services.Concrete
                 {
                     terms = await UnitOfWork.Terms.GetAllAsync(c => c.Id != termId.Value && c.TermType == SubObjectType.category);
                 }
-            }
-
-
-            if (!(string.IsNullOrEmpty(search) || string.IsNullOrWhiteSpace(search)))
-            {
-                terms = terms.Where(c => c.Name.ToLower().StartsWith(search.ToLower())).ToList();
             }
 
             return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto

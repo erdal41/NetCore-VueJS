@@ -23,7 +23,8 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(sos => sos.IsRobotsNoArchive).IsRequired();
             builder.Property(sos => sos.IsRobotsNoImageIndex).IsRequired();
             builder.Property(sos => sos.IsRobotsNoSnippet).IsRequired();
-            builder.Property(sos => sos.SchemaType).IsRequired();
+            builder.Property(sos => sos.SchemaPageType).IsRequired();
+            builder.Property(sos => sos.SchemaArticleType).IsRequired();
             builder.Property(sos => sos.OpenGraphTitle).HasColumnType("NVARCHAR(MAX)");
             builder.Property(sos => sos.OpenGraphDescription).HasColumnType("NVARCHAR(MAX)");
             builder.Property(sos => sos.TwitterTitle).HasColumnType("NVARCHAR(MAX)");

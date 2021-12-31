@@ -70,7 +70,11 @@ namespace VueJS.Entities.Dtos
 
         [DisplayName("Sayfa Türü")]
         [Required]
-        public SchemaType SchemaType { get; set; }
+        public SchemaPageType SchemaPageType { get; set; }
+
+        [DisplayName("Makale Türü")]
+        [Required]
+        public SchemaArticleType SchemaArticleType { get; set; }
 
         [Required]
         public ObjectType ObjectType { get; set; }

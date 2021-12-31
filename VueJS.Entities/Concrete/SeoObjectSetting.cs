@@ -29,7 +29,8 @@ namespace VueJS.Entities.Concrete
         public int? TwitterImageId { get; set; }
         public string TwitterTitle { get; set; }
         public string TwitterDescription { get; set; }
-        public SchemaType SchemaType { get; set; } = SchemaType.Default;
+        public SchemaPageType SchemaPageType { get; set; } = SchemaPageType.Default;
+        public SchemaArticleType SchemaArticleType { get; set; } = SchemaArticleType.Default;
         public ObjectType ObjectType { get; set; }
         public SubObjectType SubObjectType { get; set; }
 

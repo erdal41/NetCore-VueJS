@@ -11,6 +11,9 @@ using VueJS.Shared.Utilities.Results.ComplexTypes;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
+using System.Linq;
+using VueJS.Shared.Utilities.Extensions;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -29,41 +32,6 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _postService = postService;
             _termService = termService;
             _seoService = seoService;
-        }
-
-        #region Post
-
-        [Authorize(Roles = "SuperAdmin,Post.Read")]
-        [HttpGet]
-        [Route("admin/post")]
-        public async Task<IActionResult> Index(SubObjectType post_type, PostStatus? post_status)
-        {
-            var result = await _postService.GetAllAsync(post_type, post_status);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(post_type, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(post_type, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(post_type, PostStatus.trash);
-            if (result.ResultStatus == ResultStatus.Success)
-            {
-                var postListViewModel = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return View(postListViewModel);
-            }
-            else
-            {
-                var postErrorListViewModel = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return View(postErrorListViewModel);
-            }
         }
 
         [HttpGet]
@@ -99,6 +67,62 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [Route("/admin/post/getschnemapagetype")]
+        public JsonResult GetSchnemaPageType()
+        {
+            var schnemaPageType = Enum.GetValues(typeof(SchemaPageType))
+                .Cast<SchemaPageType>()
+                .Select(spt => new SchnemaTypeViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                });
+            return new JsonResult(schnemaPageType);
+        }
+
+        [HttpGet]
+        [Route("/admin/post/getschnemaarticletype")]
+        public JsonResult GetSchnemaArticleType()
+        {
+            var schnemaArticleType = Enum.GetValues(typeof(SchemaArticleType))
+                .Cast<SchemaArticleType>()
+                .Select(spt => new SchnemaTypeViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                });
+            return new JsonResult(schnemaArticleType);
+        }
+
+        [HttpPost]
+        [Route("admin/post/new")]
+        public async Task<IActionResult> New(PostViewModel postViewModel, SubObjectType post_type)
+        {
+            var postResult = await _postService.AddAsync(postViewModel.PostAddDto, 1, post_type);
+            if (postResult.ResultStatus == ResultStatus.Success)
+            {
+                //_cacheService.Clear();
+                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.post, post_type, postResult.Data.Post.Id, postViewModel.SeoObjectSettingAddDto, LoggedInUser.Id);
+                //await _fileHelper.CreateSitemapInRootDirectoryAsync();
+                var postAddViewModelJson = new PostViewModel
+                {
+                    PostDto = postResult.Data,
+                    SeoObjectSettingDto = seoResult.Data
+
+                };
+                return Json(postAddViewModelJson);
+            }
+            else
+            {
+                var postAddViewModelJsonError = new PostViewModel
+                {
+                    PostDto = postResult.Data
+                };
+                return Json(postAddViewModelJsonError);
+            }
+        }
+
+        [HttpGet]
         [Route("admin/post/allstatusedposts")]
         public async Task<JsonResult> AllPostStatusedPosts(SubObjectType post_type, PostStatus post_status)
         {
@@ -109,9 +133,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [Authorize(Roles = "SuperAdmin,Post.Read")]
         [HttpGet]
         [Route("admin/post/getalltopposts")]
-        public async Task<JsonResult> GetAllTopPosts(int? postId, string search)
+        public async Task<JsonResult> GetAllTopPosts(int? postId)
         {
-            var result = await _postService.GetAllAnotherPostsAsync(SubObjectType.page, postId, search);
+            var result = await _postService.GetAllAnotherPostsAsync(SubObjectType.page, postId);
 
             var topPost = JsonConvert.SerializeObject(result.Data, new JsonSerializerSettings
             {
@@ -123,9 +147,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [Authorize(Roles = "SuperAdmin,Category.Read")]
         [HttpGet]
         [Route("admin/post/getallsubposts")]
-        public async Task<JsonResult> GetAllSubPosts(int? postId, string search)
+        public async Task<JsonResult> GetAllSubPosts(int? postId)
         {
-            var result = await _postService.GetAllSubPostsAsync(SubObjectType.page, postId, search);
+            var result = await _postService.GetAllSubPostsAsync(SubObjectType.page, postId);
 
             var subPost = JsonConvert.SerializeObject(result.Data, new JsonSerializerSettings
             {
@@ -166,35 +190,6 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public IActionResult New(SubObjectType post_type)
         {
             return View();
-        }
-
-        [Authorize(Roles = "SuperAdmin,Post.Create")]
-        [HttpPost]
-        [Route("admin/post/new")]
-        public async Task<IActionResult> New(PostViewModel postAddViewModel, SubObjectType post_type)
-        {
-            var postResult = await _postService.AddAsync(postAddViewModel.PostAddDto, LoggedInUser.Id, post_type);
-            if (postResult.ResultStatus == ResultStatus.Success)
-            {
-                //_cacheService.Clear();
-                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.post, post_type, postResult.Data.Post.Id, postAddViewModel.SeoObjectSettingAddDto, LoggedInUser.Id);
-                //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-                var postAddAjaxViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostDto = postResult.Data,
-                    SeoObjectSettingDto = seoResult.Data
-
-                });
-                return Json(postAddAjaxViewModel);
-            }
-            else
-            {
-                var postAddAjaxErrorViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostDto = postResult.Data
-                });
-                return Json(postAddAjaxErrorViewModel);
-            }
         }
 
         public async Task<IActionResult> AddGalleryImage(int postId, List<int> galleryIds)
@@ -599,7 +594,5 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                 return Json(postViewModel);
             }
         }
-
-        #endregion
     }
 }
