@@ -1,5 +1,12 @@
 export default [
-
+    {
+        path: '/admin/post',
+        name: 'pages-post-edit',
+        component: () => import('@/views/admin/pages/post/Edit.vue'),
+        meta: {
+            resource: 'Auth',
+        },
+    },
     {
         path: '/admin/basepages',
         name: 'pages-basepage-list',

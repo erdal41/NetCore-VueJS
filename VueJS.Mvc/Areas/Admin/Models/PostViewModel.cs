@@ -18,6 +18,7 @@ namespace VueJS.Mvc.Areas.Admin.Models
         public GalleryListDto GalleryListDto { get; set; }
         public UploadDto UploadDto { get; set; }
         public SeoObjectSettingUpdateDto SeoObjectSettingUpdateDto { get; set; }
-
+        public bool IsActivePageSeoSetting { get; set; }
+        public bool IsActiveArticleSeoSetting { get; set; }
     }
 }

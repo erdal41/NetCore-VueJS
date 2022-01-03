@@ -1,5 +1,31 @@
 ﻿<template>
     <b-row>
+        <b-col class="content-header-left mb-2"
+               cols="12"
+               md="12">
+            <b-row class="breadcrumbs-top">
+                <b-col cols="12">
+                    <h2 class="content-header-title float-left pr-1 mb-0">
+                        Etiketler
+                    </h2>
+                    <div class="breadcrumb-wrapper">
+                        <b-breadcrumb>
+                            <b-breadcrumb-item to="/">
+                                <feather-icon icon="HomeIcon"
+                                              size="16"
+                                              class="align-text-top" />
+                            </b-breadcrumb-item>
+                            <b-breadcrumb-item v-for="item in breadcrumbs"
+                                               :key="item.text"
+                                               :active="item.active"
+                                               :to="item.to">
+                                {{ item.text }}
+                            </b-breadcrumb-item>
+                        </b-breadcrumb>
+                    </div>
+                </b-col>
+            </b-row>
+        </b-col>
         <b-col md="12"
                lg="4">
             <b-card title="Etiket Ekle">
@@ -191,16 +217,15 @@
 
 <script>
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import { required, min, confirmed } from '@validations'
+    import required from '@validations'
     import {
-        BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
-    //import { codeRowDetailsSupport } from './code'
+
     import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
-    import { integer } from '../../../../@core/utils/validations/validations'
 
     extend('required', {
         ...required,
@@ -209,6 +234,8 @@
 
     export default {
         components: {
+            BBreadcrumb,
+            BBreadcrumbItem,
             BSpinner,
             BCardTitle,
             BForm,
@@ -238,11 +265,13 @@
         },
         data() {
             return {
-                passValue: '',
-                username: '',
+                breadcrumbs: [
+                    {
+                        text: 'Etiketler',
+                        active: true,
+                    }
+                ],
                 required,
-                min,
-                confirmed,
                 isSpinnerShow: true,
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],

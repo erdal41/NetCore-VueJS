@@ -1,34 +1,64 @@
 ﻿<template>
     <b-row class="content-header">
+        <modal-media v-bind:show="modalShow"
+                     @changeImage="imageChange"
+                     ref="modalMedia"></modal-media>
         <b-col class="content-header-left mb-2"
                cols="12"
                md="6">
-            <b-row class="breadcrumbs-top">
-                <b-col cols="12">
-                    <h2 class="content-header-title float-left pr-1 mb-0">
-                        Makale Ekle
-                    </h2>
-                    <div class="breadcrumb-wrapper">
-                        <b-breadcrumb>
-                            <b-breadcrumb-item to="/">
-                                <feather-icon icon="HomeIcon"
-                                              size="16"
-                                              class="align-text-top" />
-                            </b-breadcrumb-item>
-                            <b-breadcrumb-item v-for="item in breadcrumbs"
-                                               :key="item.text"
-                                               :active="item.active"
-                                               :to="item.to">
-                                {{ item.text }}
-                            </b-breadcrumb-item>
-                        </b-breadcrumb>
-                    </div>
-                </b-col>
-            </b-row>
+            <h2 class="content-header-title float-left pr-1 mb-0">
+                {{ pageTitle }}
+            </h2>
+            <div class="breadcrumb-wrapper">
+                <b-breadcrumb>
+                    <b-breadcrumb-item to="/">
+                        <feather-icon icon="HomeIcon"
+                                      size="16"
+                                      class="align-text-top" />
+                    </b-breadcrumb-item>
+                    <b-breadcrumb-item v-if="isParent == true"
+                                       :to="{ name: 'pages-page-list' }">Sayfalar</b-breadcrumb-item>
+                    <b-breadcrumb-item v-else
+                                       :to="{ name: 'pages-post-list' }">Makaleler</b-breadcrumb-item>
+                    <b-breadcrumb-item active>Düzenle</b-breadcrumb-item>
+                    <b-button v-if="postUpdateDto.PostType == '0'"
+                              v-b-tooltip.hover
+                              :title="tooltipText"
+                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                              variant="outline-primary"
+                              size="sm"
+                              :to="{ name:'pages-tag-list'}"
+                              class=" ml-1">Yeni Ekle</b-button>
+                    <b-button v-else-if="postUpdateDto.PostType == '1'"
+                              v-b-tooltip.hover
+                              :title="tooltipText"
+                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                              variant="outline-primary"
+                              size="sm"
+                              :to="{ name:'pages-article-add'}"
+                              class=" ml-1">Yeni Ekle</b-button>
+
+                    <b-button v-else-if="postUpdateDto.PostType == '5'"
+                              v-b-tooltip.hover
+                              :title="tooltipText"
+                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                              variant="outline-primary"
+                              size="sm"
+                              :to="{ name:'pages-category-list'}"
+                              class=" ml-1">Yeni Ekle</b-button>
+                </b-breadcrumb>
+            </div>
         </b-col>
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="6"
                cols="12">
+            <b-button id="draft"
+                      variant="flat-danger"
+                      class="mr-1"
+                      size="sm"
+                      type="button">
+                Çöp Kutusuna Taşı
+            </b-button>
             <b-button id="draft"
                       variant="outline-primary"
                       class="mr-1"
@@ -41,12 +71,9 @@
                       variant="primary"
                       type="submit"
                       @click.prevent="validationForm">
-                Yayınla
+                Güncelle
             </b-button>
         </b-col>
-        <modal-media v-bind:show="modalShow"
-                     @changeImage="imageChange"
-                     ref="modalMedia"></modal-media>
         <b-col md="12"
                lg="8">
             <b-card>
@@ -60,14 +87,14 @@
                                                          vid="title"
                                                          rules="required">
                                         <b-form-input id="title"
-                                                      v-model="postAddDto.Title"
+                                                      v-model="postUpdateDto.Title"
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
                                                       placeholder="Başlık" />
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
                                 </b-form-group>
-                                <quill-editor v-model="postAddDto.Content"
+                                <quill-editor v-model="postUpdateDto.Content"
                                               :options="editorOption" />
                             </b-col>
                         </b-row>
@@ -86,7 +113,7 @@
                                     <b-form-group label-for="SeoTitle"
                                                   description="Arama motoru optimizasyonu için geçerli olan SEO Başlığının uzunluğu 60 karakter olarak önerilir.">
                                         <b-form-input id="SeoTitle"
-                                                      v-model="articleSeoSettingAddDto.SeoTitle"
+                                                      v-model="seoObjectSettingUpdateDto.SeoTitle"
                                                       type="text"
                                                       placeholder="Seo Başlığı" />
                                     </b-form-group>
@@ -101,7 +128,7 @@
                                     <b-form-group label-for="SeoDescription"
                                                   description="Arama motoru optimizayonu için geçerli olan SEO açıklamasının uzunluğu 50-160 karakter arasında girilmesi önerilir.">
                                         <b-form-textarea id="SeoDescription"
-                                                         v-model="articleSeoSettingAddDto.SeoDescription"
+                                                         v-model="seoObjectSettingUpdateDto.SeoDescription"
                                                          placeholder="Meta Açıklama"
                                                          rows="3" />
                                     </b-form-group>
@@ -110,12 +137,12 @@
                                             <b-form-group label-for="CanonicalUrl"
                                                           description="Geçerli makale ile benzer içeriğe sahip olan makalenin linkini giriniz.">
                                                 <b-form-input id="CanonicalUrl"
-                                                              v-model="articleSeoSettingAddDto.CanonicalUrl"
+                                                              v-model="seoObjectSettingUpdateDto.CanonicalUrl"
                                                               type="text"
                                                               placeholder="Benzer Link" />
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoIndex"
+                                                <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoIndex"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -123,7 +150,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoFollow"
+                                                <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoFollow"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -131,7 +158,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoArchive"
+                                                <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoArchive"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -139,7 +166,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoImageIndex"
+                                                <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoImageIndex"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -147,7 +174,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoSnippet"
+                                                <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoSnippet"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -168,7 +195,7 @@
                         </p>
                         <b-form-group label="Sayfa Türü">
                             <v-select id="schnemaPageType"
-                                      v-model="articleSeoSettingAddDto.SchemaPageType"
+                                      v-model="seoObjectSettingUpdateDto.SchemaPageType"
                                       :options="schnemaPageTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
@@ -226,13 +253,13 @@
                                 </b-row>
                                 <b-form-group class="mt-1">
                                     <b-form-input id="OpenGraphTitle"
-                                                  v-model="articleSeoSettingAddDto.OpenGraphTitle"
+                                                  v-model="seoObjectSettingUpdateDto.OpenGraphTitle"
                                                   type="text"
                                                   placeholder="Sosyal Medya Başlığı" />
                                 </b-form-group>
                                 <b-form-group>
                                     <b-form-textarea id="OpenGraphDescription"
-                                                     v-model="articleSeoSettingAddDto.OpenGraphDescription"
+                                                     v-model="seoObjectSettingUpdateDto.OpenGraphDescription"
                                                      placeholder="Sosyal Medya Açıklaması"
                                                      rows="3" />
                                 </b-form-group>
@@ -276,13 +303,13 @@
                                 </b-row>
                                 <b-form-group class="mt-1">
                                     <b-form-input id="TwitterTitle"
-                                                  v-model="articleSeoSettingAddDto.TwitterTitle"
+                                                  v-model="seoObjectSettingUpdateDto.TwitterTitle"
                                                   type="text"
                                                   placeholder="Twitter Başlığı" />
                                 </b-form-group>
                                 <b-form-group>
                                     <b-form-textarea id="TwitterDescription"
-                                                     v-model="articleSeoSettingAddDto.TwitterDescription"
+                                                     v-model="seoObjectSettingUpdateDto.TwitterDescription"
                                                      placeholder="Twitter Açıklaması"
                                                      rows="3" />
                                 </b-form-group>
@@ -294,7 +321,32 @@
         </b-col>
         <b-col md="12"
                lg="4">
-            <b-card title="Kategori">
+            <b-card v-show="postUpdateDto.PostType == '0'"
+                    title="Ebeveyn Sayfa">
+                <b-form-group>
+                    <v-select v-model="selectedParentPage"
+                              :options="parentPages"
+                              label="Name"
+                              :reduce="(option) => option.Id"
+                              placeholder="Ebeveyn Sayfa Seçiniz..."
+                              multiple
+                              @input="changeParentPage" />
+                </b-form-group>
+            </b-card>
+            <b-card v-show="postUpdateDto.PostType == '0'"
+                    title="Alt Sayfa">
+                <b-form-group>
+                    <v-select v-model="selectedChildPage"
+                              :options="childPages"
+                              label="Name"
+                              :reduce="(option) => option.Id"
+                              placeholder="Alt Sayfa Seçiniz..."
+                              multiple
+                              @input="changeChildPage" />
+                </b-form-group>
+            </b-card>
+            <b-card v-show="postUpdateDto.PostType == '1'"
+                    title="Kategori">
                 <b-form-group>
                     <v-select id="categoryList"
                               v-model="selectedCategory"
@@ -347,7 +399,8 @@
                     </b-card>
                 </b-collapse>
             </b-card>
-            <b-card title="Etiket">
+            <b-card v-show="postUpdateDto.PostType == '1'"
+                    title="Etiket">
                 <b-form-group>
                     <v-select v-model="selectedTag"
                               :options="tags"
@@ -392,12 +445,14 @@
             <b-card-actions title="Resim"
                             action-collapse
                             collapsed>
-                <b-form-checkbox v-model="postAddDto.IsShowFeaturedImage"
-                                 name="check-button"
-                                 switch
-                                 inline>
-                    Görsel yazıda gösterilsin mi?
-                </b-form-checkbox>
+                <b-form-group>
+                    <b-form-checkbox v-model="postUpdateDto.IsShowFeaturedImage"
+                                     name="check-button"
+                                     switch
+                                     inline>
+                        Görsel yazıda gösterilsin mi?
+                    </b-form-checkbox>
+                </b-form-group>
                 <div class="image-thumb">
                     <b-img rounded
                            v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
@@ -431,7 +486,7 @@
             <b-card-actions title="Diğer Ayarlar"
                             action-collapse
                             collapsed>
-                <b-form-checkbox v-model="postAddDto.CommentStatus"
+                <b-form-checkbox v-model="postUpdateDto.CommentStatus"
                                  name="check-button"
                                  switch
                                  inline>
@@ -446,7 +501,7 @@
     import 'quill/dist/quill.snow.css'
 
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
-    import { required, min, confirmed } from '@validations';
+    import required from '@validations';
     import {
         BBreadcrumb, BBreadcrumbItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
@@ -456,7 +511,7 @@
     import vSelect from 'vue-select';
     import Ripple from 'vue-ripple-directive';
     import { quillEditor } from 'vue-quill-editor';
-    import ModalMedia from '../../media/ModalMedia.vue';
+    import ModalMedia from '../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
 
@@ -508,35 +563,30 @@
         },
         data() {
             return {
-                breadcrumbs: [
-                    {
-                        text: 'Makaleler',
-                        to: { name: 'pages-article-list' }
-                    },
-                    {
-                        text: 'Makale Ekle',
-                        active: true,
-                    },
-                ],
                 editorOption: {
                     placeholder: 'Makale İçeriği',
                     theme: 'snow'
                 },
-                passValue: '',
-                username: '',
                 required,
-                min,
-                confirmed,
                 isSpinnerShow: true,
+                pageTitle: '',
+                tooltipText: '',
                 title: '',
-                postAddDto: {
+                isParent: Boolean,
+                postUpdateDto: {
+                    Id: this.$route.query.edit,
                     Title: '',
+                    PostName: '',
                     Content: '',
-                    PostType: 'article',
+                    BottomContent: '',
+                    PostType: '',
                     PostStatus: null,
                     CommentStatus: Boolean,
                     FeaturedImageId: '',
-                    IsShowFeaturedImage: Boolean
+                    IsShowFeaturedImage: Boolean,
+                    ParentId: '',
+                    IsShowPage: Boolean,
+                    IsShowSubPosts: Boolean,
                 },
                 categoryAddDto: {
                     Name: '',
@@ -547,7 +597,8 @@
                     Name: '',
                     TermType: 'tag'
                 },
-                articleSeoSettingAddDto: {
+                seoObjectSettingUpdateDto: {
+                    Id: '',
                     SeoTitle: '',
                     FocusKeyword: '',
                     SeoDescription: '',
@@ -578,6 +629,10 @@
                 tags: [],
                 selectedTag: '',
                 tagName: '',
+                parentPages: [],
+                selectedParentPage: '',
+                childPages: [],
+                selectedChildPage: '',
                 featuredImage: {
                     id: null,
                     fileName: null,
@@ -660,6 +715,12 @@
                 this.categoryAddDto.ParentId = value;
             },
             changeTag() {
+
+            },
+            changeParentPage() {
+
+            },
+            changeChildPage() {
 
             },
             addNewTerm: function (e) {
@@ -747,30 +808,106 @@
                     });
             },
             changePageType(value) {
-                this.articleSeoSettingAddDto.SchemaPageType = value;
+                this.seoObjectSettingUpdateDto.SchemaPageType = value;
             },
             changeArticleType(value) {
-                this.articleSeoSettingAddDto.SchemaArticleType = value;
+                this.seoObjectSettingUpdateDto.SchemaArticleType = value;
+            },
+            getData() {
+                axios.get('/admin/post/edit?post=' + this.$route.query.edit)
+                    .then((response) => {
+                        console.log(response.data);
+                        if (response.data.PostUpdateDto != null) {
+                            this.doHaveData = true;
+                            this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
+                            this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
+                            this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
+                            this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
+
+                            this.postUpdateDto.ParentId = response.data.PostUpdateDto.ParentId;
+
+                            this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
+                            this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
+                            this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
+                            this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
+                            this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
+                            this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.IsRobotsNoFollow;
+                            this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.IsRobotsNoArchive;
+                            this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoImageIndex;
+                            this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.IsRobotsNoSnippet;
+
+
+                            this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
+                            this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
+
+                            this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
+                            this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
+
+                            this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
+
+                            if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
+                                this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
+                                this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
+                                this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
+                            }
+
+                            if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
+                                this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
+                                this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
+                                this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
+                            }
+
+                            if (response.data.PostUpdateDto.PostType === 0) {
+                                this.isParent = true;
+                                if (response.data.PostUpdateDto.Parent != null) {
+                                    this.selected = {
+                                        Id: response.data.PostUpdateDto.Parent.Id,
+                                        Name: response.data.PostUpdateDto.Parent.Name,
+                                    }
+                                }
+
+                                this.pageTitle = "Sayfayı Düzenle";
+                                this.tooltipText = "Yeni Sayfa Ekle";
+                            } else if (response.data.PostUpdateDto.PostType === 1) {
+                                this.pageTitle = "Makaleyi Düzenle";
+                                this.tooltipText = "Yeni Makale Ekle";
+                            }
+                        }
+                        else {
+                            this.doHaveData = false;
+                        }
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
             },
             validationForm: function (e) {
-                this.postAddDto.FeaturedImageId = this.featuredImage.id;
-                this.articleSeoSettingAddDto.FocusKeyword = this.keywords.toString();
-                this.articleSeoSettingAddDto.OpenGraphImageId = this.openGraphImage.id;
-                this.articleSeoSettingAddDto.TwitterImageId = this.twitterImage.id;
-                this.articleSeoSettingAddDto.SchemaPageType = this.selectedPageType.Id;
-                this.articleSeoSettingAddDto.SchemaArticleType = this.selectedArticleType.Id;
+                this.postUpdateDto.FeaturedImageId = this.featuredImage.id;
+                this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
+                this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
+                this.seoObjectSettingUpdateDto.TwitterImageId = this.twitterImage.id;
+                this.seoObjectSettingUpdateDto.SchemaPageType = this.selectedPageType.Id;
+                this.seoObjectSettingUpdateDto.SchemaArticleType = this.selectedArticleType.Id;
                 if (e.target.id == "save") {
-                    this.postAddDto.PostStatus = "publish";
+                    this.postUpdateDto.PostStatus = "publish";
                 }
                 else if (e.target.id == "draft") {
-                    this.postAddDto.PostStatus = "draft";
+                    this.postUpdateDto.PostStatus = "draft";
                 }
                 this.$refs.articleAddForm.validate().then(success => {
                     if (success) {
                         axios.post('/admin/post/new',
                             {
-                                PostAddDto: this.postAddDto,
-                                SeoObjectSettingAddDto: this.articleSeoSettingAddDto
+                                postUpdateDto: this.postUpdateDto,
+                                SeoObjectSettingAddDto: this.seoObjectSettingUpdateDto
                             })
                             .then((response) => {
                                 this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } })
@@ -966,6 +1103,7 @@
         computed: {
         },
         mounted() {
+            this.getData();
             this.allCategories();
             this.allTags();
             this.getSchnemaPageType();

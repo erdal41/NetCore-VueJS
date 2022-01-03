@@ -4,9 +4,53 @@
             <modal-media v-bind:show="modalShow"
                          @changeImage="imageChange"
                          ref="modalMedia"></modal-media>
+            <b-col class="content-header-left mb-2"
+                   cols="12"
+                   md="8">
+                <h2 class="content-header-title float-left pr-1 mb-0">
+                    {{ title }}
+                </h2>
+                <div class="breadcrumb-wrapper">
+                    <b-breadcrumb>
+                        <b-breadcrumb-item to="/">
+                            <feather-icon icon="HomeIcon"
+                                          size="16"
+                                          class="align-text-top" />
+                        </b-breadcrumb-item>
+                        <b-breadcrumb-item v-if="isParent == true"
+                                           :to="{ name: 'pages-category-list' }">Kategoriler</b-breadcrumb-item>
+                        <b-breadcrumb-item v-else
+                                           :to="{ name: 'pages-tag-list' }">Etiketler</b-breadcrumb-item>
+                        <b-breadcrumb-item active>Düzenle</b-breadcrumb-item>
+                        <b-button v-b-tooltip.hover
+                                  :title="tooltipText"
+                                  v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                  variant="outline-primary"
+                                  size="sm"
+                                  :to="{ name:'pages-article-add'}"
+                                  class=" ml-1">Yeni Ekle</b-button>
+                    </b-breadcrumb>                    
+                </div>
+            </b-col>
+            <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
+                   md="4"
+                   cols="12">
+                <b-button variant="flat-danger"
+                          class="mr-1"
+                          size="sm"
+                          type="button"
+                          @click="deleteData">
+                    Kalıcı Sil
+                </b-button>
+                <b-button variant="primary"                          
+                          type="submit"
+                          @click.prevent="validationForm">
+                    Güncelle
+                </b-button>
+            </b-col>
             <b-col md="12"
                    lg="4">
-                <b-card :title="formTitle">
+                <b-card>
                     <validation-observer ref="simpleRules">
                         <b-form>
                             <b-row>
@@ -49,21 +93,7 @@
                                     <b-form-textarea id="description"
                                                      v-model="termUpdateDto.Description"
                                                      placeholder="Açıklama"
-                                                     rows="3" />
-
-                                    <!-- reset button -->
-                                    <b-button variant="primary"
-                                              class="float-right mt-1"
-                                              type="submit"
-                                              @click.prevent="validationForm">
-                                        Güncelle
-                                    </b-button>
-                                    <b-button variant="flat-danger"
-                                              class="float-right mt-1 mr-1"
-                                              type="button"
-                                              @click="deleteData">
-                                        Kalıcı Sil
-                                    </b-button>
+                                                     rows="3" />                                    
                                 </b-col>
                             </b-row>
                         </b-form>
@@ -124,103 +154,108 @@
                             </b-form>
                         </b-tab>
                         <b-tab title="Sosyal Medya">
-
-                            <b-row class="kb-search-content-info match-height">
-
-                                <b-col lg="4"
-                                       md="4"
-                                       sm="6"
-                                       class="image-thumb ml-1">
-                                    <b-img rounded
-                                           v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
-                                           :alt="openGraphImage.altText" />
-                                </b-col>
-                                <b-col lg="3"
-                                       md="3"
-                                       sm="6">
-                                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                              variant="primary"
-                                              size="sm"
-                                              class="mb-75 mr-75"
-                                              v-b-modal.modal-media
-                                              @click="selectedOpenGraphImage">
-                                        Resim Seç
-                                    </b-button>
-                                    <!--/ upload button -->
-                                    <!-- reset -->
-                                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                              variant="outline-secondary"
-                                              size="sm"
-                                              class="mb-75 mr-75"
-                                              @click="removedOpenGraphImage">
-                                        Resmi Kaldır
-                                    </b-button>
-                                    <b-form-input type="text"
-                                                  hidden
-                                                  v-model="openGraphImage.id"></b-form-input>
-                                </b-col>
-                            </b-row>
-
-                            <b-form-group class="mt-1">
-                                <b-form-input id="OpenGraphTitle"
-                                              v-model="seoObjectSettingUpdateDto.OpenGraphTitle"
-                                              type="text"
-                                              placeholder="Sosyal Medya Başlığı" />
-                            </b-form-group>
-                            <b-form-group>
-                                <b-form-textarea id="OpenGraphDescription"
-                                                 v-model="seoObjectSettingUpdateDto.OpenGraphDescription"
-                                                 placeholder="Sosyal Medya Açıklaması"
-                                                 rows="3" />
-                            </b-form-group>
-                        </b-tab>
-                        <b-tab title="Twitter">
-                            <b-row class="kb-search-content-info match-height">
-                                <b-col lg="4"
-                                       md="4"
-                                       sm="6"
-                                       class="image-thumb ml-1">
-                                    <b-img rounded
-                                           v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
-                                           :alt="twitterImage.altText" />
-                                </b-col>
-                                <b-col lg="3"
-                                       md="3"
-                                       sm="6">
-                                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                              variant="primary"
-                                              size="sm"
-                                              class="mb-75 mr-75"
-                                              v-b-modal.modal-media
-                                              @click="selectedTwitterImage">
-                                        Resim Seç
-                                    </b-button>
-                                    <!--/ upload button -->
-                                    <!-- reset -->
-                                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                              variant="outline-secondary"
-                                              size="sm"
-                                              class="mb-75 mr-75"
-                                              @click="removedTwitterImage">
-                                        Resmi Kaldır
-                                    </b-button>
-                                    <b-form-input type="text"
-                                                  hidden
-                                                  v-model="twitterImage.id"></b-form-input>
-                                </b-col>
-                            </b-row>
-                            <b-form-group class="mt-1">
-                                <b-form-input id="TwitterTitle"
-                                              v-model="seoObjectSettingUpdateDto.TwitterTitle"
-                                              type="text"
-                                              placeholder="Twitter Başlığı" />
-                            </b-form-group>
-                            <b-form-group>
-                                <b-form-textarea id="TwitterDescription"
-                                                 v-model="seoObjectSettingUpdateDto.TwitterDescription"
-                                                 placeholder="Twitter Açıklaması"
-                                                 rows="3" />
-                            </b-form-group>
+                            <app-collapse>
+                                <app-collapse-item title="Sosyal Medya">
+                                    <b-row class="kb-search-content-info match-height">
+                                        <b-col lg="4"
+                                               md="4"
+                                               sm="6"
+                                               class="image-thumb ml-1">
+                                            <b-img rounded
+                                                   v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
+                                                   :alt="openGraphImage.altText" />
+                                        </b-col>
+                                        <b-col lg="3"
+                                               md="3"
+                                               sm="6">
+                                            <b-button id="selectOpenGraphImage"
+                                                      v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                                                      variant="primary"
+                                                      size="sm"
+                                                      class="mb-75 mr-75"
+                                                      v-b-modal.modal-media
+                                                      @click="selectImage">
+                                                Resim Seç
+                                            </b-button>
+                                            <!--/ upload button -->
+                                            <!-- reset -->
+                                            <b-button id="removeOpenGraphImage"
+                                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                      variant="outline-secondary"
+                                                      size="sm"
+                                                      class="mb-75 mr-75"
+                                                      @click="removeImage">
+                                                Resmi Kaldır
+                                            </b-button>
+                                            <b-form-input type="text"
+                                                          hidden
+                                                          v-model="openGraphImage.id"></b-form-input>
+                                        </b-col>
+                                    </b-row>
+                                    <b-form-group class="mt-1">
+                                        <b-form-input id="OpenGraphTitle"
+                                                      v-model="seoObjectSettingUpdateDto.OpenGraphTitle"
+                                                      type="text"
+                                                      placeholder="Sosyal Medya Başlığı" />
+                                    </b-form-group>
+                                    <b-form-group>
+                                        <b-form-textarea id="OpenGraphDescription"
+                                                         v-model="seoObjectSettingUpdateDto.OpenGraphDescription"
+                                                         placeholder="Sosyal Medya Açıklaması"
+                                                         rows="3" />
+                                    </b-form-group>
+                                </app-collapse-item>
+                                <app-collapse-item title="Twitter">
+                                    <b-row class="kb-search-content-info match-height">
+                                        <b-col lg="4"
+                                               md="4"
+                                               sm="6"
+                                               class="image-thumb ml-1">
+                                            <b-img rounded
+                                                   v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
+                                                   :alt="twitterImage.altText" />
+                                        </b-col>
+                                        <b-col lg="3"
+                                               md="3"
+                                               sm="6">
+                                            <b-button id="selectTwitterImage"
+                                                      v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                                                      variant="primary"
+                                                      size="sm"
+                                                      class="mb-75 mr-75"
+                                                      v-b-modal.modal-media
+                                                      @click="selectImage">
+                                                Resim Seç
+                                            </b-button>
+                                            <!--/ upload button -->
+                                            <!-- reset -->
+                                            <b-button id="removeTwitterImage"
+                                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                      variant="outline-secondary"
+                                                      size="sm"
+                                                      class="mb-75 mr-75"
+                                                      @click="removeImage">
+                                                Resmi Kaldır
+                                            </b-button>
+                                            <b-form-input type="text"
+                                                          hidden
+                                                          v-model="twitterImage.id"></b-form-input>
+                                        </b-col>
+                                    </b-row>
+                                    <b-form-group class="mt-1">
+                                        <b-form-input id="TwitterTitle"
+                                                      v-model="seoObjectSettingUpdateDto.TwitterTitle"
+                                                      type="text"
+                                                      placeholder="Twitter Başlığı" />
+                                    </b-form-group>
+                                    <b-form-group>
+                                        <b-form-textarea id="TwitterDescription"
+                                                         v-model="seoObjectSettingUpdateDto.TwitterDescription"
+                                                         placeholder="Twitter Açıklaması"
+                                                         rows="3" />
+                                    </b-form-group>
+                                </app-collapse-item>
+                            </app-collapse>
                         </b-tab>
                     </b-tabs>
                 </b-card>
@@ -234,18 +269,20 @@
 </template>
 
 <script>
-    import BCardActions from '@core/components/b-card-actions/BCardActions.vue'
-    import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import { required, min, confirmed } from '@validations'
+    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
+    import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
+    import required from '@validations';
     import {
-        BModal, BAvatar, VBModal, BImg, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BCardText, BRow, BCol, BForm, BFormGroup, BFormInput, BFormSelect, BFormTextarea, VBTooltip, BLink, BTabs, BTab, BFormTags, BMedia, BMediaAside, BMediaBody
-    } from 'bootstrap-vue'
+        BBreadcrumb, BBreadcrumbItem, BModal, BCollapse, VBModal, BImg, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BCardText, BRow, BCol, BForm, BFormGroup, BFormInput, BFormSelect, BFormTextarea, VBTooltip, BLink, BTabs, BTab, BFormTags, BMedia, BMediaAside, BMediaBody
+    } from 'bootstrap-vue';
     //import { codeRowDetailsSupport } from './code'
-    import axios from 'axios'
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import vSelect from 'vue-select'
-    import Ripple from 'vue-ripple-directive'
-    import ModalMedia from '../media/ModalMedia.vue'
+    import axios from 'axios';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
+    import vSelect from 'vue-select';
+    import Ripple from 'vue-ripple-directive';
+    import ModalMedia from '../media/ModalMedia.vue';
+    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
+    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
 
     extend('required', {
         ...required,
@@ -254,8 +291,12 @@
 
     export default {
         components: {
+            BBreadcrumb,
+            BBreadcrumbItem,
+            BCollapse,
+            AppCollapse,
+            AppCollapseItem,
             BImg,
-            BAvatar,
             ModalMedia,
             BModal,
             BCardActions,
@@ -297,37 +338,36 @@
             return {
                 doHaveData: Boolean,
                 required,
-                min,
-                confirmed,
                 terms: [],
                 allParentTerms: [],
                 isParent: false,
                 selected: '',
                 selectedValue: null,
                 fields: [{ key: 'Id', sortable: false, thStyle: { width: "20px", padding: "0.72rem !important" } }, { key: 'Name', label: 'İSİM', sortable: true, thStyle: { padding: "0.72rem  !important" } }, { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "50px", padding: "0.72rem  !important" } }, { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "80px", padding: "0.72rem  !important", textalign: "center" } }],
-                formTitle: "",
-                namePlaceholder: "",
+                title: '',
+                namePlaceholder: '',
+                tooltipText: '',
                 termUpdateDto: {
                     Id: this.$route.query.edit,
-                    Name: "",
-                    Slug: "",
+                    Name: '',
+                    Slug: '',
                     ParentId: null,
-                    Description: "",
-                    TermType: "",
+                    Description: '',
+                    TermType: '',
                 },
                 seoObjectSettingUpdateDto: {
-                    Id: "",
-                    SeoTitle: "",
-                    FocusKeyword: "",
-                    SeoDescription: "",
-                    CanonicalUrl: "",
+                    Id: '',
+                    SeoTitle: '',
+                    FocusKeyword: '',
+                    SeoDescription: '',
+                    CanonicalUrl: '',
                     IsRobotsNoIndex: false,
-                    OpenGraphImageId: "",
-                    OpenGraphTitle: "",
-                    OpenGraphDescription: "",
-                    TwitterImageId: "",
-                    TwitterTitle: "",
-                    TwitterDescription: "",
+                    OpenGraphImageId: '',
+                    OpenGraphTitle: '',
+                    OpenGraphDescription: '',
+                    TwitterImageId: '',
+                    TwitterTitle: '',
+                    TwitterDescription: '',
                 },
                 keywords: [],
                 modalShow: false,
@@ -335,7 +375,7 @@
                 openGraphImage: {
                     id: null,
                     fileName: null,
-                    altText: null
+                    altText: null,
                 },
                 twitterImage: {
                     id: null,
@@ -360,23 +400,24 @@
                 this.isOpenGraphImageChoose = false;
                 this.isTwitterImageChoose = false;
             },
-            selectedOpenGraphImage() {
-                this.isOpenGraphImageChoose = true;
+            selectImage: function (e) {
+                if (e.target.id == "selectOpenGraphImage") {
+                    this.isOpenGraphImageChoose = true;
+                } else if (e.target.id == "selectTwitterImage") {
+                    this.isTwitterImageChoose = true;
+                }
                 this.modalShow = true;
             },
-            selectedTwitterImage() {
-                this.isTwitterImageChoose = true;
-                this.modalShow = true;
-            },
-            removedOpenGraphImage() {
-                this.openGraphImage.id = null;
-                this.openGraphImage.fileName = null;
-                this.openGraphImage.altText = null;
-            },
-            removedTwitterImage() {
-                this.twitterImage.id = null;
-                this.twitterImage.fileName = null;
-                this.twitterImage.altText = null;
+            removeImage: function (e) {
+                if (e.target.id == "removeOpenGraphImage") {
+                    this.openGraphImage.id = null;
+                    this.openGraphImage.fileName = null;
+                    this.openGraphImage.altText = null;
+                } else if (e.target.id == "removeTwitterImage") {
+                    this.twitterImage.id = null;
+                    this.twitterImage.fileName = null;
+                    this.twitterImage.altText = null;
+                }
             },
             onChangeMethod(value) {
                 this.termUpdateDto.ParentId = value;
@@ -498,10 +539,10 @@
                             this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
                             this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
 
-    
+
                             this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
                             this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
-                            
+
                             this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
                             this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
 
@@ -527,12 +568,15 @@
                                         Name: response.data.TermUpdateDto.Parent.Name,
                                     }
                                 }
-                                this.formTitle = "Kategori Ekle";
+
+                                this.title = "Kategoriyi Düzenle";
                                 this.namePlaceholder = "Kategori Adı";
+                                this.tooltipText = "Yeni Kategori Ekle";
                             }
                             else if (response.data.TermUpdateDto.TermType === 3) {
-                                this.formTitle = "Etiket Ekle";
+                                this.title = "Etiketi Düzenle";
                                 this.namePlaceholder = "Etiket Adı";
+                                this.tooltipText = "Yeni Etiket Ekle";
                             }
                         }
                         else {

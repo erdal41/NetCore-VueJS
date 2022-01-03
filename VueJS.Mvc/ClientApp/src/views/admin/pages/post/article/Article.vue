@@ -1,23 +1,48 @@
 ﻿<template>
     <b-row>
+        <b-col class="content-header-left mb-2"
+               cols="12"
+               md="6">
+            <b-row class="breadcrumbs-top">
+                <b-col cols="12">
+                    <h2 class="content-header-title float-left pr-1 mb-0">
+                        Makaleler
+                    </h2>
+                    <div class="breadcrumb-wrapper">
+                        <b-breadcrumb>
+                            <b-breadcrumb-item to="/">
+                                <feather-icon icon="HomeIcon"
+                                              size="16"
+                                              class="align-text-top" />
+                            </b-breadcrumb-item>
+                            <b-breadcrumb-item v-for="item in breadcrumbs"
+                                               :key="item.text"
+                                               :active="item.active"
+                                               :to="item.to">
+                                {{ item.text }}
+                            </b-breadcrumb-item>
+                        </b-breadcrumb>
+                    </div>
+                </b-col>
+            </b-row>
+        </b-col>
+        <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
+               md="6"
+               cols="12">
+            <b-button v-b-tooltip.hover
+                      title="Yeni makale ekle"
+                      v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                      variant="primary"
+                      :to="{ name:'pages-article-add'}"
+                      class=" ml-1">Yeni Ekle</b-button>
+        </b-col>
         <b-col md="12"
                lg="12">
 
-            <b-card title="Tüm Makaleler"
-                    header-tag="header"
+            <b-card header-tag="header"
                     no-body>
                 <template #header>
-                    <h3 class="modal-title">
-                        Tüm Makaleler
-                    </h3>
-                    <b-button v-b-tooltip.hover
-                              title="Yeni makale ekle"
-                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                              variant="primary"
-                              size="sm"
-                              :to="{ name:'pages-article-add'}"
-                              class=" ml-1">Yeni Ekle</b-button>
-                    <div class="ml-auto">
+                    <div class="float-left">
                         <b-input-group size="sm">
                             <b-input-group-prepend is-text>
                                 <feather-icon icon="SearchIcon" />
@@ -111,8 +136,8 @@
                         <template #cell(FeaturedImage)="row">
                             <div class="image-thumb">
                                 <b-img rounded
-                                       v-bind:src="row.item.FeaturedImage.FileName == null ? noImage : require('@/assets/images/media/' + row.item.FeaturedImage.FileName)"
-                                       :alt="row.item.FeaturedImage.AltText" />
+                                       v-bind:src="row.item.FeaturedImage == null ? noImage : require('@/assets/images/media/' + row.item.FeaturedImage.FileName)"
+                                       :alt="row.item.FeaturedImage == null ? '' : row.item.FeaturedImage.AltText" />
                             </div>
                         </template>
                         <template #cell(Title)="row">
@@ -121,10 +146,10 @@
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                    <b-link :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
                                             class="text-primary small">Görüntüle</b-link>
                                     <small class="text-muted"> | </small>
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                    <b-link :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
                                             class="text-success small"
                                             variant="flat-danger">Düzenle</b-link>
                                     <small class="text-muted"> | </small>
@@ -198,7 +223,7 @@
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required, min, confirmed } from '@validations'
     import {
-        BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
@@ -213,6 +238,8 @@
 
     export default {
         components: {
+            BBreadcrumb,
+            BBreadcrumbItem,
             BSpinner,
             BBadge,
             BCardTitle,
@@ -245,6 +272,12 @@
         },
         data() {
             return {
+                breadcrumbs: [
+                    {
+                        text: 'Makaleler',
+                        active: true,
+                    }
+                ],
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
                 passValue: '',
                 username: '',

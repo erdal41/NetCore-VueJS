@@ -68,6 +68,18 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("/admin/term/newpostterm")]
+        public async Task<JsonResult> NewPostTerm(PostTermViewModel postTermViewModel)
+        {
+            var result = await _termService.PostTermAddAsync(postTermViewModel.PostTermAddDto);
+            var postTermViewModelJson = new PostTermViewModel
+            {
+                PostTermDto = result.Data,
+            };
+            return new JsonResult(postTermViewModelJson);
+        }
+
         [HttpGet]
         [Route("/admin/term/edit")]
         public async Task<JsonResult> Edit([FromQuery] int term)
@@ -105,7 +117,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
 
                 var termViewModelJson = new TermViewModel
                 {
-                    TermDto = termResult.Data
+                    TermDto = termResult.Data,
                 };
                 return new JsonResult(termViewModelJson);
             }
@@ -142,28 +154,6 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(result);
         }
 
-        //[Authorize(Roles = "SuperAdmin,Category.Create")]
-        //[HttpPost]
-        //[Route("admin/term/newpostterm")]
-        //public async Task<JsonResult> NewPostTerm(PostTermViewModel postTermViewModel)
-        //{
-        //    var result = await _termService.PostTermAddAsync(postTermViewModel.PostTermAddDto);
-        //    if (result.ResultStatus == ResultStatus.Success)
-        //    {
-        //        var postTermAjaxViewModel = JsonConvert.SerializeObject(new PostTermViewModel
-        //        {
-        //            PostTermDto = result.Data,
-        //        });
-        //        return Json(postTermAjaxViewModel);
-        //    }
-        //    else
-        //    {
-        //        var postTermAjaxViewModel = JsonConvert.SerializeObject(new PostTermViewModel
-        //        {
-        //            PostTermDto = result.Data,
-        //        });
-        //        return Json(postTermAjaxViewModel);
-        //    }
-        //}
+
     }
 }
