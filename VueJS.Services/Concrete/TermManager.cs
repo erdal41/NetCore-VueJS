@@ -91,7 +91,7 @@ namespace VueJS.Services.Concrete
                         term.Parents.Add(parent);
                         parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
                     }
-                }               
+                }
 
                 return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto
                 {
@@ -108,7 +108,7 @@ namespace VueJS.Services.Concrete
                     Message = termType == SubObjectType.category ? Messages.Category.NotFound(true) : Messages.Tag.NotFound(true)
                 });
             }
-            
+
         }
 
         public async Task<IDataResult<TermListDto>> GetAllParentAsync(int? termId)
@@ -297,27 +297,16 @@ namespace VueJS.Services.Concrete
             }
         }
 
-        public async Task<IResult> PostTermUpdateAsync(int postId, SubObjectType subObjectType, List<int> postTermIds)
+        public async Task<IResult> PostTermDeleteAsync(int postId, int termId)
         {
-            var postTerm = await UnitOfWork.PostTerms.GetAllAsync(x => x.PostId == postId && x.TermType == subObjectType);
-
-            foreach (var tr in postTerm)
+            var postTerm = await UnitOfWork.PostTerms.GetAsync(x => x.PostId == postId && x.TermId == termId);
+            if (postTerm != null)
             {
-                await UnitOfWork.PostTerms.DeleteAsync(tr);
+                await UnitOfWork.PostTerms.DeleteAsync(postTerm);
+                await UnitOfWork.SaveAsync();
+                return new Result(ResultStatus.Success);
             }
-
-            foreach (var trId in postTermIds)
-            {
-                var tr = new PostTerm
-                {
-                    PostId = postId,
-                    TermId = trId,
-                    TermType = subObjectType
-                };
-                await UnitOfWork.PostTerms.AddAsync(tr);
-            }
-            await UnitOfWork.SaveAsync();
-            return new Result(ResultStatus.Success, subObjectType == SubObjectType.category ? "Kategori güncellendi" : subObjectType == SubObjectType.tag ? "Etiket güncellendi" : null);
+            return new Result(ResultStatus.Error);
         }
 
         public async Task<IResult> DeleteAsync(int termId)

@@ -141,7 +141,7 @@
                             </div>
                         </template>
                         <template #cell(Title)="row">
-                            <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
+                            <b-link :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }">
                                 <b>{{row.item.Title}}</b>
                             </b-link>
                             <div class="row-actions">

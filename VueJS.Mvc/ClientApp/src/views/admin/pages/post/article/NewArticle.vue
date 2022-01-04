@@ -302,6 +302,7 @@
                               label="Name"
                               :reduce="(option) => option.Id"
                               placeholder="Kategori Seçiniz..."
+                              taggable 
                               multiple
                               @input="changeCategory" />
                 </b-form-group>
@@ -392,12 +393,14 @@
             <b-card-actions title="Resim"
                             action-collapse
                             collapsed>
-                <b-form-checkbox v-model="postAddDto.IsShowFeaturedImage"
-                                 name="check-button"
-                                 switch
-                                 inline>
-                    Görsel yazıda gösterilsin mi?
-                </b-form-checkbox>
+                <b-form-group>
+                    <b-form-checkbox v-model="postAddDto.IsShowFeaturedImage"
+                                     name="check-button"
+                                     switch
+                                     inline>
+                        Görsel yazıda gösterilsin mi?
+                    </b-form-checkbox>
+                </b-form-group>
                 <div class="image-thumb">
                     <b-img rounded
                            v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
@@ -446,7 +449,7 @@
     import 'quill/dist/quill.snow.css'
 
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
-    import { required, min, confirmed } from '@validations';
+    import required from '@validations';
     import {
         BBreadcrumb, BBreadcrumbItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
@@ -522,11 +525,7 @@
                     placeholder: 'Makale İçeriği',
                     theme: 'snow'
                 },
-                passValue: '',
-                username: '',
                 required,
-                min,
-                confirmed,
                 isSpinnerShow: true,
                 title: '',
                 postAddDto: {
@@ -569,14 +568,19 @@
                 termSeoSettingAddDto: {
                     SeoTitle: ''
                 },
+                postTermAddDto: {
+                    PostId: '',
+                    TermId: '',
+                    TermType: ''
+                },
                 categories: [],
-                selectedCategory: '',
+                selectedCategory: [],
                 allParentTerms: [],
                 selectedParentTerm: '',
                 selectedParentTermValue: null,
                 categoryName: '',
                 tags: [],
-                selectedTag: '',
+                selectedTag: [],
                 tagName: '',
                 featuredImage: {
                     id: null,
@@ -653,14 +657,14 @@
                         })
                     });
             },
-            changeCategory: function (e) {
-                console.log(e);
+            changeCategory(value) {
+                this.selectedCategory = value;
             },
             changeParentTerm(value) {
                 this.categoryAddDto.ParentId = value;
             },
-            changeTag() {
-
+            changeTag(value) {
+                this.selectedTag = value;
             },
             addNewTerm: function (e) {
                 if (e.target.id == "newCategory") {
@@ -773,8 +777,33 @@
                                 SeoObjectSettingAddDto: this.articleSeoSettingAddDto
                             })
                             .then((response) => {
-                                this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } })
                                 if (response.data.PostDto.ResultStatus === 0) {
+
+                                    this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
+                                    if (this.selectedCategory.length > 0) {
+                                        for (var i = 0; i < this.selectedCategory.length; i++) {
+                                            this.postTermAddDto.TermId = this.selectedCategory[i];
+                                            this.postTermAddDto.TermType = "category";
+
+                                            axios.post('/admin/term/newpostterm', {
+                                                PostTermAddDto: this.postTermAddDto
+                                            });
+                                        }
+                                    }
+
+                                    if (this.selectedTag.length > 0) {
+                                        for (var i = 0; i < this.selectedTag.length; i++) {
+                                            this.postTermAddDto.TermId = this.selectedTag[i];
+                                            this.postTermAddDto.TermType = "tag";
+
+                                            axios.post('/admin/term/newpostterm', {
+                                                PostTermAddDto: this.postTermAddDto
+                                            });
+                                        }
+                                    }
+
+                                    this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } })
+
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
@@ -833,6 +862,7 @@
                                         }
                                     })
                                     this.allCategories();
+                                    this.selectedCategory.push(response.data.TermDto.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -880,6 +910,7 @@
                                         }
                                     })
                                     this.allTags();
+                                    this.selectedTag.push(response.data.TermDto.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -970,6 +1001,7 @@
             this.allTags();
             this.getSchnemaPageType();
             this.getSchnemaArticleType();
+            console.log(this.selectedTag);
         }
     }
 </script>

@@ -5,7 +5,7 @@
                      ref="modalMedia"></modal-media>
         <b-col class="content-header-left mb-2"
                cols="12"
-               md="6">
+               md="7">
             <h2 class="content-header-title float-left pr-1 mb-0">
                 {{ pageTitle }}
             </h2>
@@ -19,7 +19,7 @@
                     <b-breadcrumb-item v-if="isParent == true"
                                        :to="{ name: 'pages-page-list' }">Sayfalar</b-breadcrumb-item>
                     <b-breadcrumb-item v-else
-                                       :to="{ name: 'pages-post-list' }">Makaleler</b-breadcrumb-item>
+                                       :to="{ name: 'pages-article-list' }">Makaleler</b-breadcrumb-item>
                     <b-breadcrumb-item active>Düzenle</b-breadcrumb-item>
                     <b-button v-if="postUpdateDto.PostType == '0'"
                               v-b-tooltip.hover
@@ -50,14 +50,14 @@
             </div>
         </b-col>
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
-               md="6"
+               md="5"
                cols="12">
             <b-button id="draft"
                       variant="flat-danger"
                       class="mr-1"
                       size="sm"
                       type="button">
-                Çöp Kutusuna Taşı
+                Çöpe Taşı
             </b-button>
             <b-button id="draft"
                       variant="outline-primary"
@@ -93,9 +93,45 @@
                                                       placeholder="Başlık" />
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
+
                                 </b-form-group>
-                                <quill-editor v-model="postUpdateDto.Content"
-                                              :options="editorOption" />
+                                <b-form-group>
+                                    <span class="small">Gönderi linki: </span><a class="small" :href="domainName + '/' + postUpdateDto.PostName">{{ domainName }}/<span v-show="isSlugEditActive == false">{{  postUpdateDto.PostName }}</span></a>
+                                    <b-button v-show="isSlugEditActive == false"
+                                              v-b-tooltip.hover
+                                              title="Gönderinin linkini değiştirmenizi sağlar."
+                                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                              variant="outline-primary"
+                                              size="sm"
+                                              class="ml-1"
+                                              @click="postNameEdit">
+                                        Düzenle
+                                    </b-button>
+                                    <div v-show="isSlugEditActive == true"
+                                         class="card-border p-1">
+                                        <b-form-input type="text"
+                                                      v-model="postUpdateDto.PostName"
+                                                      placeholder="Gönderi Linki"
+                                                      size="sm">
+                                        </b-form-input>
+                                        <b-button variant="primary"
+                                                  class="mt-1"
+                                                  size="sm"
+                                                  @click="isSlugEditActive = !isSlugEditActive">
+                                            Tamam
+                                        </b-button>
+                                        <b-button variant="flat-secondary"
+                                                  size="sm"
+                                                  class="ml-1 mt-1"
+                                                  @click="postNameEditCancel">
+                                            İptal
+                                        </b-button>
+                                    </div>
+                                </b-form-group>
+                                <b-form-group>
+                                    <quill-editor v-model="postUpdateDto.Content"
+                                                  :options="editorOption" />
+                                </b-form-group>
                             </b-col>
                         </b-row>
                     </b-form>
@@ -194,21 +230,19 @@
                             Bu, arama motorlarının web sitenizi ve içeriğinizi anlamasına yardımcı olur. Bu sayfa için bazı ayarlarınızı aşağıda değiştirebilirsiniz.
                         </p>
                         <b-form-group label="Sayfa Türü">
-                            <v-select id="schnemaPageType"
-                                      v-model="seoObjectSettingUpdateDto.SchemaPageType"
+                            <v-select v-model="seoObjectSettingUpdateDto.SchemaPageType"
                                       :options="schnemaPageTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Sayfa Türü Seçiniz..."
-                                      @input="changePageType()" />
+                                      :clearable="false"
+                                      @input="changePageType" />
                         </b-form-group>
                         <b-form-group label="Makale Türü">
-                            <v-select id="schnemaArticleType"
-                                      v-model="selectedArticleType"
+                            <v-select v-model="seoObjectSettingUpdateDto.SchemaArticleType"
                                       :options="schnemaArticleTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Makale Türü Seçiniz..."
+                                      :clearable="false"
                                       @input="changeArticleType" />
                         </b-form-group>
                     </b-tab>
@@ -355,7 +389,9 @@
                               :reduce="(option) => option.Id"
                               placeholder="Kategori Seçiniz..."
                               multiple
-                              @input="changeCategory" />
+                              @input="changeCategory"
+                              @option:selecting="selectedOption"
+                              @option:deselected="deSelectedOption" />
                 </b-form-group>
                 <b-button v-b-toggle.new-category
                           size="sm"
@@ -408,7 +444,9 @@
                               :reduce="(option) => option.Id"
                               placeholder="Etiket Seçiniz..."
                               multiple
-                              @input="changeTag" />
+                              @input="changeTag"
+                              @option:selected="selectedOption"
+                              @option:deselected="deSelectedOption" />
                 </b-form-group>
                 <b-button v-b-toggle.new-tag
                           size="sm"
@@ -450,7 +488,7 @@
                                      name="check-button"
                                      switch
                                      inline>
-                        Görsel yazıda gösterilsin mi?
+                        Görsel gönderide gösterilsin mi?
                     </b-form-checkbox>
                 </b-form-group>
                 <div class="image-thumb">
@@ -486,12 +524,22 @@
             <b-card-actions title="Diğer Ayarlar"
                             action-collapse
                             collapsed>
-                <b-form-checkbox v-model="postUpdateDto.CommentStatus"
-                                 name="check-button"
-                                 switch
-                                 inline>
-                    Bu yazı için yorumlar açılsın mı?
-                </b-form-checkbox>
+                <b-form-group v-show="postUpdateDto.PostType == '0'">
+                    <b-form-checkbox v-model="postUpdateDto.IsShowSubPosts"
+                                     name="check-button"
+                                     switch
+                                     inline>
+                        Bu gönderi, diğer sayfalarda gösterilsin mi?
+                    </b-form-checkbox>
+                </b-form-group>
+                <b-form-group v-show="postUpdateDto.PostType == '1'">
+                    <b-form-checkbox v-model="postUpdateDto.CommentStatus"
+                                     name="check-button"
+                                     switch
+                                     inline>
+                        Bu gönderi için yorumlar aktif olsun mu?
+                    </b-form-checkbox>
+                </b-form-group>
             </b-card-actions>
         </b-col>
     </b-row>
@@ -572,6 +620,9 @@
                 pageTitle: '',
                 tooltipText: '',
                 title: '',
+                domainName: window.location.origin,
+                isSlugEditActive: false,
+                oldPostName: '',
                 isParent: Boolean,
                 postUpdateDto: {
                     Id: this.$route.query.edit,
@@ -620,19 +671,26 @@
                 termSeoSettingAddDto: {
                     SeoTitle: ''
                 },
+                postTermAddDto: {
+                    PostId: '',
+                    TermId: '',
+                    TermType: ''
+                },
                 categories: [],
-                selectedCategory: '',
+                selectedCategory: [],
                 allParentTerms: [],
-                selectedParentTerm: '',
+                selectedParentTerm: [],
                 selectedParentTermValue: null,
                 categoryName: '',
                 tags: [],
-                selectedTag: '',
+                selectedTag: [],
                 tagName: '',
+                selectedTerms: [],
+                deSelectedTerms: [],
                 parentPages: [],
-                selectedParentPage: '',
+                selectedParentPage: [],
                 childPages: [],
-                selectedChildPage: '',
+                selectedChildPage: [],
                 featuredImage: {
                     id: null,
                     fileName: null,
@@ -656,11 +714,30 @@
                 isTwitterImageChoose: false,
                 schnemaPageTypes: [],
                 schnemaArticleTypes: [],
-                selectedPageType: { Id: '0', Name: 'Sayfalar için varsayılan(Web sayfası)' },
-                selectedArticleType: { Id: '0', Name: 'Yazılar için varsayılan(Makale)' }
+                selectedPageType: '',
+                selectedArticleType: ''
             }
         },
         methods: {
+            postNameEdit() {
+                this.isSlugEditActive = true;
+                this.oldPostName = this.postUpdateDto.PostName;
+            },
+            postNameEditCancel() {
+                this.isSlugEditActive = false;
+                this.postUpdateDto.PostName = this.oldPostName;
+            },
+            selectedOption(value) {
+                this.selectedTerms.push({ Id: value.Id, TermType: value.TermType });
+            },
+            deSelectedOption(value) {
+                this.selectedTerms.filter(function (postTerm) {
+                    console.log(postTerm.Id)
+                    return postTerm.Id != value.Id
+                });
+                console.log(this.selectedTerms)
+                this.deSelectedTerms.push(value.Id);
+            },
             allCategories() {
                 axios.get('/admin/term/allterms', {
                     params: {
@@ -708,14 +785,14 @@
                         })
                     });
             },
-            changeCategory: function (e) {
-                console.log(e);
+            changeCategory(value) {
+                this.selectedCategory = value;
             },
             changeParentTerm(value) {
                 this.categoryAddDto.ParentId = value;
             },
-            changeTag() {
-
+            changeTag(value) {
+                this.selectedTag = value;
             },
             changeParentPage() {
 
@@ -824,7 +901,12 @@
                             this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
                             this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
 
-                            this.postUpdateDto.ParentId = response.data.PostUpdateDto.ParentId;
+                            this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.IsShowFeaturedImage;
+                            if (response.data.PostUpdateDto.FeaturedImage != null) {
+                                this.featuredImage.id = response.data.PostUpdateDto.FeaturedImageId;
+                                this.featuredImage.fileName = response.data.PostUpdateDto.FeaturedImage.FileName;
+                                this.featuredImage.altText = response.data.PostUpdateDto.FeaturedImage.AltText;
+                            }
 
                             this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
                             this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
@@ -836,6 +918,8 @@
                             this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoImageIndex;
                             this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.IsRobotsNoSnippet;
 
+                            this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.SchemaPageType;
+                            this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.SchemaArticleType;
 
                             this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
                             this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
@@ -859,6 +943,7 @@
 
                             if (response.data.PostUpdateDto.PostType === 0) {
                                 this.isParent = true;
+                                this.postUpdateDto.ParentId = response.data.PostUpdateDto.ParentId;
                                 if (response.data.PostUpdateDto.Parent != null) {
                                     this.selected = {
                                         Id: response.data.PostUpdateDto.Parent.Id,
@@ -871,6 +956,18 @@
                             } else if (response.data.PostUpdateDto.PostType === 1) {
                                 this.pageTitle = "Makaleyi Düzenle";
                                 this.tooltipText = "Yeni Makale Ekle";
+
+                                this.postUpdateDto.CommentStatus = response.data.PostUpdateDto.CommentStatus;
+
+                                if (response.data.PostUpdateDto.PostTerms.length > 0) {
+                                    response.data.PostUpdateDto.PostTerms.forEach((term, index) => {
+                                        if (term.TermType === 2) {
+                                            this.selectedCategory.push(term.TermId);
+                                        } else if (term.TermType === 3) {
+                                            this.selectedTag.push(term.TermId);
+                                        }
+                                    });
+                                }
                             }
                         }
                         else {
@@ -878,6 +975,8 @@
                         }
                     })
                     .catch((error) => {
+                        console.log(error);
+                        console.log(error.request);
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -894,8 +993,7 @@
                 this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
                 this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
                 this.seoObjectSettingUpdateDto.TwitterImageId = this.twitterImage.id;
-                this.seoObjectSettingUpdateDto.SchemaPageType = this.selectedPageType.Id;
-                this.seoObjectSettingUpdateDto.SchemaArticleType = this.selectedArticleType.Id;
+
                 if (e.target.id == "save") {
                     this.postUpdateDto.PostStatus = "publish";
                 }
@@ -904,13 +1002,62 @@
                 }
                 this.$refs.articleAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/post/new',
+                        axios.post('/admin/post/edit',
                             {
                                 postUpdateDto: this.postUpdateDto,
-                                SeoObjectSettingAddDto: this.seoObjectSettingUpdateDto
+                                SeoObjectSettingUpdateDto: this.seoObjectSettingUpdateDto
                             })
                             .then((response) => {
-                                this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } })
+
+                                this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
+
+                                if (this.deSelectedTerms.length > 0) {
+                                    console.log(this.deSelectedTerms);
+                                    console.log(response.data.PostDto.Post.Id);
+                                    for (var i = 0; i < this.deSelectedTerms.length; i++) {
+                                        console.log(this.deSelectedTerms[i]);
+                                        axios.post('/admin/term/deletepostterm', {
+                                            PostId: parseInt(response.data.PostDto.Post.Id),
+                                            TermId: parseInt(this.deSelectedTerms[i])
+
+                                        });
+                                    }
+                                }
+
+                                if (this.selectedTerms.length > 0) {
+                                    //for (var i = 0; i < this.selectedTerms.length; i++) {
+                                    //    this.postTermAddDto.TermId = this.selectedTerms[i].Id;
+                                    //    this.postTermAddDto.TermType = this.selectedTerms[i].TermType;
+
+                                    //    axios.post('/admin/term/newpostterm', {
+                                    //        PostTermAddDto: this.postTermAddDto
+                                    //    }).catch((error) => {
+                                    //        console.log("newpost");
+                                    //        console.log(error);
+                                    //        console.log(error.request);
+                                    //    });
+                                    //}
+
+                                    this.selectedTerms.forEach((postTerm, index) => {
+                                        axios.post('/admin/term/deletepostterm', {
+                                            PostId: response.data.PostDto.Post.Id,
+                                            TermId: postTerm.Id,
+                                            TermType: postTerm.TermType,
+                                        });
+                                    });
+                                }
+
+                                //if (this.selectedTag.length > 0) {
+                                //    for (var i = 0; i < this.selectedTag.length; i++) {
+                                //        this.postTermAddDto.TermId = this.selectedTag[i];
+                                //        this.postTermAddDto.TermType = "tag";
+
+                                //        axios.post('/admin/term/newpostterm', {
+                                //            PostTermAddDto: this.postTermAddDto
+                                //        });
+                                //    }
+                                //}
+
                                 if (response.data.PostDto.ResultStatus === 0) {
                                     this.$toast({
                                         component: ToastificationContent,
@@ -970,6 +1117,7 @@
                                         }
                                     })
                                     this.allCategories();
+                                    this.selectedCategory.push(response.data.TermDto.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -1017,6 +1165,7 @@
                                         }
                                     })
                                     this.allTags();
+                                    this.selectedTag.push(response.data.TermDto.Term.Id)
                                 }
                                 else {
                                     this.$toast({

@@ -46,7 +46,10 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> New(TermViewModel termViewModel)
         {
             var termResult = await _termService.AddAsync(termViewModel.TermAddDto);
-            termViewModel.SeoObjectSettingAddDto.SeoTitle = termViewModel.TermAddDto.Name;
+            if (string.IsNullOrEmpty(termViewModel.SeoObjectSettingAddDto.SeoTitle))
+            {
+                termViewModel.SeoObjectSettingAddDto.SeoTitle = termViewModel.TermAddDto.Name;
+            }
             if (termResult.Data.ResultStatus == ResultStatus.Success)
             {
                 var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termViewModel.TermAddDto.TermType, termResult.Data.Term.Id, termViewModel.SeoObjectSettingAddDto, 1);
@@ -134,6 +137,14 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         {
             var result = await _termService.DeleteAsync(term);
             //await FileHelper.CreateSitemapInRootDirectoryAsync();
+            return new JsonResult(result);
+        }
+
+        [HttpPost]
+        [Route("/admin/term/deletepostterm")]
+        public async Task<IActionResult> DeletePostTerm(PostTermViewModel postTermViewModel )
+        {
+            var result = await _termService.PostTermDeleteAsync(postTermViewModel.PostId, postTermViewModel.TermId);
             return new JsonResult(result);
         }
 

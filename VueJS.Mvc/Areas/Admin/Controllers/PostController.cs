@@ -22,15 +22,13 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
     public class PostController : BaseController
     {
         private readonly IPostService _postService;
-        private readonly ITermService _termService;
         private readonly ISeoService _seoService;
         //private readonly IFileHelper _fileHelper;
         //private readonly ICacheService _cacheService;
 
-        public PostController(IPostService postService, ITermService termService, ISeoService seoService, UserManager<User> userManager, IMapper mapper, IImageHelper imageHelper) : base(userManager, mapper, imageHelper)
+        public PostController(IPostService postService, ISeoService seoService, UserManager<User> userManager, IMapper mapper, IImageHelper imageHelper) : base(userManager, mapper, imageHelper)
         {
             _postService = postService;
-            _termService = termService;
             _seoService = seoService;
         }
 
@@ -99,6 +97,10 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<IActionResult> New(PostViewModel postViewModel)
         {
             var postResult = await _postService.AddAsync(postViewModel.PostAddDto, 1, postViewModel.PostAddDto.PostType);
+            if (string.IsNullOrEmpty(postViewModel.SeoObjectSettingAddDto.SeoTitle))
+            {
+                postViewModel.SeoObjectSettingAddDto.SeoTitle = postViewModel.PostAddDto.Title;
+            }
             if (postResult.ResultStatus == ResultStatus.Success)
             {
                 //_cacheService.Clear();
@@ -209,14 +211,6 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         {
             var result = await _postService.GalleryImageAddAsync(postId, galleryIds);
             return new JsonResult(result.Data);
-        }
-
-        [HttpPost]
-        [Route("/admin/post/editpostterm")]
-        public async Task<IActionResult> EditPostTerm(int postId, SubObjectType termType, List<int> termIds)
-        {
-            var result = await _termService.PostTermUpdateAsync(postId, termType, termIds);
-            return new JsonResult(result);
         }
 
         [HttpPost]
