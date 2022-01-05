@@ -382,16 +382,14 @@
             <b-card v-show="postUpdateDto.PostType == '1'"
                     title="Kategori">
                 <b-form-group>
-                    <v-select id="categoryList"
-                              v-model="selectedCategory"
+                    <v-select v-model="currentSelectedCategory"
                               :options="categories"
                               label="Name"
                               :reduce="(option) => option.Id"
                               placeholder="Kategori Seçiniz..."
                               multiple
-                              @input="changeCategory"
-                              @option:selecting="selectedOption"
-                              @option:deselected="deSelectedOption" />
+                              @option:selecting="selectingTerms"
+                              @option:deselected="deSelectingTerms" />
                 </b-form-group>
                 <b-button v-b-toggle.new-category
                           size="sm"
@@ -438,15 +436,14 @@
             <b-card v-show="postUpdateDto.PostType == '1'"
                     title="Etiket">
                 <b-form-group>
-                    <v-select v-model="selectedTag"
+                    <v-select v-model="currentSelectedTag"
                               :options="tags"
                               label="Name"
                               :reduce="(option) => option.Id"
                               placeholder="Etiket Seçiniz..."
                               multiple
-                              @input="changeTag"
-                              @option:selected="selectedOption"
-                              @option:deselected="deSelectedOption" />
+                              @option:selecting="selectingTerms"
+                              @option:deselecting="deSelectingTerms" />
                 </b-form-group>
                 <b-button v-b-toggle.new-tag
                           size="sm"
@@ -676,14 +673,15 @@
                     TermId: '',
                     TermType: ''
                 },
+                terms: [],
                 categories: [],
-                selectedCategory: [],
+                currentSelectedCategory: [],
                 allParentTerms: [],
                 selectedParentTerm: [],
                 selectedParentTermValue: null,
                 categoryName: '',
                 tags: [],
-                selectedTag: [],
+                currentSelectedTag: [],
                 tagName: '',
                 selectedTerms: [],
                 deSelectedTerms: [],
@@ -727,16 +725,34 @@
                 this.isSlugEditActive = false;
                 this.postUpdateDto.PostName = this.oldPostName;
             },
-            selectedOption(value) {
-                this.selectedTerms.push({ Id: value.Id, TermType: value.TermType });
-            },
-            deSelectedOption(value) {
-                this.selectedTerms.filter(function (postTerm) {
-                    console.log(postTerm.Id)
-                    return postTerm.Id != value.Id
+            selectingTerms(value) {
+                var result = -1;
+                this.terms.forEach((termId, index) => {
+                    if (termId == value.Id) {
+                        result = 1;
+                    }
+                    else {
+                        result = 0;
+                    }
                 });
-                console.log(this.selectedTerms)
-                this.deSelectedTerms.push(value.Id);
+                if (result == 0) {
+                    this.selectedTerms.push(value.Id);
+                }
+                console.log(result);
+                console.log(this.selectedTerms);
+            },
+            deSelectingTerms(value) {
+                this.terms.forEach((termId, index) => {
+                    if (termId == value.Id) {
+                        this.deSelectedTerms.push(termId);
+                    }
+                    else {
+                        this.selectedTerms = this.selectedTerms.filter(element => element === value.Id);
+                    }
+
+                });
+                console.log(this.selectedTerms);
+                console.log(this.deSelectedTerms)
             },
             allCategories() {
                 axios.get('/admin/term/allterms', {
@@ -747,7 +763,6 @@
                     .then((response) => {
                         if (response.data.ResultStatus === 0) {
                             this.categories = response.data.Terms;
-                            this.allParentTerms = response.data.Terms;
                         }
                     })
                     .catch((error) => {
@@ -757,7 +772,7 @@
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: 'Terimler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });
@@ -780,19 +795,13 @@
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: 'Terimler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: 'Etiketler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });
             },
-            changeCategory(value) {
-                this.selectedCategory = value;
-            },
             changeParentTerm(value) {
                 this.categoryAddDto.ParentId = value;
-            },
-            changeTag(value) {
-                this.selectedTag = value;
             },
             changeParentPage() {
 
@@ -962,11 +971,13 @@
                                 if (response.data.PostUpdateDto.PostTerms.length > 0) {
                                     response.data.PostUpdateDto.PostTerms.forEach((term, index) => {
                                         if (term.TermType === 2) {
-                                            this.selectedCategory.push(term.TermId);
+                                            this.currentSelectedCategory.push(term.TermId);
                                         } else if (term.TermType === 3) {
-                                            this.selectedTag.push(term.TermId);
+                                            this.currentSelectedTag.push(term.TermId);
                                         }
                                     });
+                                    this.terms = this.currentSelectedCategory.concat(this.currentSelectedTag);
+                                    console.log(this.terms);
                                 }
                             }
                         }
@@ -1014,35 +1025,27 @@
                                 if (this.deSelectedTerms.length > 0) {
                                     console.log(this.deSelectedTerms);
                                     console.log(response.data.PostDto.Post.Id);
-                                    for (var i = 0; i < this.deSelectedTerms.length; i++) {
-                                        console.log(this.deSelectedTerms[i]);
-                                        axios.post('/admin/term/deletepostterm', {
-                                            PostId: parseInt(response.data.PostDto.Post.Id),
-                                            TermId: parseInt(this.deSelectedTerms[i])
 
+                                    this.deSelectedTerms.forEach((termId, index) => {
+                                        console.log("termId: " + termId);
+                                        axios.post('/admin/term/deletepostterm', {
+                                            PostId: response.data.PostDto.Post.Id,
+                                            TermId: termId,
                                         });
-                                    }
+                                    });
                                 }
 
                                 if (this.selectedTerms.length > 0) {
-                                    //for (var i = 0; i < this.selectedTerms.length; i++) {
-                                    //    this.postTermAddDto.TermId = this.selectedTerms[i].Id;
-                                    //    this.postTermAddDto.TermType = this.selectedTerms[i].TermType;
-
-                                    //    axios.post('/admin/term/newpostterm', {
-                                    //        PostTermAddDto: this.postTermAddDto
-                                    //    }).catch((error) => {
-                                    //        console.log("newpost");
-                                    //        console.log(error);
-                                    //        console.log(error.request);
-                                    //    });
-                                    //}
-
                                     this.selectedTerms.forEach((postTerm, index) => {
-                                        axios.post('/admin/term/deletepostterm', {
-                                            PostId: response.data.PostDto.Post.Id,
-                                            TermId: postTerm.Id,
-                                            TermType: postTerm.TermType,
+                                        this.postTermAddDto.TermId = postTerm.Id;
+                                        this.postTermAddDto.TermType = postTerm.TermType;
+
+                                        axios.post('/admin/term/newpostterm', {
+                                            PostTermAddDto: this.postTermAddDto
+                                        }).catch((error) => {
+                                            console.log("newpost");
+                                            console.log(error);
+                                            console.log(error.request);
                                         });
                                     });
                                 }
@@ -1117,7 +1120,7 @@
                                         }
                                     })
                                     this.allCategories();
-                                    this.selectedCategory.push(response.data.TermDto.Term.Id)
+                                    this.currentSelectedCategory.push(response.data.TermDto.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -1165,7 +1168,7 @@
                                         }
                                     })
                                     this.allTags();
-                                    this.selectedTag.push(response.data.TermDto.Term.Id)
+                                    this.currentSelectedTag.push(response.data.TermDto.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -1252,9 +1255,9 @@
         computed: {
         },
         mounted() {
-            this.getData();
             this.allCategories();
             this.allTags();
+            this.getData();
             this.getSchnemaPageType();
             this.getSchnemaArticleType();
         }
