@@ -238,241 +238,42 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [Route("/admin/post/multipublish")]
-        public async Task<JsonResult> MultiPublish(List<int> postIds, SubObjectType postType)
+        [Route("/admin/post/poststatuschange")]
+        public async Task<JsonResult> PostStatusChange(int postId, PostStatus status)
         {
-            var result = await _postService.MultiPublishAsync(postIds, LoggedInUser.Id);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.trash);
+            var result = await _postService.PostStatusChangeAsync(postId, status, 1);
+            var postViewModel = new PostViewModel
+            {
+                PostDto = result.Data,
+            };
+            return Json(postViewModel);
+        }
+
+        [HttpPost]
+        [Route("/admin/post/multipoststatuschange")]
+        public async Task<JsonResult> MultiPostStatusChange(List<int> postIds, PostStatus status)
+        {
+            var result = await _postService.MultiPostStatusChangeAsync(postIds, status, 1);
 
             //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-            if (result.ResultStatus == ResultStatus.Success)
+            var postViewModel = new PostViewModel
             {
-                //_cacheService.Clear();
-                var postViewModelJson = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return Json(postViewModelJson);
-            }
-            else
-            {
-                var postViewModelJsonError = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return Json(postViewModelJsonError);
-            }
-        }
-
-        [HttpPost]
-        [Route("/admin/post/multidraft")]
-        public async Task<JsonResult> MultiDraft(List<int> postIds, SubObjectType postType)
-        {
-            var result = await _postService.MultiDraftAsync(postIds, LoggedInUser.Id);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.trash);
-
-            //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-            if (result.ResultStatus == ResultStatus.Success)
-            {
-                //_cacheService.Clear();
-                var postViewModelJson = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return Json(postViewModelJson);
-            }
-            else
-            {
-                var postViewModelJsonError = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return Json(postViewModelJsonError);
-            }
-        }
-
-        [HttpPost]
-        [Route("/admin/post/trash")]
-        public async Task<JsonResult> Trash(int postId)
-        {
-            var result = await _postService.TrashAsync(postId, LoggedInUser.Id);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.trash);
-            if (result.ResultStatus == ResultStatus.Success)
-            {
-                //    _cacheService.Clear();
-                //    await _fileHelper.CreateSitemapInRootDirectoryAsync();
-                var postViewModel = new PostViewModel
-                {
-                    PostDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return Json(postViewModel);
-            }
-            else
-            {
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-        }
-
-        [HttpPost]
-        [Route("/admin/post/multitrash")]
-        public async Task<JsonResult> MultiTrash(List<int> postIds, SubObjectType postType)
-        {
-            var result = await _postService.MultiTrashAsync(postIds, LoggedInUser.Id);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.trash);
-
-            //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-            if (result.ResultStatus == ResultStatus.Success)
-            {
-                //_cacheService.Clear();
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-            else
-            {
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-        }
-
-        [HttpPost]
-        [Route("/admin/post/untrash")]
-        public async Task<JsonResult> UnTrash(int postId)
-        {
-            var result = await _postService.UnTrashAsync(postId, LoggedInUser.Id);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.trash);
-            if (result.ResultStatus == ResultStatus.Success)
-            {
-                //_cacheService.Clear();
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-            else
-            {
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-        }
-
-        [HttpPost]
-        [Route("/admin/post/multiuntrash")]
-        public async Task<JsonResult> MultiUnTrash(List<int> postIds, SubObjectType postType)
-        {
-            var result = await _postService.MultiUnTrashAsync(postIds, LoggedInUser.Id);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.trash);
-            if (result.ResultStatus == ResultStatus.Success)
-            {
-                //_cacheService.Clear();
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-            else
-            {
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-        }
+                PostListDto = result.Data,
+            };
+            return Json(postViewModel);
+        }      
 
         [HttpPost]
         [Route("/admin/post/delete")]
         public async Task<JsonResult> Delete(int postId)
         {
             var result = await _postService.DeleteAsync(postId);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(result.Data.Post.PostType, PostStatus.trash);
-            if (result.ResultStatus == ResultStatus.Success)
+            //_cacheService.Clear();
+            var postViewModel = new PostViewModel
             {
-                //_cacheService.Clear();
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-            else
-            {
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
+                PostDto = result.Data,
+            };
+            return Json(postViewModel);
         }
 
         [HttpPost]
@@ -480,32 +281,11 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> MultiDelete(List<int> postIds, SubObjectType postType)
         {
             var result = await _postService.MultiDeleteAsync(postIds);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(postType, PostStatus.trash);
-            if (result.ResultStatus == ResultStatus.Success)
+            var postViewModel = new PostViewModel
             {
-                //_cacheService.Clear();
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
-            else
-            {
-                var postViewModel = JsonConvert.SerializeObject(new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                });
-                return Json(postViewModel);
-            }
+                PostListDto = result.Data,
+            };
+            return Json(postViewModel);
         }
     }
 }

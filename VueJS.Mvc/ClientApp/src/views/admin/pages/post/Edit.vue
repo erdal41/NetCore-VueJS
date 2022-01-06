@@ -5,7 +5,7 @@
                      ref="modalMedia"></modal-media>
         <b-col class="content-header-left mb-2"
                cols="12"
-               md="7">
+               md="8">
             <h2 class="content-header-title float-left pr-1 mb-0">
                 {{ pageTitle }}
             </h2>
@@ -50,29 +50,48 @@
             </div>
         </b-col>
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
-               md="5"
+               md="4"
                cols="12">
-            <b-button id="draft"
-                      variant="flat-danger"
+            <b-button variant="outline-primary"
                       class="mr-1"
                       size="sm"
                       type="button">
-                Çöpe Taşı
-            </b-button>
-            <b-button id="draft"
-                      variant="outline-primary"
-                      class="mr-1"
-                      size="sm"
-                      type="submit"
-                      @click.prevent="validationForm">
-                Taslak Olarak Kaydet
+                {{ viewButtonText }}
             </b-button>
             <b-button id="save"
                       variant="primary"
+                      class="mr-1"
                       type="submit"
                       @click.prevent="validationForm">
-                Güncelle
+                {{ saveButtonText }}
             </b-button>
+            <b-dropdown variant="link"
+                        no-caret
+                        toggle-class="p-0"
+                        right>
+
+                <template #button-content>
+                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                              variant="primary"
+                              class="btn-icon">
+                        <feather-icon icon="SettingsIcon" />
+                    </b-button>
+                </template>
+
+                <b-dropdown-item href="javascript:;"
+                                 id="draft"
+                                 variant="primary"
+                                 @click.prevent="validationForm">
+                    Taslak Olarak Kaydet
+                </b-dropdown-item>
+
+                <b-dropdown-item href="javascript:;"
+                                 id="trash"
+                                 variant="danger"
+                                 @click.prevent="validationForm">
+                    Çöp Kutusuna Taşı
+                </b-dropdown-item>
+            </b-dropdown>
         </b-col>
         <b-col md="12"
                lg="8">
@@ -548,7 +567,7 @@
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
     import required from '@validations';
     import {
-        BBreadcrumb, BBreadcrumbItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
     import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
     import axios from 'axios';
@@ -569,6 +588,8 @@
         components: {
             BBreadcrumb,
             BBreadcrumbItem,
+            BDropdown,
+            BDropdownItem,
             BCollapse,
             AppCollapse,
             AppCollapseItem,
@@ -615,6 +636,8 @@
                 required,
                 isSpinnerShow: true,
                 pageTitle: '',
+                viewButtonText: '',
+                saveButtonText: '',
                 tooltipText: '',
                 title: '',
                 domainName: window.location.origin,
@@ -726,33 +749,21 @@
                 this.postUpdateDto.PostName = this.oldPostName;
             },
             selectingTerms(value) {
-                var result = -1;
-                this.terms.forEach((termId, index) => {
-                    if (termId == value.Id) {
-                        result = 1;
-                    }
-                    else {
-                        result = 0;
-                    }
-                });
-                if (result == 0) {
-                    this.selectedTerms.push(value.Id);
+                var selectResult = this.terms.some(termId => termId === value.Id);
+                if (selectResult) {
+                    this.deSelectedTerms = this.deSelectedTerms.filter(element => element != value.Id);
+                } else {
+                    this.selectedTerms.push({ Id: value.Id, TermType: value.TermType });
                 }
-                console.log(result);
-                console.log(this.selectedTerms);
             },
             deSelectingTerms(value) {
-                this.terms.forEach((termId, index) => {
-                    if (termId == value.Id) {
-                        this.deSelectedTerms.push(termId);
-                    }
-                    else {
-                        this.selectedTerms = this.selectedTerms.filter(element => element === value.Id);
-                    }
-
-                });
-                console.log(this.selectedTerms);
-                console.log(this.deSelectedTerms)
+                var deSelectResult = this.terms.some(termId => termId === value.Id);
+                if (deSelectResult) {
+                    this.deSelectedTerms.push(value.Id);
+                }
+                else {
+                    this.selectedTerms = this.selectedTerms.filter(element => element != value.Id);
+                }
             },
             allCategories() {
                 axios.get('/admin/term/allterms', {
@@ -902,7 +913,6 @@
             getData() {
                 axios.get('/admin/post/edit?post=' + this.$route.query.edit)
                     .then((response) => {
-                        console.log(response.data);
                         if (response.data.PostUpdateDto != null) {
                             this.doHaveData = true;
                             this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
@@ -977,8 +987,15 @@
                                         }
                                     });
                                     this.terms = this.currentSelectedCategory.concat(this.currentSelectedTag);
-                                    console.log(this.terms);
                                 }
+                            }
+
+                            if (response.data.PostUpdateDto.PostStatus == 0) {
+                                this.saveButtonText = "Güncelle";
+                                this.viewButtonText = "Görüntüle";
+                            } else if (response.data.PostUpdateDto.PostStatus == 1) {
+                                this.saveButtonText = "Yayınla";
+                                this.viewButtonText = "Önizle";
                             }
                         }
                         else {
@@ -986,8 +1003,6 @@
                         }
                     })
                     .catch((error) => {
-                        console.log(error);
-                        console.log(error.request);
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -1004,12 +1019,16 @@
                 this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
                 this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
                 this.seoObjectSettingUpdateDto.TwitterImageId = this.twitterImage.id;
+                console.log(e)
 
                 if (e.target.id == "save") {
                     this.postUpdateDto.PostStatus = "publish";
                 }
                 else if (e.target.id == "draft") {
                     this.postUpdateDto.PostStatus = "draft";
+                }
+                else if (e.target.id == "trash") {
+                    this.postUpdateDto.PostStatus = "trash";
                 }
                 this.$refs.articleAddForm.validate().then(success => {
                     if (success) {
@@ -1019,49 +1038,30 @@
                                 SeoObjectSettingUpdateDto: this.seoObjectSettingUpdateDto
                             })
                             .then((response) => {
-
-                                this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
-
-                                if (this.deSelectedTerms.length > 0) {
-                                    console.log(this.deSelectedTerms);
-                                    console.log(response.data.PostDto.Post.Id);
-
-                                    this.deSelectedTerms.forEach((termId, index) => {
-                                        console.log("termId: " + termId);
-                                        axios.post('/admin/term/deletepostterm', {
-                                            PostId: response.data.PostDto.Post.Id,
-                                            TermId: termId,
-                                        });
-                                    });
-                                }
-
-                                if (this.selectedTerms.length > 0) {
-                                    this.selectedTerms.forEach((postTerm, index) => {
-                                        this.postTermAddDto.TermId = postTerm.Id;
-                                        this.postTermAddDto.TermType = postTerm.TermType;
-
-                                        axios.post('/admin/term/newpostterm', {
-                                            PostTermAddDto: this.postTermAddDto
-                                        }).catch((error) => {
-                                            console.log("newpost");
-                                            console.log(error);
-                                            console.log(error.request);
-                                        });
-                                    });
-                                }
-
-                                //if (this.selectedTag.length > 0) {
-                                //    for (var i = 0; i < this.selectedTag.length; i++) {
-                                //        this.postTermAddDto.TermId = this.selectedTag[i];
-                                //        this.postTermAddDto.TermType = "tag";
-
-                                //        axios.post('/admin/term/newpostterm', {
-                                //            PostTermAddDto: this.postTermAddDto
-                                //        });
-                                //    }
-                                //}
-
                                 if (response.data.PostDto.ResultStatus === 0) {
+                                    this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
+
+                                    if (this.deSelectedTerms.length > 0) {
+
+                                        this.deSelectedTerms.forEach((termId, index) => {
+                                            axios.post('/admin/term/deletepostterm', {
+                                                PostId: response.data.PostDto.Post.Id,
+                                                TermId: termId,
+                                            });
+                                        });
+                                    }
+
+                                    if (this.selectedTerms.length > 0) {
+                                        this.selectedTerms.forEach((postTerm, index) => {
+                                            this.postTermAddDto.TermId = postTerm.Id;
+                                            this.postTermAddDto.TermType = postTerm.TermType;
+
+                                            axios.post('/admin/term/newpostterm', {
+                                                PostTermAddDto: this.postTermAddDto
+                                            });
+                                        });
+                                    }
+
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
@@ -1070,7 +1070,27 @@
                                             icon: 'CheckIcon',
                                             text: response.data.PostDto.Message
                                         }
-                                    })
+                                    });
+
+                                    console.log(response.data.PostDto.Post.PostType);
+                                    console.log(response.data.PostDto.Post.PostStatus);
+
+                                    if (response.data.PostDto.Post.PostType == 0 && response.data.PostDto.Post.PostStatus == 2) {
+                                        this.$router.push({ path: '/admin/pages' });
+                                    }
+                                    else if (response.data.PostDto.Post.PostType == 1 && response.data.PostDto.Post.PostStatus == 2) {
+                                        this.$router.push({ path: '/admin/articles' });
+                                    } else if (response.data.PostDto.Post.PostType == 4 && response.data.PostDto.Post.PostStatus == 2) {
+                                        this.$router.push({ path: '/admin/basepages' });
+                                    }
+
+                                    if (response.data.PostDto.Post.PostStatus == 0) {
+                                        this.saveButtonText = "Güncelle";
+                                        this.viewButtonText = "Görüntüle";
+                                    } else if (response.data.PostDto.Post.PostStatus == 1) {
+                                        this.saveButtonText = "Yayınla";
+                                        this.viewButtonText = "Önizle";
+                                    }
                                 }
                                 else {
                                     this.$toast({
@@ -1178,61 +1198,6 @@
                                             title: 'Başarısız İşlem!',
                                             icon: 'AlertOctagonIcon',
                                             text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
-            singleDeleteData(id, name) {
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " adlı makale kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post('/admin/term/delete?term=' + id)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.Message
                                         },
                                     })
                                 }

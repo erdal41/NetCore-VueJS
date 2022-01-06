@@ -368,6 +368,21 @@
                 return $"{productTitle} başlıklı gönderi güncellendi.";
             }
 
+            public static string Publish(string productTitle)
+            {
+                return $"{productTitle} başlıklı gönderi yayınlandı.";
+            }
+
+            public static string MultiPublish(int count)
+            {
+                return $"{count} adet gönderi yayınlandı.";
+            }
+
+            public static string MultiDraft(int count)
+            {
+                return $"{count} adet gönderi taslak olarak kaydedildi.";
+            }
+
             public static string Trash(string productTitle)
             {
                 return $"{productTitle} başlıklı gönderi çöp kutusuna gönderildi.";

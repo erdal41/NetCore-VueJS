@@ -484,74 +484,44 @@ namespace VueJS.Services.Concrete
             }
         }
 
-        public async Task<IDataResult<PostListDto>> MultiPublishAsync(List<int> postIds, int userId)
-        {
-            var posts = await UnitOfWork.Posts.GetAllAsync(p => postIds.Contains(p.Id));
-            if (posts.Count > -1)
-            {
-                List<Post> publishedPosts = new List<Post>();
-                foreach (var post in posts)
-                {
-                    post.PostStatus = PostStatus.publish;
-                    post.UserId = userId;
-                    post.ModifiedDate = DateTime.Now;
-                    publishedPosts.Add(post);
-                }
-                await UnitOfWork.Posts.MultiUpdateAsync(publishedPosts);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiTrash(postIds.Count), new PostListDto
-                {
-                    Posts = posts
-                });
-            }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), new PostListDto
-            {
-                Posts = null,
-            });
-        }
-
-        public async Task<IDataResult<PostListDto>> MultiDraftAsync(List<int> postIds, int userId)
-        {
-            var posts = await UnitOfWork.Posts.GetAllAsync(p => postIds.Contains(p.Id));
-            if (posts.Count > -1)
-            {
-                List<Post> draftedPosts = new List<Post>();
-                foreach (var post in posts)
-                {
-                    post.PostStatus = PostStatus.draft;
-                    post.UserId = userId;
-                    post.ModifiedDate = DateTime.Now;
-                    draftedPosts.Add(post);
-                }
-                await UnitOfWork.Posts.MultiUpdateAsync(draftedPosts);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiTrash(postIds.Count), new PostListDto
-                {
-                    Posts = posts
-                });
-            }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), new PostListDto
-            {
-                Posts = null,
-            });
-        }
-
-        public async Task<IDataResult<PostDto>> TrashAsync(int postId, int userId)
+        public async Task<IDataResult<PostDto>> PostStatusChangeAsync(int postId, PostStatus postStatus, int userId)
         {
             var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId);
             if (post.PostType != SubObjectType.basepage)
             {
-                post.PostStatus = PostStatus.trash;
+                post.PostStatus = postStatus;
                 post.UserId = userId;
                 post.ModifiedDate = DateTime.Now;
                 await UnitOfWork.Posts.UpdateAsync(post);
                 await UnitOfWork.SaveAsync();
-                return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Trash(post.Title), new PostDto
+
+                if (postStatus == PostStatus.publish)
                 {
-                    Post = post,
-                    ResultStatus = ResultStatus.Success,
-                    Message = Messages.Post.Trash(post.Title)
-                });
+                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Publish(post.Title), new PostDto
+                    {
+                        Post = post,
+                        ResultStatus = ResultStatus.Success,
+                        Message = Messages.Post.Publish(post.Title)
+                    });
+                }
+                else if (postStatus == PostStatus.draft)
+                {
+                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.UnTrash(post.Title), new PostDto
+                    {
+                        Post = post,
+                        ResultStatus = ResultStatus.Success,
+                        Message = Messages.Post.UnTrash(post.Title)
+                    });
+                }
+                else
+                {
+                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Trash(post.Title), new PostDto
+                    {
+                        Post = post,
+                        ResultStatus = ResultStatus.Success,
+                        Message = Messages.Post.Trash(post.Title)
+                    });
+                }
             }
             else
             {
@@ -564,7 +534,7 @@ namespace VueJS.Services.Concrete
             }
         }
 
-        public async Task<IDataResult<PostListDto>> MultiTrashAsync(List<int> postIds, int userId)
+        public async Task<IDataResult<PostListDto>> MultiPostStatusChangeAsync(List<int> postIds, PostStatus postStatus, int userId)
         {
             var posts = await UnitOfWork.Posts.GetAllAsync(p => postIds.Contains(p.Id));
             if (posts.Count > -1)
@@ -574,7 +544,7 @@ namespace VueJS.Services.Concrete
                 {
                     if (post.PostType != SubObjectType.basepage)
                     {
-                        post.PostStatus = PostStatus.trash;
+                        post.PostStatus = postStatus;
                         post.UserId = userId;
                         post.ModifiedDate = DateTime.Now;
                         trashedPosts.Add(post);
@@ -591,73 +561,30 @@ namespace VueJS.Services.Concrete
                 }
                 await UnitOfWork.Posts.MultiUpdateAsync(trashedPosts);
                 await UnitOfWork.SaveAsync();
-                return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiTrash(postIds.Count), new PostListDto
-                {
-                    Posts = posts
-                });
-            }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), new PostListDto
-            {
-                Posts = null,
-            });
-        }
 
-        public async Task<IDataResult<PostDto>> UnTrashAsync(int postId, int userId)
-        {
-            var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId);
-            if (post.PostType != SubObjectType.basepage)
-            {
-                post.PostStatus = PostStatus.draft;
-                post.UserId = userId;
-                post.ModifiedDate = DateTime.Now;
-                await UnitOfWork.Posts.UpdateAsync(post);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.UnTrash(post.Title), new PostDto
+                if (postStatus == PostStatus.publish)
                 {
-                    Post = post,
-                    ResultStatus = ResultStatus.Success,
-                    Message = Messages.Post.UnTrash(post.Title)
-                });
-            }
-            else
-            {
-                return new DataResult<PostDto>(ResultStatus.Warning, Messages.Post.BasePage(), new PostDto
-                {
-                    Post = post,
-                    ResultStatus = ResultStatus.Warning,
-                    Message = Messages.Post.BasePage()
-                });
-            }
-        }
-
-        public async Task<IDataResult<PostListDto>> MultiUnTrashAsync(List<int> postIds, int userId)
-        {
-            var posts = await UnitOfWork.Posts.GetAllAsync(p => postIds.Contains(p.Id));
-            if (posts.Count > -1)
-            {
-                List<Post> unTrashedPosts = new List<Post>();
-                foreach (var post in posts)
-                {
-                    if (post.PostType != SubObjectType.basepage)
+                    return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiPublish(postIds.Count), new PostListDto
                     {
-                        post.PostStatus = PostStatus.draft;
-                        post.UserId = userId;
-                        post.ModifiedDate = DateTime.Now;
-                        unTrashedPosts.Add(post);
-                    }
-                    else
-                    {
-                        return new DataResult<PostListDto>(ResultStatus.Warning, Messages.Post.BasePage(), new PostListDto
-                        {
-                            Posts = posts,
-                            ResultStatus = ResultStatus.Warning,
-                            Message = Messages.Post.BasePage()
-                        });
-                    }
+                        Posts = posts
+                    });
                 }
-                await UnitOfWork.Posts.MultiUpdateAsync(unTrashedPosts);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiUnTrash(postIds.Count), new PostListDto
+                else if (postStatus == PostStatus.draft)
+                {
+                    return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiDraft(postIds.Count), new PostListDto
+                    {
+                        Posts = posts
+                    });
+                }
+                else
+                {
+                    return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiTrash(postIds.Count), new PostListDto
+                    {
+                        Posts = posts
+                    });
+                }
+
+                return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiTrash(postIds.Count), new PostListDto
                 {
                     Posts = posts
                 });

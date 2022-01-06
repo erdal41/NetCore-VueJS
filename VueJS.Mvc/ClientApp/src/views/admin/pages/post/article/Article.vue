@@ -92,17 +92,64 @@
                 </template>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
-                        <b-form-group v-if="isHiddenMultiDeleteButton === true"
+                        <b-form-group v-show="isHiddenMultiTrashButton === true"
                                       class="mb-0">
-                            <b-button variant="danger"
-                                      size="sm"
-                                      @click="multiDeleteData">
-                                <feather-icon icon="Trash2Icon"
-                                              class="mr-50" />
-                                <span class="align-middle">{{ checkedRowsCount }} Makaleyi Sil</span>
-                            </b-button>
+                            <b-dropdown id="dropdown-left"
+                                        text="Durum"
+                                        variant="link"
+                                        no-caret
+                                        toggle-class="p-0"
+                                        left>
+
+                                <template #button-content>
+                                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                                              variant="primary"
+                                              class="btn-icon">
+                                        Durum
+                                        <feather-icon icon="ChevronDownIcon" />
+                                        <span>{{ checkedRowsCount }}</span>
+
+                                    </b-button>
+                                </template>
+                                <b-dropdown-item v-show="$route.query.status != 'trash'"
+                                                 href="javascript:;"
+                                                 id="multi-publish"
+                                                 variant="success"
+                                                 @click="multiPostStatusChange">
+                                    Yayınla
+                                </b-dropdown-item>
+                                <b-dropdown-item v-show="$route.query.status != 'trash'"
+                                                 href="javascript:;"
+                                                 id="multi-draft"
+                                                 variant="warning"
+                                                 @click="multiPostStatusChange">
+                                    Taslak Olarak Kaydet
+                                </b-dropdown-item>
+
+                                <b-dropdown-item v-show="$route.query.status != 'trash'"
+                                                 href="javascript:;"
+                                                 id="multi-trash"
+                                                 variant="danger"
+                                                 @click="multiPostStatusChange">
+                                    Çöp Kutusuna Taşı
+                                </b-dropdown-item>
+                                <b-dropdown-item v-show="$route.query.status == 'trash'"
+                                                 href="javascript:;"
+                                                 id="multi-untrash"
+                                                 variant="warning"
+                                                 @click="multiPostStatusChange">
+                                    Geri Al
+                                </b-dropdown-item>
+                                <b-dropdown-item v-show="$route.query.status == 'trash'"
+                                                 href="javascript:;"
+                                                 id="multi-untrash"
+                                                 variant="danger"
+                                                 @click="multiPostStatusChange">
+                                    Kalıcı Olarak Sil
+                                </b-dropdown-item>
+                            </b-dropdown>
                             <b-button v-b-tooltip.hover
-                                      title="Seçili kayıtları kalıcı olarak siler. Bu işlem geri alınamaz."
+                                      title="Seçili makelelerin durumlarını değiştirmenizi sağlar."
                                       v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                       variant="flat-secondary"
                                       size="sm"
@@ -134,29 +181,50 @@
                                              @change="checkChange($event)"></b-form-checkbox>
                         </template>
                         <template #cell(FeaturedImage)="row">
-                            <div class="image-thumb">
+                            <div class="image-icon">
                                 <b-img rounded
                                        v-bind:src="row.item.FeaturedImage == null ? noImage : require('@/assets/images/media/' + row.item.FeaturedImage.FileName)"
                                        :alt="row.item.FeaturedImage == null ? '' : row.item.FeaturedImage.AltText" />
                             </div>
                         </template>
                         <template #cell(Title)="row">
-                            <b-link :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }">
+                            <b v-if="row.item.PostStatus == 2">{{row.item.Title}}</b>
+                            <b-link v-else
+                                    :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }">
                                 <b>{{row.item.Title}}</b>
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
+                                    <b-link v-if="row.item.PostStatus != 0 && row.item.PostStatus != 2"
+                                            :to="{ name:'pages-post-preview', query: { preview : row.item.Id } }"
+                                            class="text-primary small">Önizle</b-link>
+                                    <b-link v-show="row.item.PostStatus == 0"
+                                            :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
                                             class="text-primary small">Görüntüle</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
+                                    <small v-show="row.item.PostStatus != 2"
+                                           class="text-muted"> | </small>
+                                    <b-link v-if="row.item.PostStatus != 2"
+                                            :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
                                             class="text-success small"
                                             variant="flat-danger">Düzenle</b-link>
+                                    <b-link v-else
+                                            id="untrash"
+                                            href="javascript:;"
+                                            no-prefetch
+                                            class="text-warning small"
+                                            @click="postStatusChange($event, row.item.Id, row.item.Title)">Geri Al</b-link>
                                     <small class="text-muted"> | </small>
-                                    <b-link href="javascript:;"
+                                    <b-link v-if="row.item.PostStatus != 2"
+                                            id="trash"
+                                            href="javascript:;"
                                             no-prefetch
                                             class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.Title)">Sil</b-link>
+                                            @click="postStatusChange($event, row.item.Id, row.item.Title)">Çöp</b-link>
+                                    <b-link v-else
+                                            href="javascript:;"
+                                            no-prefetch
+                                            class="text-danger small"
+                                            @click="singleDeleteData(row.item.Id, row.item.Title)">Kalıcı Sil</b-link>
                                 </div>
                             </div>
                         </template>
@@ -221,9 +289,8 @@
 <script>
     import moment from 'moment'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import { required, min, confirmed } from '@validations'
     import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
@@ -231,15 +298,12 @@
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
 
-    extend('required', {
-        ...required,
-        message: 'Lütfen gerekli bilgileri yazınız.'
-    });
-
     export default {
         components: {
             BBreadcrumb,
             BBreadcrumbItem,
+            BDropdown,
+            BDropdownItem,
             BSpinner,
             BBadge,
             BCardTitle,
@@ -279,11 +343,6 @@
                     }
                 ],
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
-                passValue: '',
-                username: '',
-                required,
-                min,
-                confirmed,
                 isSpinnerShow: true,
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],
@@ -291,10 +350,10 @@
                 currentPage: 1,
                 filterText: '',
                 posts: [],
-                dataNullMessage: '',
+                dataNullMessage: 'Hiç bir makale bulunamadı.',
                 selected: '',
                 selectedValue: null,
-                isHiddenMultiDeleteButton: false,
+                isHiddenMultiTrashButton: false,
                 isHiddenRowActions: false,
                 name: "",
                 fields: [
@@ -304,7 +363,7 @@
                     { key: 'ModifiedDate', label: 'Tarih', sortable: true, thStyle: { width: "150px" } },
                     { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }],
                 checkedRows: [],
-                checkedRowsCount: 0,
+                checkedRowsCount: '',
                 publishPostsCount: '',
                 draftPostsCount: '',
                 trashPostsCount: '',
@@ -327,11 +386,11 @@
             },
             checkChange() {
                 if (this.checkedRows.length > 0) {
-                    this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = this.checkedRows.length;
+                    this.isHiddenMultiTrashButton = true;
+                    this.checkedRowsCount = "( " + this.checkedRows.length + " )";
                 }
                 else {
-                    this.isHiddenMultiDeleteButton = false;
+                    this.isHiddenMultiTrashButton = false;
                 }
             },
             selectAllRows(value) {
@@ -348,10 +407,58 @@
                 }
                 this.checkChange();
             },
+            postStatusChange: function (event, id, name) {
+                var postStatus = "";
+                if (event.target.id == "trash") {
+                    postStatus = "trash";
+                    console.log(postStatus);
+                } else {
+                    postStatus = "draft";
+                    console.log(postStatus);
+                }
+
+                axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
+                    .then((response) => {
+                        if (response.data.PostDto.ResultStatus === 0) {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'success',
+                                    title: 'Başarılı İşlem!',
+                                    icon: 'CheckIcon',
+                                    text: response.data.PostDto.Message
+                                }
+                            })
+                            this.getAllData();
+                        }
+                        else {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Başarısız İşlem!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: response.data.PostDto.Message
+                                },
+                            })
+                        }
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                            },
+                        })
+                    });
+            },
             singleDeleteData(id, name) {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " adlı terim kalıcı olarak silinecektir?",
+                    text: name + " adlı makale kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -363,7 +470,75 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/term/delete?term=' + id)
+                        axios.post('/admin/post/delete?postId=' + id)
+                            .then((response) => {
+                                if (response.data.PostDto.ResultStatus === 0) {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'success',
+                                            title: 'Başarılı İşlem!',
+                                            icon: 'CheckIcon',
+                                            text: response.data.PostDto.Message
+                                        }
+                                    })
+                                    this.getAllData();
+                                }
+                                else {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'danger',
+                                            title: 'Başarısız İşlem!',
+                                            icon: 'AlertOctagonIcon',
+                                            text: response.data.PostDto.Message
+                                        },
+                                    })
+                                }
+                            })
+                            .catch((error) => {
+                                this.$toast({
+                                    component: ToastificationContent,
+                                    props: {
+                                        variant: 'danger',
+                                        title: 'Hata Oluştu!',
+                                        icon: 'AlertOctagonIcon',
+                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                    },
+                                })
+                            });
+                    }
+                })
+            },
+            multiPostStatusChange: function (event) {
+
+                var postStatus = "";
+                if (event.target.id == "multi-publish") {
+                    postStatus = "publish";
+                    console.log(postStatus);
+                } else if (event.target.id == "multi-draft") {
+                    postStatus = "draft";
+                    console.log(postStatus);
+                } else {
+                    postStatus = "trash";
+                    console.log(postStatus);
+                }
+
+                this.$swal({
+                    title: 'Silmek istediğinize emin misiniz?',
+                    text: this.checkedRowsCount + " makale kalıcı olarak silinecektir?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet',
+                    cancelButtonText: 'Hayır',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-outline-danger ml-1',
+                    },
+                    buttonsStyling: false,
+                }).then(result => {
+                    if (result.value) {
+                        axios.post(`/admin/term/multitrash?posts=` + this.checkedRows)
                             .then((response) => {
                                 if (response.data.ResultStatus === 0) {
                                     this.$toast({
@@ -384,12 +559,13 @@
                                             variant: 'danger',
                                             title: 'Başarısız İşlem!',
                                             icon: 'AlertOctagonIcon',
-                                            text: response.data.Message
+                                            text: response.data.TermDto.Message
                                         },
                                     })
                                 }
                             })
                             .catch((error) => {
+
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
@@ -418,9 +594,8 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post(`/admin/term/multidelete?posts=` + this.checkedRows)
+                        axios.post(`/admin/term/multitrash?posts=` + this.checkedRows)
                             .then((response) => {
-                                console.log(response.data)
                                 if (response.data.ResultStatus === 0) {
                                     this.$toast({
                                         component: ToastificationContent,
@@ -446,9 +621,6 @@
                                 }
                             })
                             .catch((error) => {
-                                console.log(error)
-                                console.log(error.response)
-                                console.log(error.request)
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
@@ -461,10 +633,8 @@
                             });
                     }
                 })
-                console.log(this.checkedRows);
             },
             getAllData() {
-                console.log(this.$route.query.status);
                 this.isSpinnerShow = true;
                 axios.get('/admin/post/allposts', {
                     params: {
@@ -473,17 +643,17 @@
                     }
                 })
                     .then((response) => {
-                        console.log(response.data)
                         if (response.data.PostListDto.ResultStatus === 0) {
                             this.posts = response.data.PostListDto.Posts;
                             this.publishPostsCount = response.data.PublishPostsCount;
                             this.draftPostsCount = response.data.DraftPostsCount;
                             this.trashPostsCount = response.data.TrashPostsCount;
                             this.isSpinnerShow = false;
+                            this.checkedRowsCount = "";
+                            this.checkedRows = "";
                         } else {
                             this.isSpinnerShow = false;
                             this.posts = [];
-                            this.dataNullMessage = response.data.PostListDto.Message;
                         }
                     })
                     .catch((error) => {
@@ -533,13 +703,13 @@
         padding: 0.72rem !important;
     }
 
-    .image-thumb {
+    .image-icon {
         width: 50px;
         height: 50px;
         position: relative;
     }
 
-        .image-thumb img {
+        .image-icon img {
             max-height: 100%;
             max-width: 100%;
             border-radius: 5px;

@@ -27,12 +27,8 @@ namespace VueJS.Services.Abstract
         Task<IResult> SubPostUpdateAsync(int postId, List<int> subPostId);
         Task<IDataResult<PostDto>> SubPostDetailUpdateAsync(int postId, string description, int? featuredImageId);
         Task<IDataResult<PostDto>> GalleryImageAddAsync(int postId, List<int> galleryIds);
-        Task<IDataResult<PostListDto>> MultiPublishAsync(List<int> postIds, int userId);
-        Task<IDataResult<PostListDto>> MultiDraftAsync(List<int> postIds, int userId);
-        Task<IDataResult<PostDto>> TrashAsync(int postId, int userId);
-        Task<IDataResult<PostListDto>> MultiTrashAsync(List<int> postIds, int userId);
-        Task<IDataResult<PostDto>> UnTrashAsync(int postId, int userId);
-        Task<IDataResult<PostListDto>> MultiUnTrashAsync(List<int> postIds, int userId);
+        Task<IDataResult<PostDto>> PostStatusChangeAsync(int postId, PostStatus postStatus, int userId);
+        Task<IDataResult<PostListDto>> MultiPostStatusChangeAsync(List<int> postIds, PostStatus postStatus, int userId);
         Task<IDataResult<PostDto>> DeleteAsync(int postId);
         Task<IDataResult<PostListDto>> MultiDeleteAsync(List<int> postIds);
         Task<int> PublishStatusCountAsync(SubObjectType postType, PostStatus? postStatus);
