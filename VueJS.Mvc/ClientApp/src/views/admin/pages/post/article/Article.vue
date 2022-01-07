@@ -92,7 +92,7 @@
                 </template>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
-                        <b-form-group v-show="isHiddenMultiTrashButton === true"
+                        <b-form-group v-show="isHiddenStatusButton === true"
                                       class="mb-0">
                             <b-dropdown id="dropdown-left"
                                         text="Durum"
@@ -243,7 +243,7 @@
                     </b-table>
                 </div>
                 <div v-show="posts.length <= 0"
-                     class="text-center mt-1">{{ dataNullMessage  }}</div>
+                     class="text-center mt-1">Hiç bir makale bulunamadı.</div>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
@@ -350,10 +350,9 @@
                 currentPage: 1,
                 filterText: '',
                 posts: [],
-                dataNullMessage: 'Hiç bir makale bulunamadı.',
                 selected: '',
                 selectedValue: null,
-                isHiddenMultiTrashButton: false,
+                isHiddenStatusButton: false,
                 isHiddenRowActions: false,
                 name: "",
                 fields: [
@@ -386,11 +385,11 @@
             },
             checkChange() {
                 if (this.checkedRows.length > 0) {
-                    this.isHiddenMultiTrashButton = true;
+                    this.isHiddenStatusButton = true;
                     this.checkedRowsCount = "( " + this.checkedRows.length + " )";
                 }
                 else {
-                    this.isHiddenMultiTrashButton = false;
+                    this.isHiddenStatusButton = false;
                 }
             },
             selectAllRows(value) {
@@ -411,10 +410,8 @@
                 var postStatus = "";
                 if (event.target.id == "trash") {
                     postStatus = "trash";
-                    console.log(postStatus);
                 } else {
                     postStatus = "draft";
-                    console.log(postStatus);
                 }
 
                 axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
@@ -648,13 +645,16 @@
                             this.publishPostsCount = response.data.PublishPostsCount;
                             this.draftPostsCount = response.data.DraftPostsCount;
                             this.trashPostsCount = response.data.TrashPostsCount;
-                            this.isSpinnerShow = false;
-                            this.checkedRowsCount = "";
-                            this.checkedRows = "";
+                            this.totalRows = response.data.PostListDto.Posts.length;
                         } else {
-                            this.isSpinnerShow = false;
+                            
                             this.posts = [];
                         }
+                        this.filterText = "";
+                        this.isSpinnerShow = false;
+                        this.checkedRowsCount = "";
+                        this.checkedRows = "";
+                        this.isHiddenStatusButton = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -668,16 +668,13 @@
                         })
                     });
             },
-            getAllPublishedData() {
-
-            },
             filterByName: function (data) {
                 // no search, don't filter :
                 if (this.filterText.length === 0) {
                     return true;
                 }
 
-                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+                return (data.Title.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
         watch: {
@@ -693,7 +690,6 @@
         },
         mounted() {
             this.getAllData();
-            this.totalRows = this.posts.length;
         }
     }
 </script>

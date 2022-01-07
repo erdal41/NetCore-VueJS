@@ -16,9 +16,25 @@ export default [
         },
     },
     {
-        path: '/admin/tags',
+        path: '/admin/basepage/new',
+        name: 'pages-basepage-add',
+        component: () => import('@/views/admin/pages/post/basepage/NewBasePage.vue'),
+        meta: {
+            resource: 'Auth',
+        },
+    },
+    {
+        path: '/admin/pages',
         name: 'pages-page-list',
         component: () => import('@/views/admin/pages/post/page/Page.vue'),
+        meta: {
+            resource: 'Auth',
+        },
+    },
+    {
+        path: '/admin/page/new',
+        name: 'pages-page-add',
+        component: () => import('@/views/admin/pages/post/page/NewPage.vue'),
         meta: {
             resource: 'Auth',
         },

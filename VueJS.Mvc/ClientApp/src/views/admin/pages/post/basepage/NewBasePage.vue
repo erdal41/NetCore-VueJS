@@ -938,6 +938,61 @@
                     }
                 })
             },
+            singleDeleteData(id, name) {
+                this.$swal({
+                    title: 'Silmek istediğinize emin misiniz?',
+                    text: name + " adlı makale kalıcı olarak silinecektir?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet',
+                    cancelButtonText: 'Hayır',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-outline-danger ml-1',
+                    },
+                    buttonsStyling: false,
+                }).then(result => {
+                    if (result.value) {
+                        axios.post('/admin/term/delete?term=' + id)
+                            .then((response) => {
+                                if (response.data.ResultStatus === 0) {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'success',
+                                            title: 'Başarılı İşlem!',
+                                            icon: 'CheckIcon',
+                                            text: response.data.Message
+                                        }
+                                    })
+                                    this.getAllData();
+                                }
+                                else {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'danger',
+                                            title: 'Başarısız İşlem!',
+                                            icon: 'AlertOctagonIcon',
+                                            text: response.data.Message
+                                        },
+                                    })
+                                }
+                            })
+                            .catch((error) => {
+                                this.$toast({
+                                    component: ToastificationContent,
+                                    props: {
+                                        variant: 'danger',
+                                        title: 'Hata Oluştu!',
+                                        icon: 'AlertOctagonIcon',
+                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                    },
+                                })
+                            });
+                    }
+                })
+            },
         },
         computed: {
         },
