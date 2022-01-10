@@ -532,7 +532,7 @@
                     Title: '',
                     Content: '',
                     PostType: 'article',
-                    PostStatus: null,
+                    PostStatus: '',
                     CommentStatus: Boolean,
                     FeaturedImageId: '',
                     IsShowFeaturedImage: Boolean

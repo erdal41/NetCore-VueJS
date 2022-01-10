@@ -431,6 +431,7 @@ namespace VueJS.Services.Concrete
                 {
                     var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
 
+
                     post.UserId = userId;
                     post.ModifiedDate = DateTime.Now;
                     await UnitOfWork.Posts.UpdateAsync(post);
@@ -674,7 +675,7 @@ namespace VueJS.Services.Concrete
             else
             {
                 return new Result(ResultStatus.Error, "Alt sayfa güncellenemedi");
-            }         
+            }
         }
 
         #endregion

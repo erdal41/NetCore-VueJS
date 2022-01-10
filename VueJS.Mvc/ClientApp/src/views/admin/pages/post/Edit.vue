@@ -192,7 +192,7 @@
                                             <app-collapse>
                                                 <app-collapse-item title="Gelişmiş">
                                                     <b-form-group label-for="CanonicalUrl"
-                                                                  description="Geçerli makale ile benzer içeriğe sahip olan makalenin linkini giriniz.">
+                                                                  description="Geçerli sayfa ile benzer içeriğe sahip olan sayfanın linkini giriniz.">
                                                         <b-form-input id="CanonicalUrl"
                                                                       v-model="seoObjectSettingUpdateDto.CanonicalUrl"
                                                                       type="text"
@@ -666,7 +666,7 @@
                 doHaveData: Boolean,
                 isTrashedPost: Boolean,
                 editorOption: {
-                    placeholder: 'Makale İçeriği',
+                    placeholder: 'İçerik',
                     theme: 'snow'
                 },
                 required,
@@ -792,7 +792,6 @@
                         }
                     })
                     .then((response) => {
-                        console.log(response.data);
                         if (response.data.ResultStatus === 0) {
                             this.currentTopPosts = response.data.Posts;
                         }
@@ -817,7 +816,6 @@
                         }
                     })
                     .then((response) => {
-                        console.log(response.data);
                         if (response.data.ResultStatus === 0) {
                             this.currentSubPosts = response.data.Posts;
                         }
@@ -1034,7 +1032,7 @@
             getData() {
                 axios.get('/admin/post/edit?post=' + this.$route.query.edit)
                     .then((response) => {
-                        console.log(response.data);
+                        this.parentPostName = "";
                         if (response.data.PostUpdateDto != null) {
                             if (response.data.PostUpdateDto.PostStatus == 2) {
                                 this.isTrashedPost = true;
@@ -1044,12 +1042,11 @@
                                 this.doHaveData = true;
                                 this.isTrashedPost = false;
 
-                                if (response.data.PostUpdateDto.Parents.length > 0) {
+                                if (response.data.PostUpdateDto.Parents != null) {
                                     for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
                                         this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
                                     }
                                 }
-
 
                                 this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
                                 this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
@@ -1184,8 +1181,22 @@
                                 SeoObjectSettingUpdateDto: this.seoObjectSettingUpdateDto
                             })
                             .then((response) => {
-                                if (response.data.PostDto.ResultStatus === 0) {
+                                if (response.data.PostDto.ResultStatus === 0) {                                    
+
                                     if (response.data.PostDto.Post.PostType == 0) {
+
+                                        axios.get('/admin/post/edit?post=' + this.$route.query.edit)
+                                            .then((response) => {
+                                                this.parentPostName = "";
+                                                if (response.data.PostUpdateDto != null) {
+                                                    if (response.data.PostUpdateDto.Parents != null) {
+                                                        for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
+                                                            this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
+                                                        }
+                                                    }
+                                                }
+                                            });
+
                                         if (this.deSelectedSubPosts.length > 0) {
                                             this.deSelectedSubPosts.forEach((subPostId, index) => {
                                                 axios.post('/admin/post/editsubpost?postId=' + subPostId);
@@ -1240,7 +1251,7 @@
                                     } else if (response.data.PostDto.Post.PostStatus == 1) {
                                         this.saveButtonText = "Yayınla";
                                         this.viewButtonText = "Önizle";
-                                    }
+                                    } 
                                 }
                                 else {
                                     this.$toast({
