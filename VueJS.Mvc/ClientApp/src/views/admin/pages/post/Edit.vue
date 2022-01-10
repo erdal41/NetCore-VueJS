@@ -117,7 +117,7 @@
 
                                         </b-form-group>
                                         <b-form-group>
-                                            <span class="small">Gönderi linki: </span><a class="small" :href="domainName + '/' + postUpdateDto.PostName">{{ domainName }}/<span v-show="isSlugEditActive == false">{{  postUpdateDto.PostName }}</span></a>
+                                            <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postUpdateDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postUpdateDto.PostName }}</span></a>
                                             <b-button v-show="isSlugEditActive == false"
                                                       v-b-tooltip.hover
                                                       title="Gönderinin linkini değiştirmenizi sağlar."
@@ -380,21 +380,24 @@
                             title="Ebeveyn Sayfa">
                         <b-form-group>
                             <v-select v-model="postUpdateDto.ParentId"
-                                      :options="topPosts"
+                                      :options="currentTopPosts"
                                       label="Title"
                                       :reduce="(option) => option.Id"
-                                      placeholder="— Ebeveyn Sayfa —" />
+                                      placeholder="— Ebeveyn Sayfa —"
+                                      @input="changeTopPosts" />
                         </b-form-group>
                     </b-card>
                     <b-card v-show="postUpdateDto.PostType == '0'"
                             title="Alt Sayfa">
                         <b-form-group>
-                            <v-select v-model="selectedSubPost"
-                                      :options="subPosts"
+                            <v-select v-model="currentSelectedSubPosts"
+                                      :options="currentSubPosts"
                                       label="Title"
                                       :reduce="(option) => option.Id"
                                       placeholder="— Alt Sayfa —"
-                                      multiple/>
+                                      multiple
+                                      @option:selecting="selectingSubPosts"
+                                      @option:deselecting="deSelectingSubPosts" />
                         </b-form-group>
                     </b-card>
                     <b-card v-show="postUpdateDto.PostType == '1'"
@@ -674,6 +677,7 @@
                 tooltipText: '',
                 title: '',
                 domainName: window.location.origin,
+                parentPostName: '',
                 isSlugEditActive: false,
                 oldPostName: '',
                 isParent: Boolean,
@@ -729,15 +733,17 @@
                     TermId: '',
                     TermType: ''
                 },
-                topPosts: [],
+                currentTopPosts: [],
+                currentSubPosts: [],
                 subPosts: [],
-                selectedSubPost: [],
+                currentSelectedSubPosts: [],
+                selectedSubPosts: [],
+                deSelectedSubPosts: [],
                 terms: [],
                 categories: [],
                 currentSelectedCategory: [],
                 allParentTerms: [],
                 selectedParentTerm: [],
-                selectedParentTermValue: null,
                 categoryName: '',
                 tags: [],
                 currentSelectedTag: [],
@@ -777,7 +783,7 @@
             postNameEditCancel() {
                 this.isSlugEditActive = false;
                 this.postUpdateDto.PostName = this.oldPostName;
-            },            
+            },
             allTopPosts() {
                 axios.get('/admin/post/getalltopposts',
                     {
@@ -788,7 +794,7 @@
                     .then((response) => {
                         console.log(response.data);
                         if (response.data.ResultStatus === 0) {
-                            this.topPosts = response.data.Posts;
+                            this.currentTopPosts = response.data.Posts;
                         }
                     })
                     .catch((error) => {
@@ -813,7 +819,7 @@
                     .then((response) => {
                         console.log(response.data);
                         if (response.data.ResultStatus === 0) {
-                            this.subPosts = response.data.Posts;
+                            this.currentSubPosts = response.data.Posts;
                         }
                     })
                     .catch((error) => {
@@ -828,10 +834,45 @@
                         })
                     });
             },
+            changeTopPosts(value) {
+                var result = this.currentSubPosts.some(subPost => subPost.Id == value);
+                if (result) {
+                    this.currentSubPosts = this.currentSubPosts.filter(subPost => subPost.Id != value);
+                }
+                else {
+                    this.allSubPosts();
+                }
+            },
+            selectingSubPosts(value) {
+                var selectResult = this.subPosts.some(termId => termId === value.Id);
+                if (selectResult) {
+                    this.deSelectedSubPosts = this.deSelectedSubPosts.filter(subPostId => subPostId != value.Id);
+                } else {
+                    this.selectedSubPosts.push(value.Id);
+                }
+
+                var result = this.currentTopPosts.some(topPost => topPost.Id == value.Id);
+                if (result) {
+                    this.currentTopPosts = this.currentTopPosts.filter(topPost => topPost.Id != value.Id);
+                }
+                else {
+                    this.allTopPosts();
+                }
+            },
+            deSelectingSubPosts(value) {
+                var deSelectResult = this.subPosts.some(subPostId => subPostId === value.Id);
+                if (deSelectResult) {
+                    this.deSelectedSubPosts.push(value.Id);
+                }
+                else {
+                    this.selectedSubPosts = this.selectedSubPosts.filter(subPostId => subPostId != value.Id);
+                }
+                this.allTopPosts();
+            },
             selectingTerms(value) {
                 var selectResult = this.terms.some(termId => termId === value.Id);
                 if (selectResult) {
-                    this.deSelectedTerms = this.deSelectedTerms.filter(element => element != value.Id);
+                    this.deSelectedTerms = this.deSelectedTerms.filter(termId => termId != value.Id);
                 } else {
                     this.selectedTerms.push({ Id: value.Id, TermType: value.TermType });
                 }
@@ -842,7 +883,7 @@
                     this.deSelectedTerms.push(value.Id);
                 }
                 else {
-                    this.selectedTerms = this.selectedTerms.filter(element => element != value.Id);
+                    this.selectedTerms = this.selectedTerms.filter(termId => termId != value.Id);
                 }
             },
             allCategories() {
@@ -1002,9 +1043,17 @@
                             else {
                                 this.doHaveData = true;
                                 this.isTrashedPost = false;
+
+                                if (response.data.PostUpdateDto.Parents.length > 0) {
+                                    for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
+                                        this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
+                                    }
+                                }
+
+
+                                this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
                                 this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
                                 this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
-                                this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
                                 this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
 
                                 this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.IsShowFeaturedImage;
@@ -1049,14 +1098,19 @@
 
                                 if (response.data.PostUpdateDto.PostType === 0) {
                                     this.isParent = true;
-                                    console.log(response.data.PostUpdateDto.ParentId);
                                     this.postUpdateDto.ParentId = response.data.PostUpdateDto.ParentId;
                                     if (response.data.PostUpdateDto.Parent != null) {
                                         this.selected = {
                                             Id: response.data.PostUpdateDto.Parent.Id,
                                             Name: response.data.PostUpdateDto.Parent.Name,
                                         }
-                                        console.log(response.data.PostUpdateDto.Parent);
+                                    }
+
+                                    if (response.data.PostUpdateDto.Children.length > 0) {
+                                        response.data.PostUpdateDto.Children.forEach((childPost, index) => {
+                                            this.currentSelectedSubPosts.push(childPost.Id);
+                                            this.subPosts.push(childPost.Id);
+                                        });
                                     }
 
                                     this.pageTitle = "Sayfayı Düzenle";
@@ -1095,6 +1149,8 @@
                         }
                     })
                     .catch((error) => {
+                        console.log(error);
+                        console.log(error.request);
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -1111,8 +1167,6 @@
                 this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
                 this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
                 this.seoObjectSettingUpdateDto.TwitterImageId = this.twitterImage.id;
-                console.log(e)
-
                 if (e.target.id == "save") {
                     this.postUpdateDto.PostStatus = "publish";
                 }
@@ -1131,12 +1185,23 @@
                             })
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
-                                    this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
-                                    if (response.data.PostDto.PostType == 0) {
-                                        // post update parent
-                                    }
-                                    else if (response.data.PostDto.PostType == 1) {
+                                    if (response.data.PostDto.Post.PostType == 0) {
+                                        if (this.deSelectedSubPosts.length > 0) {
+                                            this.deSelectedSubPosts.forEach((subPostId, index) => {
+                                                axios.post('/admin/post/editsubpost?postId=' + subPostId);
+                                            });
+                                        }
 
+                                        if (this.selectedSubPosts.length > 0) {
+                                            this.selectedSubPosts.forEach((subPostId, index) => {
+                                                axios.post('/admin/post/editsubpost?postId=' + subPostId + "&subPostParentId=" + response.data.PostDto.Post.Id)
+                                            });
+                                        }
+                                        this.allTopPosts();
+                                        this.allSubPosts();
+                                    }
+                                    else if (response.data.PostDto.Post.PostType == 1) {
+                                        this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
                                         if (this.deSelectedTerms.length > 0) {
 
                                             this.deSelectedTerms.forEach((termId, index) => {
@@ -1319,7 +1384,7 @@
                             }
                             else if (response.data.PostDto.Post.PostType == 1) {
                                 this.$router.push({ path: '/admin/articles' });
-                            } else if (response.data.PostDto.Post.PostType == 4 ) {
+                            } else if (response.data.PostDto.Post.PostType == 4) {
                                 this.$router.push({ path: '/admin/basepages' });
                             }
                             this.$toast({

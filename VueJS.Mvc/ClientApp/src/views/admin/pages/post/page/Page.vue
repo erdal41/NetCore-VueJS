@@ -90,9 +90,9 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body>
+                <b-card-body v-show="isHiddenStatusButton === true">
                     <div class="d-flex justify-content-between flex-wrap">
-                        <b-form-group v-show="isHiddenStatusButton === true"
+                        <b-form-group 
                                       class="mb-0">
                             <b-dropdown id="dropdown-left"
                                         text="Durum"
@@ -163,7 +163,7 @@
                      class="text-center mt-2 mb-2">
                     <b-spinner variant="primary" />
                 </div>
-                <div v-else>
+                <div v-else-if="isSpinnerShow == false && posts.length > 0">
                     <b-table :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
@@ -242,7 +242,7 @@
                         </template>
                     </b-table>
                 </div>
-                <div v-show="posts.length <= 0"
+                <div v-else-if="isSpinnerShow == false && posts.length <= 0"
                      class="text-center mt-1">Hiç bir sayfa bulunamadı.</div>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
@@ -395,9 +395,11 @@
             selectAllRows(value) {
                 if (value === true) {
                     var idList = [];
-                    this.posts.forEach(function (term) {
-                        idList.push(term.Id);
-                    });
+                    for (var i = 0; i < this.perPage; i++) {
+                        if (this.posts[i] != null) {
+                            idList.push(this.posts[i].Id);
+                        }
+                    }
                     this.checkedRows = idList;
                 }
                 else {

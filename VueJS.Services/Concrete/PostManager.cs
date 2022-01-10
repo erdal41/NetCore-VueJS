@@ -534,67 +534,6 @@ namespace VueJS.Services.Concrete
             }
         }
 
-        public async Task<IDataResult<PostListDto>> MultiPostStatusChangeAsync(List<int> postIds, PostStatus postStatus, int userId)
-        {
-            var posts = await UnitOfWork.Posts.GetAllAsync(p => postIds.Contains(p.Id));
-            if (posts.Count > -1)
-            {
-                List<Post> trashedPosts = new List<Post>();
-                foreach (var post in posts)
-                {
-                    if (post.PostType != SubObjectType.basepage)
-                    {
-                        post.PostStatus = postStatus;
-                        post.UserId = userId;
-                        post.ModifiedDate = DateTime.Now;
-                        trashedPosts.Add(post);
-                    }
-                    else
-                    {
-                        return new DataResult<PostListDto>(ResultStatus.Warning, Messages.Post.BasePage(), new PostListDto
-                        {
-                            Posts = posts,
-                            ResultStatus = ResultStatus.Warning,
-                            Message = Messages.Post.BasePage()
-                        });
-                    }
-                }
-                await UnitOfWork.Posts.MultiUpdateAsync(trashedPosts);
-                await UnitOfWork.SaveAsync();
-
-                if (postStatus == PostStatus.publish)
-                {
-                    return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiPublish(postIds.Count), new PostListDto
-                    {
-                        Posts = posts
-                    });
-                }
-                else if (postStatus == PostStatus.draft)
-                {
-                    return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiDraft(postIds.Count), new PostListDto
-                    {
-                        Posts = posts
-                    });
-                }
-                else
-                {
-                    return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiTrash(postIds.Count), new PostListDto
-                    {
-                        Posts = posts
-                    });
-                }
-
-                return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiTrash(postIds.Count), new PostListDto
-                {
-                    Posts = posts
-                });
-            }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), new PostListDto
-            {
-                Posts = null,
-            });
-        }
-
         public async Task<IDataResult<PostDto>> DeleteAsync(int postId)
         {
             var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId);
@@ -627,39 +566,6 @@ namespace VueJS.Services.Concrete
                     Message = Messages.Post.BasePage()
                 });
             }
-        }
-
-        public async Task<IDataResult<PostListDto>> MultiDeleteAsync(List<int> postIds)
-        {
-            var posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostStatus == PostStatus.trash && postIds.Contains(p.Id));
-            if (posts.Count > -1)
-            {
-                foreach (var post in posts)
-                {
-                    if (post.PostType == SubObjectType.basepage)
-                    {
-                        return new DataResult<PostListDto>(ResultStatus.Warning, Messages.Post.BasePage(), new PostListDto
-                        {
-                            Posts = posts,
-                            ResultStatus = ResultStatus.Warning,
-                            Message = Messages.Post.BasePage()
-                        });
-                    }
-                }
-                await UnitOfWork.Posts.MultiDeleteAsync(posts);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostListDto>(ResultStatus.Success, Messages.Post.MultiDelete(postIds.Count), new PostListDto
-                {
-                    Posts = posts,
-                    ResultStatus = ResultStatus.Success
-                });
-            }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), new PostListDto
-            {
-                Posts = null,
-                ResultStatus = ResultStatus.Error,
-                Message = "Hata oluştu. Lütfen sayfayı yenileyip tekrar deneyiniz."
-            });
         }
 
         public async Task<int> PublishStatusCountAsync(SubObjectType postType, PostStatus? postStatus)
@@ -747,30 +653,28 @@ namespace VueJS.Services.Concrete
             return new DataResult<PostDto>(ResultStatus.Error, null);
         }
 
-        public async Task<IResult> SubPostUpdateAsync(int postId, List<int> subPostId)
+        public async Task<IResult> SubPostUpdateAsync(int subPostId, int? subPostParentId)
         {
-            var subPosts = await UnitOfWork.Posts.GetAllAsync(x => x.ParentId == postId);
+            var subPost = await UnitOfWork.Posts.GetAsync(x => x.Id == subPostId);
 
-            foreach (var subPost in subPosts)
+            if (subPost != null)
             {
-                if (!subPostId.Contains(subPost.Id))
+                if (subPostParentId == null)
                 {
                     subPost.ParentId = null;
-                    await UnitOfWork.Posts.UpdateAsync(subPost);
                 }
-            }
-
-            foreach (var spId in subPostId)
-            {
-                var subPost = await UnitOfWork.Posts.GetAsync(p => p.Id == spId);
-                if (subPost != null)
+                else
                 {
-                    subPost.ParentId = postId;
-                    await UnitOfWork.Posts.UpdateAsync(subPost);
+                    subPost.ParentId = subPostParentId.Value;
                 }
+                await UnitOfWork.Posts.UpdateAsync(subPost);
+                await UnitOfWork.SaveAsync();
+                return new Result(ResultStatus.Success, "Alt sayfa güncellendi");
             }
-            await UnitOfWork.SaveAsync();
-            return new Result(ResultStatus.Success, "Alt sayfa güncellendi");
+            else
+            {
+                return new Result(ResultStatus.Error, "Alt sayfa güncellenemedi");
+            }         
         }
 
         #endregion

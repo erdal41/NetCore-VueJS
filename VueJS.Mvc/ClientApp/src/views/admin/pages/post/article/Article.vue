@@ -90,10 +90,9 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body>
+                <b-card-body v-show="isHiddenStatusButton === true">
                     <div class="d-flex justify-content-between flex-wrap">
-                        <b-form-group v-show="isHiddenStatusButton === true"
-                                      class="mb-0">
+                        <b-form-group class="mb-0">
                             <b-dropdown id="dropdown-left"
                                         text="Durum"
                                         variant="link"
@@ -142,9 +141,9 @@
                                 </b-dropdown-item>
                                 <b-dropdown-item v-show="$route.query.status == 'trash'"
                                                  href="javascript:;"
-                                                 id="multi-untrash"
+                                                 id="multi-delete"
                                                  variant="danger"
-                                                 @click="multiPostStatusChange">
+                                                 @click="multiDeleteData">
                                     Kalıcı Olarak Sil
                                 </b-dropdown-item>
                             </b-dropdown>
@@ -163,7 +162,7 @@
                      class="text-center mt-2 mb-2">
                     <b-spinner variant="primary" />
                 </div>
-                <div v-else>
+                <div v-else-if="isSpinnerShow == false && posts.length > 0">
                     <b-table :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
@@ -242,7 +241,7 @@
                         </template>
                     </b-table>
                 </div>
-                <div v-show="posts.length <= 0"
+                <div v-else-if="isSpinnerShow == false && posts.length <= 0"
                      class="text-center mt-1">Hiç bir makale bulunamadı.</div>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
@@ -349,7 +348,7 @@
                 totalRows: 1,
                 currentPage: 1,
                 filterText: '',
-                posts: [],
+                posts: {},
                 selected: '',
                 selectedValue: null,
                 isHiddenStatusButton: false,
@@ -361,7 +360,7 @@
                     { key: 'Title', label: 'Başlık', sortable: true, thStyle: { width: "200px" } },
                     { key: 'ModifiedDate', label: 'Tarih', sortable: true, thStyle: { width: "150px" } },
                     { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }],
-                checkedRows: [],
+                checkedRows: Array,
                 checkedRowsCount: '',
                 publishPostsCount: '',
                 draftPostsCount: '',
@@ -395,9 +394,11 @@
             selectAllRows(value) {
                 if (value === true) {
                     var idList = [];
-                    this.posts.forEach(function (term) {
-                        idList.push(term.Id);
-                    });
+                    for (var i = 0; i < this.perPage; i++) {
+                        if (this.posts[i] != null) {
+                            idList.push(this.posts[i].Id);
+                        }
+                    }
                     this.checkedRows = idList;
                 }
                 else {
@@ -451,6 +452,27 @@
                             },
                         })
                     });
+            },
+            multiPostStatusChange: function (event) {
+                var postStatus = "";
+                if (event.target.id == "multi-publish") {
+                    postStatus = "publish";
+                } else if (event.target.id == "multi-draft") {
+                    postStatus = "draft";
+                } else if (event.target.id == "multi-untrash") {
+                    postStatus = "draft";
+                } else {
+                    postStatus = "trash";
+                }
+
+                this.checkedRows.forEach((id, index) => {
+                    axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
+                        .then((response) => {
+                            if (response.data.PostDto.ResultStatus === 0) {
+                                this.getAllData();
+                            }
+                        });
+                })
             },
             singleDeleteData(id, name) {
                 this.$swal({
@@ -507,79 +529,10 @@
                     }
                 })
             },
-            multiPostStatusChange: function (event) {
-
-                var postStatus = "";
-                if (event.target.id == "multi-publish") {
-                    postStatus = "publish";
-                    console.log(postStatus);
-                } else if (event.target.id == "multi-draft") {
-                    postStatus = "draft";
-                    console.log(postStatus);
-                } else {
-                    postStatus = "trash";
-                    console.log(postStatus);
-                }
-
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: this.checkedRowsCount + " makale kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post(`/admin/term/multitrash?posts=` + this.checkedRows)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
             multiDeleteData() {
                 this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: this.checkedRowsCount + " makale kalıcı olarak silinecektir?",
+                    title: 'Toplu olarak silmek istediğinize emin misiniz?',
+                    text: this.checkedRowsCount + " adet makale kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -591,43 +544,14 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post(`/admin/term/multitrash?posts=` + this.checkedRows)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
+                        this.checkedRows.forEach((id, index) => {
+                            axios.post('/admin/post/delete?postId=' + id)
+                                .then((response) => {
+                                    if (response.data.PostDto.ResultStatus === 0) {
+                                        this.getAllData();
+                                    }
+                                });
+                        })
                     }
                 })
             },
@@ -647,13 +571,13 @@
                             this.trashPostsCount = response.data.TrashPostsCount;
                             this.totalRows = response.data.PostListDto.Posts.length;
                         } else {
-                            
+
                             this.posts = [];
                         }
                         this.filterText = "";
                         this.isSpinnerShow = false;
                         this.checkedRowsCount = "";
-                        this.checkedRows = "";
+                        this.checkedRows = [];
                         this.isHiddenStatusButton = false;
                     })
                     .catch((error) => {

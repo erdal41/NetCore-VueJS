@@ -223,9 +223,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("/admin/post/editsubpost")]
-        public async Task<IActionResult> EditSubPost(int postId, List<int> subPostIds)
+        public async Task<IActionResult> EditSubPost(int postId, int? subPostParentId)
         {
-            var result = await _postService.SubPostUpdateAsync(postId, subPostIds);
+            var result = await _postService.SubPostUpdateAsync(postId, subPostParentId);
             return new JsonResult(result);
         }
 
@@ -247,21 +247,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                 PostDto = result.Data,
             };
             return Json(postViewModel);
-        }
-
-        [HttpPost]
-        [Route("/admin/post/multipoststatuschange")]
-        public async Task<JsonResult> MultiPostStatusChange(List<int> postIds, PostStatus status)
-        {
-            var result = await _postService.MultiPostStatusChangeAsync(postIds, status, 1);
-
-            //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-            var postViewModel = new PostViewModel
-            {
-                PostListDto = result.Data,
-            };
-            return Json(postViewModel);
-        }      
+        }    
 
         [HttpPost]
         [Route("/admin/post/delete")]
@@ -272,18 +258,6 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var postViewModel = new PostViewModel
             {
                 PostDto = result.Data,
-            };
-            return Json(postViewModel);
-        }
-
-        [HttpPost]
-        [Route("/admin/post/multidelete")]
-        public async Task<JsonResult> MultiDelete(List<int> postIds, SubObjectType postType)
-        {
-            var result = await _postService.MultiDeleteAsync(postIds);
-            var postViewModel = new PostViewModel
-            {
-                PostListDto = result.Data,
             };
             return Json(postViewModel);
         }

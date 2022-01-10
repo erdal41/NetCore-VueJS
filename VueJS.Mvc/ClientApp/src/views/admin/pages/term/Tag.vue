@@ -333,9 +333,11 @@
             selectAllRows(value) {
                 if (value === true) {
                     var idList = [];
-                    this.terms.forEach(function (term) {
-                        idList.push(term.Id);
-                    });
+                    for (var i = 0; i < this.perPage; i++) {
+                        if (this.terms[i] != null) {
+                            idList.push(this.terms[i].Id);
+                        }
+                    }
                     this.checkedRows = idList;
                 }
                 else {
