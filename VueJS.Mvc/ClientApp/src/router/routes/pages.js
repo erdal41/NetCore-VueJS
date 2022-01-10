@@ -1,5 +1,22 @@
 export default [
     {
+        path: '/admin/post-preview=:preview',
+        name: 'pages-post-preview',
+        component: () => import('@/views/admin/pages/post/Preview.vue'),
+        meta: {
+            resource: 'Auth',
+            layout: 'full',
+        },
+    },
+    {
+        path: '/:postName',
+        name: 'pages-post-view',
+        component: () => import('@/views/admin/pages/post/View.vue'),
+        meta: {
+            layout: 'full',
+        },
+    },
+    {
         path: '/admin/post',
         name: 'pages-post-edit',
         component: () => import('@/views/admin/pages/post/Edit.vue'),

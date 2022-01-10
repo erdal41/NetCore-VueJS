@@ -19,8 +19,4 @@
     <ProjectReference Include="..\VueJS.Services\VueJS.Services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Areas\Web\Controllers\" />
-  </ItemGroup>
-
 </Project>

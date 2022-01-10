@@ -54,11 +54,21 @@
                 <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                        md="4"
                        cols="12">
-                    <b-button variant="outline-primary"
+                    <b-button v-if="postUpdateDto.PostStatus == 0 || postUpdateDto.PostStatus == 'publish'"
+                              variant="outline-primary"
                               class="mr-1"
                               size="sm"
-                              type="button">
-                        {{ viewButtonText }}
+                              type="button"
+                              :to=" {name: 'pages-post-view', params: { postName: postUpdateDto.PostName }}">
+                        Görüntüle
+                    </b-button>
+                    <b-button v-else-if="postUpdateDto.PostStatus == 1 || postUpdateDto.PostStatus == 'draft'"
+                              variant="outline-primary"
+                              class="mr-1"
+                              size="sm"
+                              type="button"
+                              :to=" {name: 'pages-post-preview', params: { preview: $route.query.edit }}">
+                        Önizle
                     </b-button>
                     <b-button id="save"
                               variant="primary"
@@ -672,7 +682,6 @@
                 required,
                 isSpinnerShow: true,
                 pageTitle: '',
-                viewButtonText: '',
                 saveButtonText: '',
                 tooltipText: '',
                 title: '',
@@ -1048,6 +1057,7 @@
                                     }
                                 }
 
+                                this.postUpdateDto.PostStatus = response.data.PostUpdateDto.PostStatus;
                                 this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
                                 this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
                                 this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
@@ -1132,13 +1142,10 @@
 
                                 if (response.data.PostUpdateDto.PostStatus == 0) {
                                     this.saveButtonText = "Güncelle";
-                                    this.viewButtonText = "Görüntüle";
                                 } else if (response.data.PostUpdateDto.PostStatus == 1) {
                                     this.saveButtonText = "Yayınla";
-                                    this.viewButtonText = "Önizle";
                                 }
                             }
-
                         }
                         else {
                             this.doHaveData = false;
@@ -1181,7 +1188,7 @@
                                 SeoObjectSettingUpdateDto: this.seoObjectSettingUpdateDto
                             })
                             .then((response) => {
-                                if (response.data.PostDto.ResultStatus === 0) {                                    
+                                if (response.data.PostDto.ResultStatus === 0) {
 
                                     if (response.data.PostDto.Post.PostType == 0) {
 
@@ -1247,11 +1254,9 @@
 
                                     if (response.data.PostDto.Post.PostStatus == 0) {
                                         this.saveButtonText = "Güncelle";
-                                        this.viewButtonText = "Görüntüle";
                                     } else if (response.data.PostDto.Post.PostStatus == 1) {
                                         this.saveButtonText = "Yayınla";
-                                        this.viewButtonText = "Önizle";
-                                    } 
+                                    }
                                 }
                                 else {
                                     this.$toast({
