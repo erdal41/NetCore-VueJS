@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using System;
 using VueJS.Services.Abstract;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
@@ -26,23 +24,20 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/term/allterms")]
-        [Route("/admin/term/allterms")]
         public async Task<JsonResult> AllTerms(SubObjectType term_type)
         {
             var result = await _termService.GetAllAsync(term_type);
             return new JsonResult(result.Data);
         }
 
-        [HttpGet]
-        [Route("/admin/term/getparentlist")]
+        [HttpGet("/admin/term/getparentlist")]
         public async Task<JsonResult> GetParentList(int? termId)
         {
             var result = await _termService.GetAllParentAsync(termId);
             return new JsonResult(result.Data);
         }
 
-        [HttpPost]
-        [Route("/admin/term/new")]
+        [HttpPost("/admin/term/new")]
         public async Task<JsonResult> New(TermViewModel termViewModel)
         {
             var termResult = await _termService.AddAsync(termViewModel.TermAddDto);
@@ -71,8 +66,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("/admin/term/newpostterm")]
+        [HttpPost("/admin/term/newpostterm")]
         public async Task<JsonResult> NewPostTerm(PostTermViewModel postTermViewModel)
         {
             var result = await _termService.PostTermAddAsync(postTermViewModel.PostTermAddDto);
@@ -83,9 +77,8 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(postTermViewModelJson);
         }
 
-        [HttpGet]
-        [Route("/admin/term/edit")]
-        public async Task<JsonResult> Edit([FromQuery] int term)
+        [HttpGet("/admin/term/edit")]
+        public async Task<JsonResult> Edit( int term)
         {
             var termResult = await _termService.GetTermUpdateDtoAsync(term);
             var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
@@ -108,8 +101,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(termViewModelJsonError);
         }
 
-        [HttpPost]
-        [Route("/admin/term/edit")]
+        [HttpPost("/admin/term/edit")]
         public async Task<JsonResult> Edit(TermViewModel termViewModel)
         {
             var termResult = await _termService.UpdateAsync(termViewModel.TermUpdateDto);
@@ -131,40 +123,19 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(termViewModelJsonError);
         }
 
-        [HttpPost]
-        [Route("/admin/term/delete")]
-        public async Task<IActionResult> Delete([FromQuery] int term)
+        [HttpPost("/admin/term/delete")]
+        public async Task<IActionResult> Delete( int term)
         {
             var result = await _termService.DeleteAsync(term);
             //await FileHelper.CreateSitemapInRootDirectoryAsync();
             return new JsonResult(result);
         }
 
-        [HttpPost]
-        [Route("/admin/term/deletepostterm")]
+        [HttpPost("/admin/term/deletepostterm")]
         public async Task<IActionResult> DeletePostTerm(PostTermViewModel postTermViewModel )
         {
             var result = await _termService.PostTermDeleteAsync(postTermViewModel.PostId, postTermViewModel.TermId);
             return new JsonResult(result);
         }
-
-        [HttpPost]
-        [Route("/admin/term/multidelete")]
-        public async Task<IActionResult> MultiDelete(Array terms)
-        {
-            List<int> s = null;
-            foreach (var item in terms)
-            {
-                s.Add(Convert.ToInt32(item));
-            }
-            var result = await _termService.MultiDeleteAsync(s);
-            //if (result.ResultStatus == ResultStatus.Success)
-            //{
-            //    await FileHelper.CreateSitemapInRootDirectoryAsync();
-            //}
-            return new JsonResult(result);
-        }
-
-
     }
 }

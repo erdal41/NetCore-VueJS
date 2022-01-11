@@ -199,7 +199,7 @@
                                             :to="{ name:'pages-post-preview', query: { preview : row.item.Id } }"
                                             class="text-primary small">Önizle</b-link>
                                     <b-link v-show="row.item.PostStatus == 0"
-                                            :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
+                                            :to="{ name:'pages-page-view', params: { postName : row.item.PostName } }"
                                             class="text-primary small">Görüntüle</b-link>
                                     <small v-show="row.item.PostStatus != 2"
                                            class="text-muted"> | </small>

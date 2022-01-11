@@ -20,7 +20,6 @@ namespace VueJS.Services.Abstract
         Task<IDataResult<TermDto>> UpdateAsync(TermUpdateDto termUpdateDto);
         Task<IResult> PostTermDeleteAsync(int postId, int termId);
         Task<IResult> DeleteAsync(int termId);
-        Task<IDataResult<TermListDto>> MultiDeleteAsync(List<int> commentIds);
         Task<IDataResult<int>> CountAsync();
     }
 }

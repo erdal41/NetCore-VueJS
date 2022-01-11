@@ -20,7 +20,6 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             ImageHelper = imageHelper;
         }
 
-
         public BaseController(UserManager<User> userManager, IMapper mapper)
         {
             UserManager = userManager;

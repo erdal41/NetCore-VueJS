@@ -29,26 +29,14 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _uploadService = uploadService;
         }
 
-        [Authorize(Roles = "SuperAdmin,Article.Read")]
-        [HttpGet]
-        [Route("admin/upload")]
-        public async Task<IActionResult> Index()
-        {
-            var result = await _uploadService.GetAllAsync();
-            if (result.ResultStatus == ResultStatus.Success) return View(result.Data);
-            return NotFound();
-        }
-
-        [HttpGet]
-        [Route("/admin/uploads/getall")]
+        [HttpGet("/admin/uploads/getall")]
         public async Task<JsonResult> GetAll()
-         {
-            var uploads = await _uploadService.GetAllAsync();            
+        {
+            var uploads = await _uploadService.GetAllAsync();
             return new JsonResult(uploads);
         }
 
-        [HttpGet]
-        [Route("admin/upload/getalluploadspartial")]
+        [HttpGet("admin/upload/getalluploadspartial")]
         public async Task<IActionResult> GetAllUploadsPartial()
         {
             var result = await _uploadService.GetAllAsync();
@@ -62,9 +50,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [Authorize(Roles = "SuperAdmin,Article.Create")]
-        [HttpPost]
-        [Route("admin/upload/new")]
+        [HttpPost("admin/upload/new")]
         public async Task<IActionResult> New(IList<IFormFile> files)
         {
             foreach (IFormFile file in files)
@@ -83,7 +69,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return Json(files);
         }
 
-        [Route("admin/upload/postgalleryadd")]
+        [HttpPost("admin/upload/postgalleryadd")]
         public async Task<JsonResult> PostGalleryAdd(GalleryAddDto galleryAddDto)
         {
             var result = await _uploadService.GalleryAddAsync(galleryAddDto);
@@ -105,9 +91,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [Authorize(Roles = "SuperAdmin,Article.Update")]
-        [HttpGet]
-        [Route("admin/upload/edit")]
+        [HttpGet("admin/upload/edit")]
         public async Task<IActionResult> Edit(int uploadId)
         {
             var result = await _uploadService.GetUploadUpdateDtoAsync(uploadId);
@@ -122,9 +106,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [Authorize(Roles = "SuperAdmin,Article.Update")]
-        [HttpPost]
-        [Route("admin/upload/edit")]
+        [HttpPost("admin/upload/edit")]
         public async Task<IActionResult> Edit(UploadUpdateDto uploadUpdateDto)
         {
             var result = await _uploadService.UpdateAsync(uploadUpdateDto, LoggedInUser.Id);
@@ -138,9 +120,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return Json(uploadUpdateAjaxErrorViewModel);
         }
 
-        [Authorize(Roles = "SuperAdmin,Article.Update")]
-        [HttpPost]
-        [Route("admin/upload/delete")]
+        [HttpPost("admin/upload/delete")]
         public async Task<JsonResult> Delete(int uploadId)
         {
             var upload = await _uploadService.GetAsync(uploadId);
@@ -154,31 +134,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return Json(uploadResult);
         }
 
-        [Authorize(Roles = "SuperAdmin,Article.Update")]
-        [HttpPost]
-        [Route("admin/upload/galleryimagedelete")]
+        [HttpPost("admin/upload/galleryimagedelete")]
         public async Task<JsonResult> GalleryImageDelete(int postId, int uploadId)
         {
             var result = await _uploadService.GalleryImageDeleteAsync(postId, uploadId);
             var uploadResult = JsonConvert.SerializeObject(result);
             return Json(uploadResult);
-        }
-
-        [Authorize(Roles = "SuperAdmin,Article.Update")]
-        [HttpPost]
-        [Route("admin/upload/multidelete")]
-        public async Task<JsonResult> MultiDelete(int[] uploadIds)
-        {
-            var jsonResult = string.Empty;
-            foreach (var uploadId in uploadIds)
-            {
-                var result = await _uploadService.DeleteAsync(uploadId);
-                var upload = await _uploadService.GetAsync(uploadId);
-                ImageHelper.Delete(upload.Data.Upload.FileName);
-                var uploadResult = JsonConvert.SerializeObject(result);
-                jsonResult = uploadResult;
-            }
-            return Json(jsonResult);
-        }
+        }        
     }
 }

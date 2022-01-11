@@ -57,6 +57,14 @@
         ],
     },
     {
+        header: 'Araçlar',
+    },
+    {
+        title: 'Link Yönlendirmeleri',
+        icon: 'RepeatIcon',
+        route: 'pages-urlredirect-list',
+    },
+    {
         header: 'Apps & Pages',
     },
     {

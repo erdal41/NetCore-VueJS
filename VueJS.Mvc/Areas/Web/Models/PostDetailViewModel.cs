@@ -4,6 +4,7 @@ namespace VueJS.Mvc.Areas.Web.Models
 {
     public class PostDetailViewModel
     {
+        public UrlRedirectListDto UrlRedirectListDto { get; set; } 
         public PostDto PostDto { get; set; }
         public PostListDto PostListDto { get; set; }
         public GeneralSettingDto GeneralSettingDto { get; set; }

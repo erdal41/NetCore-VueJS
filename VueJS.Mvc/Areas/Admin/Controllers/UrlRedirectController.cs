@@ -26,124 +26,47 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _urlRedirectService = urlRedirectService;
         }
 
-        [Authorize(Roles = "SuperAdmin,UrlRedirect.Read")]
-        [HttpGet]
-        [Route("admin/urlredirect")]
-        public async Task<IActionResult> Index()
-        {
-            var result = await _urlRedirectService.GetAllAsync();
-            if (result.ResultStatus == ResultStatus.Success) return View(result.Data);
-            return NotFound();
-        }
-
-        [HttpGet]
-        [Route("admin/urlredirect/allurlredirects")]
+        [HttpGet("/admin/urlredirect/allurlredirects")]
         public async Task<JsonResult> AllUrlRedirects()
         {
             var result = await _urlRedirectService.GetAllAsync();
             return Json(result.Data);
         }
 
-        [Authorize(Roles = "SuperAdmin,UrlRedirect.Create")]
-        [HttpPost]
-        [Route("admin/url-redirect/new")]
-        public async Task<IActionResult> New(UrlRedirectAddDto urlRedirectAddDto)
+        [HttpPost("/admin/urlredirect/new")]
+        public async Task<JsonResult> New(UrlRedirectViewModel urlRedirectViewModel)
         {
-            //if (!urlRedirectAddDto.OldUrl.Contains("http://") || !urlRedirectAddDto.OldUrl.Contains("http://"))
-            //{
-            //    var urlRedirectAddAjaxModel = JsonConvert.SerializeObject(new UrlRedirectViewModel
-            //    {
-            //        UrlRedirectDto = result.Data,
-            //    });
-            //    return Json(urlRedirectAddAjaxModel);
-            //}
-
-            var result = await _urlRedirectService.AddAsync(urlRedirectAddDto, LoggedInUser.Id);
-            if (result.ResultStatus == ResultStatus.Success)
+            var result = await _urlRedirectService.AddAsync(urlRedirectViewModel.UrlRedirectAddDto, 1);
+            var urlRedirectViewModelJson = new UrlRedirectViewModel
             {
-                var urlRedirectAddAjaxModel = JsonConvert.SerializeObject(new UrlRedirectViewModel
-                {
-                    UrlRedirectDto = result.Data,
-                });
-                return Json(urlRedirectAddAjaxModel);
-            }
-            else
-            {
-                var urlRedirectAddAjaxErrorModel = JsonConvert.SerializeObject(new UrlRedirectViewModel
-                {
-                    UrlRedirectDto = null
-                });
-                return Json(urlRedirectAddAjaxErrorModel);
-            }
+                UrlRedirectDto = result.Data,
+            };
+            return Json(urlRedirectViewModelJson);
         }
 
-        [Authorize(Roles = "SuperAdmin,UrlRedirect.Update")]
-        [HttpGet]
-        [Route("admin/url-redirect/edit")]
-        public async Task<IActionResult> Edit(int urlRedirectId)
+        [HttpGet("/admin/urlredirect/edit")]
+        public async Task<JsonResult> Edit(int urlRedirectId)
         {
             var result = await _urlRedirectService.GetUrlRedirectUpdateDtoAsync(urlRedirectId);
-            if (result.ResultStatus == ResultStatus.Success)
-            {
-                return PartialView("_UrlRedirectUpdatePartial", result.Data);
-            }
-            else
-            {
-                return NotFound();
-            }
+            return Json(result.Data);
         }
 
-        [Authorize(Roles = "SuperAdmin,UrlRedirect.Update")]
-        [HttpPost]
-        [Route("admin/url-redirect/edit")]
-        public async Task<IActionResult> Edit(UrlRedirectUpdateDto urlRedirectUpdateDto)
+        [HttpPost("/admin/urlredirect/edit")]
+        public async Task<JsonResult> Edit(UrlRedirectViewModel urlRedirectViewModel)
         {
-            if (ModelState.IsValid)
+            var result = await _urlRedirectService.UpdateAsync(urlRedirectViewModel.UrlRedirectUpdateDto, 1);
+            var urlRedirectViewModelJson = new UrlRedirectViewModel
             {
-                var result = await _urlRedirectService.UpdateAsync(urlRedirectUpdateDto, LoggedInUser.Id);
-                if (result.ResultStatus == ResultStatus.Success)
-                {
-                    string urlRedirectAjaxViewModel = JsonConvert.SerializeObject(new UrlRedirectViewModel
-                    {
-                        UrlRedirectDto = result.Data,
-                        UrlRedirectUpdatePartial = await this.RenderViewToStringAsync("_UrlRedirectUpdatePartial", urlRedirectUpdateDto)
-                    }, new JsonSerializerSettings
-                    {
-                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                    });
-                    return Json(urlRedirectAjaxViewModel);
-                }
-            }
-            var urlRedirectAjaxErrorViewModel = JsonConvert.SerializeObject(new UrlRedirectViewModel
-            {
-                UrlRedirectUpdatePartial = await this.RenderViewToStringAsync("_UrlRedirectUpdatePartial", urlRedirectUpdateDto)
-            });
-            return Json(urlRedirectAjaxErrorViewModel);
+                UrlRedirectDto = result.Data
+            };
+            return Json(urlRedirectViewModelJson);
         }
 
-        [Authorize(Roles = "SuperAdmin,UrlRedirect.Delete")]
-        [HttpPost]
-        [Route("admin/url-redirect/delete")]
+        [HttpPost("/admin/urlredirect/delete")]
         public async Task<JsonResult> Delete(int urlRedirectId)
         {
             var result = await _urlRedirectService.DeleteAsync(urlRedirectId);
-            var deletedurlRedirect = JsonConvert.SerializeObject(result);
-            return Json(deletedurlRedirect);
-        }
-
-        [Authorize(Roles = "SuperAdmin,UrlRedirect.Delete")]
-        [HttpPost]
-        [Route("admin/url-redirect/multidelete")]
-        public async Task<JsonResult> MultiDelete(int[] urlRedirectIds)
-        {
-            var jsonResult = string.Empty;
-            foreach (var urlRedirectId in urlRedirectIds)
-            {
-                var result = await _urlRedirectService.DeleteAsync(urlRedirectId);
-                var deletedurlRedirect = JsonConvert.SerializeObject(result);
-                jsonResult = deletedurlRedirect;
-            }
-            return Json(jsonResult);
+            return Json(result);
         }
     }
 }

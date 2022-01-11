@@ -35,10 +35,10 @@ namespace VueJS.Mvc.Areas.Web.Controllers
             _postService = postService;
             _seoService = seoService;
             _settingService = settingService;
+            _urlRedirectService = urlRedirectService;
         }
 
-        [HttpGet]
-        [Route("/web/home/anasayfa")]
+        [HttpGet("/web/home/anasayfa")]
         public async Task<IActionResult> Index()
         {
             var postResult = await _postService.GetAsync("anasayfa");
@@ -59,51 +59,47 @@ namespace VueJS.Mvc.Areas.Web.Controllers
             return NotFound();
         }
 
-        [HttpGet]
-        [Route("/web/home/{postName}")]
-        public async Task<IActionResult> PostDetail(string postName)
+        [HttpGet("/web/home/{postName}")]
+        public async Task<JsonResult> PostDetail(string postName)
         {
-            var url = HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + HttpContext.Request.Path;
-
-            var urlRedirect = await _urlRedirectService.GetAsync(url);
-            if (urlRedirect.ResultStatus == ResultStatus.Success)
+            var urlRedirects = await _urlRedirectService.GetAllAsync();
+            var postResult = await _postService.GetAsync(postName);
+            if (postResult.ResultStatus == ResultStatus.Success)
             {
-                return Redirect(urlRedirect.Data.UrlRedirect.NewUrl);
-            }
-            else
-            {
-                var postResult = await _postService.GetAsync(postName);
-                if (postResult.ResultStatus == ResultStatus.Success)
+                var seoGeneralSettings = await _seoService.GetSeoGeneralSettingDtoAsync();
+                var seoObjectSettings = await _seoService.GetSeoObjectSettingDtoAsync(postResult.Data.Post.Id, postResult.Data.Post.PostType);
+                var generalSetting = await _settingService.GetGeneralSettingAsync();
+                if (postResult.Data.Post.PostType == SubObjectType.article)
                 {
-                    var seoGeneralSettings = await _seoService.GetSeoGeneralSettingDtoAsync();
-                    var seoObjectSettings = await _seoService.GetSeoObjectSettingDtoAsync(postResult.Data.Post.Id, postResult.Data.Post.PostType);
-                    var generalSetting = await _settingService.GetGeneralSettingAsync();
-                    if (postResult.Data.Post.PostType == SubObjectType.article)
-                    {
-                        var posts = await _postService.GetAllAsync(SubObjectType.article, null);
+                    var posts = await _postService.GetAllAsync(SubObjectType.article, null);
 
-                        return View(new PostDetailViewModel
-                        {
-                            PostDto = postResult.Data,
-                            SeoGeneralSettingDto = seoGeneralSettings.Data,
-                            SeoObjectSettingDto = seoObjectSettings.Data,
-                            GeneralSettingDto = generalSetting.Data
-                        });
-
-                    }
-                    else if (postResult.Data.Post.PostType == SubObjectType.page)
+                    return Json(new PostDetailViewModel
                     {
-                        return Json(new PostDetailViewModel
-                        {
-                            PostDto = postResult.Data,
-                            SeoGeneralSettingDto = seoGeneralSettings.Data,
-                            SeoObjectSettingDto = seoObjectSettings.Data,
-                            GeneralSettingDto = generalSetting.Data
-                        });
-                    }
+                        UrlRedirectListDto = urlRedirects.Data,
+                        PostDto = postResult.Data,
+                        SeoGeneralSettingDto = seoGeneralSettings.Data,
+                        SeoObjectSettingDto = seoObjectSettings.Data,
+                        GeneralSettingDto = generalSetting.Data
+                    });
+
                 }
-                return NotFound();
+                else if (postResult.Data.Post.PostType == SubObjectType.page)
+                {
+                    return Json(new PostDetailViewModel
+                    {
+                        UrlRedirectListDto = urlRedirects.Data,
+                        PostDto = postResult.Data,
+                        SeoGeneralSettingDto = seoGeneralSettings.Data,
+                        SeoObjectSettingDto = seoObjectSettings.Data,
+                        GeneralSettingDto = generalSetting.Data
+                    });
+                }
             }
+            return Json(new PostDetailViewModel
+            {
+                UrlRedirectListDto = urlRedirects.Data,
+                PostDto = postResult.Data,
+            });
         }
     }
 

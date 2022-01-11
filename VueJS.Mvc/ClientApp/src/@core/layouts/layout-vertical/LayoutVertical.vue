@@ -1,87 +1,60 @@
 <template>
-  <div
-    class="vertical-layout h-100"
-    :class="[layoutClasses]"
-    :data-col="isNavMenuHidden ? '1-column' : null"
-  >
-    <!-- Navbar -->
-    <b-navbar
-      :toggleable="false"
-      :variant="navbarBackgroundColor"
-      class="header-navbar navbar navbar-shadow align-items-center"
-      :class="[navbarTypeClass]"
-    >
-      <slot
-        name="navbar"
-        :toggleVerticalMenuActive="toggleVerticalMenuActive"
-        :navbarBackgroundColor="navbarBackgroundColor"
-        :navbarTypeClass="[...navbarTypeClass, 'header-navbar navbar navbar-shadow align-items-center']"
-      >
-        <app-navbar-vertical-layout :toggle-vertical-menu-active="toggleVerticalMenuActive" />
-      </slot>
-    </b-navbar>
-    <!--/ Navbar -->
+    <div class="vertical-layout h-100"
+         :class="[layoutClasses]"
+         :data-col="isNavMenuHidden ? '1-column' : null">
+        <!-- Navbar -->
+        <b-navbar :toggleable="false"
+                  :variant="navbarBackgroundColor"
+                  class="header-navbar navbar navbar-shadow align-items-center"
+                  :class="[navbarTypeClass]">
+            <slot name="navbar"
+                  :toggleVerticalMenuActive="toggleVerticalMenuActive"
+                  :navbarBackgroundColor="navbarBackgroundColor"
+                  :navbarTypeClass="[...navbarTypeClass, 'header-navbar navbar navbar-shadow align-items-center']">
+                <app-navbar-vertical-layout :toggle-vertical-menu-active="toggleVerticalMenuActive" />
+            </slot>
+        </b-navbar>
+        <!--/ Navbar -->
+        <!-- Vertical Nav Menu -->
+        <vertical-nav-menu v-if="!isNavMenuHidden"
+                           :is-vertical-menu-active="isVerticalMenuActive"
+                           :toggle-vertical-menu-active="toggleVerticalMenuActive">
+            <template #header="slotProps">
+                <slot name="vertical-menu-header"
+                      v-bind="slotProps" />
+            </template>
+        </vertical-nav-menu>
+        <!-- /Vertical Nav Menu -->
+        <!-- Vertical Nav Menu Overlay -->
+        <div class="sidenav-overlay"
+             :class="overlayClasses"
+             @click="isVerticalMenuActive = false" />
+        <!-- /Vertical Nav Menu Overlay -->
+        <!-- Content -->
+        <!-- CONTENT TYPE: Left -->
+        <transition :name="routerTransition"
+                    mode="out-in">
+            <component :is="layoutContentRenderer"
+                       :key="layoutContentRenderer === 'layout-content-renderer-left' ? $route.meta.navActiveLink || $route.name : null">
+                <template v-for="(index, name) in $scopedSlots"
+                          v-slot:[name]="data">
+                    <slot :name="name"
+                          v-bind="data" />
+                </template>
+            </component>
+        </transition>
+        <!--/ Content -->
+        <!-- Footer -->
+        <footer class="footer footer-light"
+                :class="[footerTypeClass]">
+            <slot name="footer">
+                <app-footer />
+            </slot>
+        </footer>
+        <!-- /Footer -->
 
-    <!-- Vertical Nav Menu -->
-    <vertical-nav-menu
-      v-if="!isNavMenuHidden"
-      :is-vertical-menu-active="isVerticalMenuActive"
-      :toggle-vertical-menu-active="toggleVerticalMenuActive"
-    >
-      <template #header="slotProps">
-        <slot
-          name="vertical-menu-header"
-          v-bind="slotProps"
-        />
-      </template>
-    </vertical-nav-menu>
-    <!-- /Vertical Nav Menu -->
-
-    <!-- Vertical Nav Menu Overlay -->
-    <div
-      class="sidenav-overlay"
-      :class="overlayClasses"
-      @click="isVerticalMenuActive = false"
-    />
-    <!-- /Vertical Nav Menu Overlay -->
-
-    <!-- Content -->
-
-    <!-- CONTENT TYPE: Left -->
-    <transition
-      :name="routerTransition"
-      mode="out-in"
-    >
-      <component
-        :is="layoutContentRenderer"
-        :key="layoutContentRenderer === 'layout-content-renderer-left' ? $route.meta.navActiveLink || $route.name : null"
-      >
-        <template
-          v-for="(index, name) in $scopedSlots"
-          v-slot:[name]="data"
-        >
-          <slot
-            :name="name"
-            v-bind="data"
-          />
-        </template>
-      </component>
-    </transition>
-    <!--/ Content -->
-
-    <!-- Footer -->
-    <footer
-      class="footer footer-light"
-      :class="[footerTypeClass]"
-    >
-      <slot name="footer">
-        <app-footer />
-      </slot>
-    </footer>
-    <!-- /Footer -->
-
-    <slot name="customizer" />
-  </div>
+        <slot name="customizer" />
+    </div>
 </template>
 
 <script>

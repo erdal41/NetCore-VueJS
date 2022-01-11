@@ -105,10 +105,9 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body>
+                <b-card-body v-if="isHiddenMultiDeleteButton === true">
                     <div class="d-flex justify-content-between flex-wrap">
-                        <b-form-group v-if="isHiddenMultiDeleteButton === true"
-                                      class="mb-0">
+                        <b-form-group class="mb-0">
                             <b-button variant="danger"
                                       size="sm"
                                       @click="multiDeleteData">
@@ -155,7 +154,7 @@
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                    <b-link :to=" {name: 'pages-tag-view', params: { slug: row.item.Slug }}"
                                             class="text-primary small">Görüntüle</b-link>
                                     <small class="text-muted"> | </small>
                                     <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
@@ -281,8 +280,6 @@
                 filterOnData: [],
                 terms: [],
                 dataNullMessage: '',
-                selected: '',
-                selectedValue: null,
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
                 name: "",
@@ -293,7 +290,7 @@
                     { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "150px" } },
                     { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }],
                 checkedRows: [],
-                checkedRowsCount: 0,
+                checkedRowsCount: '',
                 termAddDto: {
                     Name: "",
                     Slug: "",
@@ -318,13 +315,10 @@
             rowUnHovered() {
                 this.isHiddenRowActions = false
             },
-            onChangeMethod(value) {
-                this.termAddDto.ParentId = value;
-            },
             checkChange() {
                 if (this.checkedRows.length > 0) {
                     this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = this.checkedRows.length;
+                    this.checkedRowsCount = "( " + this.checkedRows.length + " )";
                 }
                 else {
                     this.isHiddenMultiDeleteButton = false;
@@ -452,7 +446,7 @@
             },
             multiDeleteData() {
                 this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
+                    title: 'Toplu olarak silmek istediğinizden emin misiniz?',
                     text: this.checkedRowsCount + " etiket kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
@@ -465,50 +459,18 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post(`/admin/term/multidelete?terms=` + this.checkedRows)
-                            .then((response) => {
-                                console.log(response.data)
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                console.log(error)
-                                console.log(error.response)
-                                console.log(error.request)
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
+                        this.checkedRows.forEach((id, index) => {
+                            axios.post('/admin/term/delete?term=' + id)
+                                .then((response) => {
+                                    if (response.data.ResultStatus === 0) {
+                                        this.checkedRowsCount = "";
+                                        this.isHiddenMultiDeleteButton = false;
+                                        this.getAllData();
+                                    }
+                                });
+                        });                        
+                    }                    
                 })
-                console.log(this.checkedRows);
             },
             getAllData() {
                 this.isSpinnerShow = true;
@@ -518,16 +480,19 @@
                     }
                 })
                     .then((response) => {
-                        console.log(response.data)
+                        this.totalRows = response.data.Terms.length;
                         if (response.data.ResultStatus === 0) {
                             this.terms = response.data.Terms;
                             this.filterOnData = response.data.Terms;
-                            this.isSpinnerShow = false;
                         } else {
-                            this.isSpinnerShow = false;
                             this.terms = [];
                             this.dataNullMessage = response.data.Message;
                         }
+                        this.filterText = "";
+                        this.isSpinnerShow = false;
+                        this.checkedRowsCount = "";
+                        this.checkedRows = [];
+                        this.isHiddenStatusButton = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -558,7 +523,6 @@
         },
         mounted() {
             this.getAllData();
-            this.totalRows = this.terms.length;
         }
     }
 </script>

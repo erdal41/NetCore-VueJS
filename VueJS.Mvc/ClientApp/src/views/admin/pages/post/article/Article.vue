@@ -531,7 +531,7 @@
             },
             multiDeleteData() {
                 this.$swal({
-                    title: 'Toplu olarak silmek istediğinize emin misiniz?',
+                    title: 'Toplu olarak silmek istediğinizden emin misiniz?',
                     text: this.checkedRowsCount + " adet makale kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,

@@ -10,7 +10,23 @@ export default [
     },
     {
         path: '/:postName',
-        name: 'pages-post-view',
+        name: 'pages-page-view',
+        component: () => import('@/views/admin/pages/post/View.vue'),
+        meta: {
+            layout: 'horizontal',
+        },
+    },
+    {
+        path: '/kategori/:slug',
+        name: 'pages-category-view',
+        component: () => import('@/views/admin/pages/post/View.vue'),
+        meta: {
+            layout: 'full',
+        },
+    },
+    {
+        path: '/etiket/:slug',
+        name: 'pages-tag-view',
         component: () => import('@/views/admin/pages/post/View.vue'),
         meta: {
             layout: 'full',
@@ -98,6 +114,17 @@ export default [
             resource: 'Auth',
         },
     },
+
+    //Url Redirect
+    {
+        path: '/admin/url-redirect',
+        name: 'pages-urlredirect-list',
+        component: () => import('@/views/admin/pages/url-redirect/UrlRedirect.vue'),
+        meta: {
+            resource: 'Auth',
+        },
+    },
+
     {
         path: '/error-404',
         name: 'error-404',

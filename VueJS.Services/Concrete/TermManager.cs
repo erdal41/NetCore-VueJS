@@ -334,41 +334,6 @@ namespace VueJS.Services.Concrete
             }
         }
 
-        public async Task<IDataResult<TermListDto>> MultiDeleteAsync(List<int> termIds)
-        {
-            var terms = await UnitOfWork.Terms.GetAllAsync(c => termIds.Contains(c.Id));
-            if (terms.Count > -1)
-            {
-                foreach (var term in terms)
-                {
-                    var seo = await UnitOfWork.SeoObjectSettings.GetAsync(sos => sos.ObjectId == term.Id && sos.SubObjectType == term.TermType);
-                    await UnitOfWork.SeoObjectSettings.DeleteAsync(seo);
-                }
-                await UnitOfWork.Terms.MultiDeleteAsync(terms);
-                await UnitOfWork.SaveAsync();
-
-                return new DataResult<TermListDto>(ResultStatus.Success,
-                    terms.FirstOrDefault().TermType == SubObjectType.category
-                    ? "Seçilen kategoriler kalıcı olarak silindi."
-                    : "Seçilen etiketler kalıcı olarak silindi.",
-                    new TermListDto
-                    {
-                        Terms = terms
-                    });
-            }
-            else
-            {
-                return new DataResult<TermListDto>(ResultStatus.Error,
-                    terms.FirstOrDefault().TermType == SubObjectType.category
-                    ? Messages.Category.NotFound(isPlural: false)
-                    : Messages.Tag.NotFound(isPlural: false),
-                    new TermListDto
-                    {
-                        Terms = null,
-                    });
-            }
-        }
-
         public async Task<IDataResult<int>> CountAsync()
         {
             var termsCount = await UnitOfWork.Terms.CountAsync();

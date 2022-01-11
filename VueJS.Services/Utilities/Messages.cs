@@ -252,7 +252,7 @@
             public static string NotFound(bool isPlural)
             {
                 if (isPlural) return "Hiç bir url bulunamadı.";
-                return "Böyle bir kategori bulunamadı.";
+                return "Böyle bir url bulunamadı.";
             }
 
             public static string NotFoundById(int urlRedirectId)
@@ -263,6 +263,11 @@
             public static string Add(string urlRedirectName)
             {
                 return $"{urlRedirectName} url başarıyla eklendi.";
+            }
+
+            public static string UrlCheck()
+            {
+                return "Bu link zaten daha önce yönlendirilmiş. Lütfen kontrol ediniz.";
             }
 
             public static string Update(string urlRedirectName)

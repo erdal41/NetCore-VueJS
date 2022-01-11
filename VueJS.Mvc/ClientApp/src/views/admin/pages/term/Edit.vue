@@ -29,7 +29,7 @@
                                   size="sm"
                                   :to="{ name:'pages-article-add'}"
                                   class=" ml-1">Yeni Ekle</b-button>
-                    </b-breadcrumb>                    
+                    </b-breadcrumb>
                 </div>
             </b-col>
             <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
@@ -42,7 +42,23 @@
                           @click="deleteData">
                     Kalıcı Sil
                 </b-button>
-                <b-button variant="primary"                          
+                <b-button v-if="termUpdateDto.TermType == 2 || termUpdateDto.TermType == 'category'"
+                          variant="outline-primary"
+                          class="mr-1"
+                          size="sm"
+                          type="button"
+                          :to=" {name: 'pages-category-view', params: { slug: termUpdateDto.Slug }}">
+                    Görüntüle
+                </b-button>
+                <b-button v-else-if="termUpdateDto.TermType == 3 || termUpdateDto.TermType == 'tag'"
+                          variant="outline-primary"
+                          class="mr-1"
+                          size="sm"
+                          type="button"
+                          :to=" {name: 'pages-tag-view', params: { slug: termUpdateDto.Slug }}">
+                    Görüntüle
+                </b-button>
+                <b-button variant="primary"
                           type="submit"
                           @click.prevent="validationForm">
                     Güncelle
@@ -93,7 +109,7 @@
                                     <b-form-textarea id="description"
                                                      v-model="termUpdateDto.Description"
                                                      placeholder="Açıklama"
-                                                     rows="3" />                                    
+                                                     rows="3" />
                                 </b-col>
                             </b-row>
                         </b-form>

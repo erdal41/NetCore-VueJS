@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VueJS.Entities.ComplexTypes;
@@ -8,7 +7,6 @@ using VueJS.Mvc.Areas.Admin.Models;
 using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Services.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
@@ -32,8 +30,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _seoService = seoService;
         }
 
-        [HttpGet]
-        [Route("/admin/post/allposts")]
+        [HttpGet("/admin/post/allposts")]
         public async Task<JsonResult> AllPosts(SubObjectType post_type, PostStatus? post_status)
         {
             var result = await _postService.GetAllAsync(post_type, post_status);
@@ -64,8 +61,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("/admin/post/getschnemapagetype")]
+        [HttpGet("/admin/post/getschnemapagetype")]
         public JsonResult GetSchnemaPageType()
         {
             var schnemaPageType = Enum.GetValues(typeof(SchemaPageType))
@@ -78,8 +74,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(schnemaPageType);
         }
 
-        [HttpGet]
-        [Route("/admin/post/getschnemaarticletype")]
+        [HttpGet("/admin/post/getschnemaarticletype")]
         public JsonResult GetSchnemaArticleType()
         {
             var schnemaArticleType = Enum.GetValues(typeof(SchemaArticleType))
@@ -92,8 +87,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(schnemaArticleType);
         }
 
-        [HttpPost]
-        [Route("/admin/post/new")]
+        [HttpPost("/admin/post/new")]
         public async Task<IActionResult> New(PostViewModel postViewModel)
         {
             var postResult = await _postService.AddAsync(postViewModel.PostAddDto, 1, postViewModel.PostAddDto.PostType);
@@ -124,8 +118,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("/admin/post/edit")]
+        [HttpGet("/admin/post/edit")]
         public async Task<IActionResult> Edit(int post)
         {
             var postResult = await _postService.GetPostUpdateDtoAsync(post);
@@ -149,8 +142,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(postViewModelJsonError);
         }
 
-        [HttpPost]
-        [Route("/admin/post/edit")]
+        [HttpPost("/admin/post/edit")]
         public async Task<IActionResult> Edit(PostViewModel postViewModel)
         {
             var postResult = await _postService.UpdateAsync(postViewModel.PostUpdateDto, 1);
@@ -173,72 +165,63 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(postViewModelJsonError);
         }
 
-        [HttpGet]
-        [Route("/admin/post/getalltopposts")]
+        [HttpGet("/admin/post/getalltopposts")]
         public async Task<JsonResult> GetAllTopPosts(int? postId)
         {
             var result = await _postService.GetAllAnotherPostsAsync(SubObjectType.page, postId);
             return new JsonResult(result.Data);
         }
 
-        [HttpGet]
-        [Route("/admin/post/getallsubposts")]
+        [HttpGet("/admin/post/getallsubposts")]
         public async Task<JsonResult> GetAllSubPosts(int? postId)
         {
             var result = await _postService.GetAllSubPostsAsync(SubObjectType.page, postId);
             return new JsonResult(result.Data);
         }
 
-        [HttpGet]
-        [Route("/admin/post/getallsubpostsDetail")]
+        [HttpGet("/admin/post/getallsubpostsDetail")]
         public async Task<JsonResult> GetAllSubPostsDetail(int postId)
         {
             var result = await _postService.GetAllSubPostDetailsAsync(postId);
             return new JsonResult(result.Data);
         }
 
-        [HttpGet]
-        [Route("/admin/post/getsubpostDetail")]
+        [HttpGet("/admin/post/getsubpostDetail")]
         public async Task<JsonResult> GetSubPostDetail(int postId)
         {
             var result = await _postService.GetAllSubPostDetailsAsync(postId);
             return new JsonResult(result);
         }
 
-        [HttpPost]
-        [Route("/admin/post/addgalleryimage")]
+        [HttpPost("/admin/post/addgalleryimage")]
         public async Task<IActionResult> AddGalleryImage(int postId, List<int> galleryIds)
         {
             var result = await _postService.GalleryImageAddAsync(postId, galleryIds);
             return new JsonResult(result.Data);
         }
 
-        [HttpPost]
-        [Route("/admin/post/edittoppost")]
+        [HttpPost("/admin/post/edittoppost")]
         public async Task<IActionResult> EditTopPost(int postId, int parentId)
         {
             var result = await _postService.TopPostUpdateAsync(postId, parentId);
             return new JsonResult(result.Data);
         }
 
-        [HttpPost]
-        [Route("/admin/post/editsubpost")]
+        [HttpPost("/admin/post/editsubpost")]
         public async Task<IActionResult> EditSubPost(int postId, int? subPostParentId)
         {
             var result = await _postService.SubPostUpdateAsync(postId, subPostParentId);
             return new JsonResult(result);
         }
 
-        [HttpPost]
-        [Route("/admin/post/editsubpostdetail")]
+        [HttpPost("/admin/post/editsubpostdetail")]
         public async Task<IActionResult> EditSubPostDetail(int postId, string description, int? featuredImageId)
         {
             var result = await _postService.SubPostDetailUpdateAsync(postId, description, featuredImageId);
             return new JsonResult(result.Data);
         }
 
-        [HttpPost]
-        [Route("/admin/post/poststatuschange")]
+        [HttpPost("/admin/post/poststatuschange")]
         public async Task<JsonResult> PostStatusChange(int postId, PostStatus status)
         {
             var result = await _postService.PostStatusChangeAsync(postId, status, 1);
@@ -247,10 +230,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                 PostDto = result.Data,
             };
             return Json(postViewModel);
-        }    
+        }
 
-        [HttpPost]
-        [Route("/admin/post/delete")]
+        [HttpPost("/admin/post/delete")]
         public async Task<JsonResult> Delete(int postId)
         {
             var result = await _postService.DeleteAsync(postId);

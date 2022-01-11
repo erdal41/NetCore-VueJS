@@ -426,7 +426,7 @@ namespace VueJS.Services.Concrete
 
             if (oldPost != null)
             {
-                var posts = await UnitOfWork.Posts.GetAllAsync(p => oldPost.PostName == p.PostName || p.PostName == postUpdateDto.PostName);
+                var posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == oldPost.PostName || p.PostName == postUpdateDto.PostName);
                 if (posts.Count == 1 || posts.Count == 0)
                 {
                     var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
