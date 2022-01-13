@@ -13,7 +13,7 @@ export default [
         name: 'pages-page-view',
         component: () => import('@/views/admin/pages/post/View.vue'),
         meta: {
-            layout: 'horizontal',
+            layout: 'web',
         },
     },
     {

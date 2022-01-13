@@ -5,6 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+    <Content Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+    <EmbeddedResource Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+    <None Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="ClientApp\src\assets\images\media\default-icon.ico" />
   </ItemGroup>
 

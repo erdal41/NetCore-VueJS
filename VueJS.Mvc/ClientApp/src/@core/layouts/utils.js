@@ -7,9 +7,9 @@ import { computed } from '@vue/composition-api'
  * @param {Object} item nav menu item
  */
 export const resolveVerticalNavMenuItemComponent = item => {
-  if (item.header) return 'vertical-nav-menu-header'
-  if (item.children) return 'vertical-nav-menu-group'
-  return 'vertical-nav-menu-link'
+    if (item.header) return 'vertical-nav-menu-header'
+    if (item.children) return 'vertical-nav-menu-group'
+    return 'vertical-nav-menu-link'
 }
 
 /**
@@ -17,8 +17,13 @@ export const resolveVerticalNavMenuItemComponent = item => {
  * @param {Object} item nav menu item
  */
 export const resolveHorizontalNavMenuItemComponent = item => {
-  if (item.children) return 'horizontal-nav-menu-group'
-  return 'horizontal-nav-menu-link'
+    if (item.children) return 'horizontal-nav-menu-group'
+    return 'horizontal-nav-menu-link'
+}
+
+export const resolveWebNavMenuItemComponent = item => {
+    if (item.children) return 'web-nav-menu-group'
+    return 'web-nav-menu-link'
 }
 
 /**
@@ -28,11 +33,11 @@ export const resolveHorizontalNavMenuItemComponent = item => {
  * @param {Object, String} link navigation link object/string
  */
 export const resolveNavDataRouteName = link => {
-  if (isObject(link.route)) {
-    const { route } = router.resolve(link.route)
-    return route.name
-  }
-  return link.route
+    if (isObject(link.route)) {
+        const { route } = router.resolve(link.route)
+        return route.name
+    }
+    return link.route
 }
 
 /**
@@ -40,15 +45,15 @@ export const resolveNavDataRouteName = link => {
  * @param {Object} link nav-link object
  */
 export const isNavLinkActive = link => {
-  // Matched routes array of current route
-  const matchedRoutes = router.currentRoute.matched
+    // Matched routes array of current route
+    const matchedRoutes = router.currentRoute.matched
 
-  // Check if provided route matches route's matched route
-  const resolveRoutedName = resolveNavDataRouteName(link)
+    // Check if provided route matches route's matched route
+    const resolveRoutedName = resolveNavDataRouteName(link)
 
-  if (!resolveRoutedName) return false
+    if (!resolveRoutedName) return false
 
-  return matchedRoutes.some(route => route.name === resolveRoutedName || route.meta.navActiveLink === resolveRoutedName)
+    return matchedRoutes.some(route => route.name === resolveRoutedName || route.meta.navActiveLink === resolveRoutedName)
 }
 
 /**
@@ -56,18 +61,18 @@ export const isNavLinkActive = link => {
  * @param {Array} children Group children
  */
 export const isNavGroupActive = children => {
-  // Matched routes array of current route
-  const matchedRoutes = router.currentRoute.matched
+    // Matched routes array of current route
+    const matchedRoutes = router.currentRoute.matched
 
-  return children.some(child => {
-    // If child have children => It's group => Go deeper(recursive)
-    if (child.children) {
-      return isNavGroupActive(child.children)
-    }
+    return children.some(child => {
+        // If child have children => It's group => Go deeper(recursive)
+        if (child.children) {
+            return isNavGroupActive(child.children)
+        }
 
-    // else it's link => Check for matched Route
-    return isNavLinkActive(child, matchedRoutes)
-  })
+        // else it's link => Check for matched Route
+        return isNavLinkActive(child, matchedRoutes)
+    })
 }
 
 /**
@@ -76,18 +81,18 @@ export const isNavGroupActive = children => {
  */
 // prettier-ignore
 export const navLinkProps = item => computed(() => {
-  const props = {}
+    const props = {}
 
-  // If route is string => it assumes => Create route object from route name
-  // If route is not string => It assumes it's route object => returns route object
-  if (item.route) props.to = typeof item.route === 'string' ? { name: item.route } : item.route
-  else {
-    props.href = item.href
-    props.target = '_blank'
-    props.rel = 'nofollow'
-  }
+    // If route is string => it assumes => Create route object from route name
+    // If route is not string => It assumes it's route object => returns route object
+    if (item.route) props.to = typeof item.route === 'string' ? { name: item.route } : item.route
+    else {
+        props.href = item.href
+        props.target = '_blank'
+        props.rel = 'nofollow'
+    }
 
-  if (!props.target) props.target = item.target || null
+    if (!props.target) props.target = item.target || null
 
-  return props
+    return props
 })

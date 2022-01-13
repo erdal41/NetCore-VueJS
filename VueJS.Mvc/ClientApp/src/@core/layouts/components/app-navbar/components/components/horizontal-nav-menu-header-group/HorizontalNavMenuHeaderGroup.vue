@@ -29,7 +29,7 @@
 
 <script>
 import { BLink } from 'bootstrap-vue'
-import { resolveHorizontalNavMenuItemComponent } from '@core/layouts/utils'
+    import { resolveHorizontalNavMenuItemComponent } from '@core/layouts/utils'
 import { useUtils as useAclUtils } from '@core/libs/acl'
 import { useUtils as useI18nUtils } from '@core/libs/i18n'
 import useHorizontalNavMenuHeaderGroup from './useHorizontalNavMenuHeaderGroup'
@@ -67,7 +67,7 @@ export default {
       isActive,
       updateGroupOpen,
       updateIsActive,
-      resolveHorizontalNavMenuItemComponent,
+        resolveHorizontalNavMenuItemComponent,
 
       // ACL
       canViewHorizontalNavMenuHeaderGroup,
