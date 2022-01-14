@@ -40,6 +40,7 @@ namespace VueJS.Services.Extensions
             serviceCollection.AddScoped<ITermService, TermManager>();
             serviceCollection.AddScoped<ISeoService, SeoManager>();
             serviceCollection.AddScoped<IUrlRedirectService, UrlRedirectManager>();
+            serviceCollection.AddScoped<IMailService, MailManager>();
 
             return serviceCollection;
         }

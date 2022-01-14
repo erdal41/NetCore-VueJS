@@ -50,7 +50,7 @@
   //---------------//
   .horizontal-menu-wrapper {
     position: fixed;
-    top: 62px;
+    top:0;
     z-index: 990;
     width: 100%;
 
@@ -71,7 +71,7 @@
     min-height: auto;
     // Navbar- Brand Center - Logo
     &.navbar-horizontal.floating-nav {
-      width: calc(100vw - (100vw - 100%) - calc(#{$content-padding} * 2));
+      width: 100%;
       background: $white;
     }
     .navbar-container {
@@ -266,20 +266,6 @@
   // navbar floating
   &.navbar-floating {
     // Horizontal layout navbar shadow position and height fix
-    .header-navbar-shadow {
-      height: 80px;
-    }
-    @include media-breakpoint-up(xl) {
-      .header-navbar-shadow {
-        top: 45px;
-      }
-    }
-    &:not(.blank-page) {
-      .app-content {
-        // padding-top: 9.75rem;
-        padding: calc(#{$content-padding} + #{$navbar-height}* 2 + #{$floating-nav-margin}) #{$content-padding} 0 #{$content-padding}; // * 2  as we have 2 navbar (menu + navbar)  in horizontal layout.
-      }
-    }
     .horizontal-menu-wrapper {
       background: linear-gradient(
         to bottom,
@@ -287,10 +273,6 @@
         rgba(248, 248, 248, 0.46) 73%,
         rgba($white, 0) 100%
       );
-      background-repeat: repeat-x;
-      .navbar-horizontal.floating-nav {
-        margin: $floating-nav-margin $content-padding 0;
-      }
     }
 
     // App content area wrapper height

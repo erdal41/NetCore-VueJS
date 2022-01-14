@@ -1,33 +1,43 @@
 export default [
     {
+        path: '/login',
+        name: 'auth-login',
+        component: () => import('@/views/pages/auth/Login.vue'),
+        meta: {
+            layout: 'full',
+            resource: 'Auth',
+            redirectIfLoggedIn: true,
+        },
+    },
+    {
         path: '/admin/post-preview=:preview',
         name: 'pages-post-preview',
-        component: () => import('@/views/admin/pages/post/Preview.vue'),
+        component: () => import('@/views/pages/post/Preview.vue'),
         meta: {
             resource: 'Auth',
             layout: 'full',
         },
     },
     {
-        path: '/:postName',
+        path: '/admin/:postName',
         name: 'pages-page-view',
-        component: () => import('@/views/admin/pages/post/View.vue'),
+        component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'web',
         },
     },
     {
-        path: '/kategori/:slug',
+        path: '/admin/kategori/:slug',
         name: 'pages-category-view',
-        component: () => import('@/views/admin/pages/post/View.vue'),
+        component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'full',
         },
     },
     {
-        path: '/etiket/:slug',
+        path: '/admin/etiket/:slug',
         name: 'pages-tag-view',
-        component: () => import('@/views/admin/pages/post/View.vue'),
+        component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'full',
         },
@@ -35,7 +45,7 @@ export default [
     {
         path: '/admin/post',
         name: 'pages-post-edit',
-        component: () => import('@/views/admin/pages/post/Edit.vue'),
+        component: () => import('@/views/pages/post/Edit.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -43,7 +53,7 @@ export default [
     {
         path: '/admin/basepages',
         name: 'pages-basepage-list',
-        component: () => import('@/views/admin/pages/post/basepage/BasePage.vue'),
+        component: () => import('@/views/pages/post/basepage/BasePage.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -51,7 +61,7 @@ export default [
     {
         path: '/admin/basepage/new',
         name: 'pages-basepage-add',
-        component: () => import('@/views/admin/pages/post/basepage/NewBasePage.vue'),
+        component: () => import('@/views/pages/post/basepage/NewBasePage.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -59,7 +69,7 @@ export default [
     {
         path: '/admin/pages',
         name: 'pages-page-list',
-        component: () => import('@/views/admin/pages/post/page/Page.vue'),
+        component: () => import('@/views/pages/post/page/Page.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -67,7 +77,7 @@ export default [
     {
         path: '/admin/page/new',
         name: 'pages-page-add',
-        component: () => import('@/views/admin/pages/post/page/NewPage.vue'),
+        component: () => import('@/views/pages/post/page/NewPage.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -77,7 +87,8 @@ export default [
     {
         path: '/admin/articles',
         name: 'pages-article-list',
-        component: () => import('@/views/admin/pages/post/article/Article.vue'),
+        name: 'pages-article-list',
+        component: () => import('@/views/pages/post/article/Article.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -85,7 +96,7 @@ export default [
     {
         path: '/admin/article/new',
         name: 'pages-article-add',
-        component: () => import('@/views/admin/pages/post/article/NewArticle.vue'),
+        component: () => import('@/views/pages/post/article/NewArticle.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -93,7 +104,7 @@ export default [
     {
         path: '/admin/categories',
         name: 'pages-category-list',
-        component: () => import('@/views/admin/pages/term/Category.vue'),
+        component: () => import('@/views/pages/term/Category.vue'),
         meta: {
             resource: 'Auth',
         }
@@ -101,7 +112,7 @@ export default [
     {
         path: '/admin/tags',
         name: 'pages-tag-list',
-        component: () => import('@/views/admin/pages/term/Tag.vue'),
+        component: () => import('@/views/pages/term/Tag.vue'),
         meta: {
             resource: 'Auth',
         }
@@ -109,7 +120,7 @@ export default [
     {
         path: '/admin/term',
         name: 'pages-term-edit',
-        component: () => import('@/views/admin/pages/term/Edit.vue'),
+        component: () => import('@/views/pages/term/Edit.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -119,7 +130,7 @@ export default [
     {
         path: '/admin/url-redirect',
         name: 'pages-urlredirect-list',
-        component: () => import('@/views/admin/pages/url-redirect/UrlRedirect.vue'),
+        component: () => import('@/views/pages/url-redirect/UrlRedirect.vue'),
         meta: {
             resource: 'Auth',
         },
@@ -128,27 +139,27 @@ export default [
     {
         path: '/error-404',
         name: 'error-404',
-        component: () => import('@/views/admin/error/Error404.vue'),
+        component: () => import('@/views/error/Error404.vue'),
         meta: {
             layout: 'full',
             resource: 'Auth',
             action: 'read',
         },
     },
-    {
-        path: '/login',
-        name: 'auth-login',
-        component: () => import('@/views/admin/pages/authentication/Login.vue'),
-        meta: {
-            layout: 'full',
-            resource: 'Auth',
-            redirectIfLoggedIn: true,
-        },
-    },
+    //{
+    //    path: '/login',
+    //    name: 'auth-login',
+    //    component: () => import('@/views/pages/authentication/Login.vue'),
+    //    meta: {
+    //        layout: 'full',
+    //        resource: 'Auth',
+    //        redirectIfLoggedIn: true,
+    //    },
+    //},
     {
         path: '/pages/authentication/login-v1',
         name: 'auth-login-v1',
-        component: () => import('@/views/admin/pages/authentication/Login-v1.vue'),
+        component: () => import('@/views/pages/authentication/Login-v1.vue'),
         meta: {
             layout: 'full',
         },
@@ -156,7 +167,7 @@ export default [
     {
         path: '/pages/authentication/login-v2',
         name: 'auth-login-v2',
-        component: () => import('@/views/admin/pages/authentication/Login-v2.vue'),
+        component: () => import('@/views/pages/authentication/Login-v2.vue'),
         meta: {
             layout: 'full',
         },
@@ -164,7 +175,7 @@ export default [
     {
         path: '/register',
         name: 'auth-register',
-        component: () => import('@/views/admin/pages/authentication/Register.vue'),
+        component: () => import('@/views/pages/authentication/Register.vue'),
         meta: {
             layout: 'full',
             resource: 'Auth',
@@ -174,7 +185,7 @@ export default [
     {
         path: '/pages/authentication/register-v1',
         name: 'auth-register-v1',
-        component: () => import('@/views/admin/pages/authentication/Register-v1.vue'),
+        component: () => import('@/views/pages/authentication/Register-v1.vue'),
         meta: {
             layout: 'full',
         },
@@ -182,7 +193,7 @@ export default [
     {
         path: '/pages/authentication/register-v2',
         name: 'auth-register-v2',
-        component: () => import('@/views/admin/pages/authentication/Register-v2.vue'),
+        component: () => import('@/views/pages/authentication/Register-v2.vue'),
         meta: {
             layout: 'full',
         },
@@ -190,7 +201,7 @@ export default [
     {
         path: '/forgot-password',
         name: 'auth-forgot-password',
-        component: () => import('@/views/admin/pages/authentication/ForgotPassword.vue'),
+        component: () => import('@/views/pages/authentication/ForgotPassword.vue'),
         meta: {
             layout: 'full',
             resource: 'Auth',
@@ -200,7 +211,7 @@ export default [
     {
         path: '/pages/authentication/forgot-password-v1',
         name: 'auth-forgot-password-v1',
-        component: () => import('@/views/admin/pages/authentication/ForgotPassword-v1.vue'),
+        component: () => import('@/views/pages/authentication/ForgotPassword-v1.vue'),
         meta: {
             layout: 'full',
         },
@@ -208,7 +219,7 @@ export default [
     {
         path: '/pages/authentication/forgot-password-v2',
         name: 'auth-forgot-password-v2',
-        component: () => import('@/views/admin/pages/authentication/ForgotPassword-v2.vue'),
+        component: () => import('@/views/pages/authentication/ForgotPassword-v2.vue'),
         meta: {
             layout: 'full',
             resource: 'Auth',
@@ -217,7 +228,7 @@ export default [
     {
         path: '/pages/authentication/reset-password-v1',
         name: 'auth-reset-password-v1',
-        component: () => import('@/views/admin/pages/authentication/ResetPassword-v1.vue'),
+        component: () => import('@/views/pages/authentication/ResetPassword-v1.vue'),
         meta: {
             layout: 'full',
         },
@@ -225,7 +236,7 @@ export default [
     {
         path: '/pages/authentication/reset-password-v2',
         name: 'auth-reset-password-v2',
-        component: () => import('@/views/admin/pages/authentication/ResetPassword-v2.vue'),
+        component: () => import('@/views/pages/authentication/ResetPassword-v2.vue'),
         meta: {
             layout: 'full',
         },
@@ -233,7 +244,7 @@ export default [
     {
         path: '/pages/miscellaneous/coming-soon',
         name: 'misc-coming-soon',
-        component: () => import('@/views/admin/pages/miscellaneous/ComingSoon.vue'),
+        component: () => import('@/views/pages/miscellaneous/ComingSoon.vue'),
         meta: {
             layout: 'full',
         },
@@ -241,7 +252,7 @@ export default [
     {
         path: '/pages/miscellaneous/not-authorized',
         name: 'misc-not-authorized',
-        component: () => import('@/views/admin/pages/miscellaneous/NotAuthorized.vue'),
+        component: () => import('@/views/pages/miscellaneous/NotAuthorized.vue'),
         meta: {
             layout: 'full',
             resource: 'Auth',
@@ -250,7 +261,7 @@ export default [
     {
         path: '/pages/miscellaneous/under-maintenance',
         name: 'misc-under-maintenance',
-        component: () => import('@/views/admin/pages/miscellaneous/UnderMaintenance.vue'),
+        component: () => import('@/views/pages/miscellaneous/UnderMaintenance.vue'),
         meta: {
             layout: 'full',
         },
@@ -258,7 +269,7 @@ export default [
     {
         path: '/pages/miscellaneous/error',
         name: 'misc-error',
-        component: () => import('@/views/admin/pages/miscellaneous/Error.vue'),
+        component: () => import('@/views/pages/miscellaneous/Error.vue'),
         meta: {
             layout: 'full',
         },
@@ -266,7 +277,7 @@ export default [
     {
         path: '/pages/account-setting',
         name: 'pages-account-setting',
-        component: () => import('@/views/admin/pages/account-setting/AccountSetting.vue'),
+        component: () => import('@/views/pages/account-setting/AccountSetting.vue'),
         meta: {
             pageTitle: 'Account Settings',
             breadcrumb: [
@@ -283,7 +294,7 @@ export default [
     {
         path: '/pages/profile',
         name: 'pages-profile',
-        component: () => import('@/views/admin/pages/profile/Profile.vue'),
+        component: () => import('@/views/pages/profile/Profile.vue'),
         meta: {
             pageTitle: 'Profile',
             breadcrumb: [
@@ -301,7 +312,7 @@ export default [
     {
         path: '/pages/faq',
         name: 'pages-faq',
-        component: () => import('@/views/admin/pages/faq/Faq.vue'),
+        component: () => import('@/views/pages/faq/Faq.vue'),
         meta: {
             pageTitle: 'FAQ',
             breadcrumb: [
@@ -318,7 +329,7 @@ export default [
     {
         path: '/pages/knowledge-base',
         name: 'pages-knowledge-base',
-        component: () => import('@/views/admin/pages/Knowledge-base/KnowledgeBase.vue'),
+        component: () => import('@/views/pages/Knowledge-base/KnowledgeBase.vue'),
         meta: {
             pageTitle: 'Knowledge Base',
             breadcrumb: [
@@ -335,7 +346,7 @@ export default [
     {
         path: '/pages/knowledge-base/:category',
         name: 'pages-knowledge-base-category',
-        component: () => import('@/views/admin/pages/Knowledge-base/KnowledgeBaseCategory.vue'),
+        component: () => import('@/views/pages/Knowledge-base/KnowledgeBaseCategory.vue'),
         meta: {
             pageTitle: 'Category',
             breadcrumb: [
@@ -357,7 +368,7 @@ export default [
     {
         path: '/pages/knowledge-base/:category/:slug',
         name: 'pages-knowledge-base-question',
-        component: () => import('@/views/admin/pages/Knowledge-base/KnowledgeBaseCategoryQuestion.vue'),
+        component: () => import('@/views/pages/Knowledge-base/KnowledgeBaseCategoryQuestion.vue'),
         meta: {
             pageTitle: 'Question',
             breadcrumb: [
@@ -383,12 +394,12 @@ export default [
     {
         path: '/pages/pricing',
         name: 'pages-pricing',
-        component: () => import('@/views/admin/pages/pricing/Pricing.vue'),
+        component: () => import('@/views/pages/pricing/Pricing.vue'),
     },
     {
         path: '/pages/blog/list',
         name: 'pages-blog-list',
-        component: () => import('@/views/admin/pages/blog/BlogList.vue'),
+        component: () => import('@/views/pages/blog/BlogList.vue'),
         meta: {
             pageTitle: 'Blog List',
             breadcrumb: [
@@ -408,7 +419,7 @@ export default [
     {
         path: '/pages/blog/:id',
         name: 'pages-blog-detail',
-        component: () => import('@/views/admin/pages/blog/BlogDetail.vue'),
+        component: () => import('@/views/pages/blog/BlogDetail.vue'),
         meta: {
             pageTitle: 'Blog Detail',
             breadcrumb: [
@@ -428,7 +439,7 @@ export default [
     {
         path: '/pages/blog/edit/:id',
         name: 'pages-blog-edit',
-        component: () => import('@/views/admin/pages/blog/BlogEdit.vue'),
+        component: () => import('@/views/pages/blog/BlogEdit.vue'),
         meta: {
             pageTitle: 'Blog Edit',
             breadcrumb: [

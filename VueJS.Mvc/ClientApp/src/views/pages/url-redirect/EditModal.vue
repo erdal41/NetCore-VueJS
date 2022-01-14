@@ -68,7 +68,7 @@
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
-    import TermEdit from '@/views/admin/pages/term/Edit.vue'
+    import TermEdit from '@/views/pages/term/Edit.vue'
 
     export default {
         components: {

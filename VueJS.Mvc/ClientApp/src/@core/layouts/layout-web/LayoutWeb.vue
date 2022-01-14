@@ -13,7 +13,7 @@
         class="header-navbar navbar-expand-sm navbar navbar-horizontal navbar-light navbar-shadow menu-border d-none d-xl-block"
         :class="[navbarMenuTypeClass]"
       >
-        <horizontal-nav-menu />
+          <horizontal-nav-menu />
       </div>
 
       <!-- Vertical Nav Menu -->

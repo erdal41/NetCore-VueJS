@@ -1,16 +1,14 @@
 <template>
-    <div class="navbar-header d-xl-block d-none">
-        <ul class="nav navbar-nav">
+    <div class="navbar-header d-xl-block float-left">
+        <ul class="nav navbar-nav p-2">
             <li class="nav-item">
                 <b-link class="navbar-brand"
                         to="/">
                     <span class="brand-logo">
                         <b-img :src="appLogoImage"
-                               alt="logo" />
+                               alt="logo" 
+                               height="50"/>
                     </span>
-                    <h2 class="brand-text mb-0">
-                        {{ appName }}
-                    </h2>
                 </b-link>
             </li>
         </ul>

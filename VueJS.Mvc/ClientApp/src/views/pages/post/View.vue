@@ -22,9 +22,8 @@
                             var fullUrl = window.location.origin + this.$router.currentRoute.fullPath;
                             var urlRedirect = response.data.UrlRedirectListDto.UrlRedirects.find(function (url) {
                                 if (url.OldUrl == fullUrl) {
-                                    /*return window.location.href = url.NewUrl;*/
-                                    router.push({ name: 'pages-page-view', params: { postName: 'ornek-sayfa' } });
-                                    router.go(0)
+                                    var param = url.NewUrl.substring(url.NewUrl.lastIndexOf("/") + 1, url.NewUrl.length);
+                                    router.replace({ name: 'pages-page-view', params: { postName: param } });
                                 }
                             });
 
@@ -47,7 +46,9 @@
             },
         },
         watch: {
-
+            $route(to, from) {
+                this.getData();
+            }
         },
         computed: {
 

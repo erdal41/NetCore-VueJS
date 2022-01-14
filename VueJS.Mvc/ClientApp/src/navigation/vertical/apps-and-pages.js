@@ -5,7 +5,7 @@
     },
     {
         title: 'Temel Sayfalar',
-        icon: 'FileTextIcon',
+        icon: 'FileIcon',
         children: [
             {
                 title: 'Tüm Temel Sayfalar',
@@ -19,7 +19,7 @@
     },
     {
         title: 'Sayfalar',
-        icon: 'FileTextIcon',
+        icon: 'FileIcon',
         children: [
             {
                 title: 'Tüm Sayfalar',
@@ -44,17 +44,19 @@
             },
             {
                 title: 'Yeni Ekle',
-                route: { name: 'pages-article-add' },                
-            },
-            {
-                title: 'Kategoriler',
-                route: { name: 'pages-category-list' }
-            },
-            {
-                title: 'Etiketler',
-                route: { name: 'pages-tag-list' }
+                route: { name: 'pages-article-add' },
             },
         ],
+    },
+    {
+        title: 'Kategoriler',
+        icon: 'CopyIcon',
+        route: { name: 'pages-category-list' }
+    },
+    {
+        title: 'Etiketler',
+        icon: 'TagIcon',
+        route: { name: 'pages-tag-list' }
     },
     {
         header: 'Araçlar',

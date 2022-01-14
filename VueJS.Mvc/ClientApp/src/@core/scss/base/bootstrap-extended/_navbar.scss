@@ -65,8 +65,7 @@
   &.floating-nav {
     position: fixed;
     right: 0;
-    margin: #{$floating-nav-margin} #{$content-padding} 0;
-    width: calc(100vw - (100vw - 100%) - calc(#{$content-padding} * 2) - #{$menu-expanded-width});
+    width: 100%;
     border-radius: $card-border-radius;
     z-index: 12;
   }
