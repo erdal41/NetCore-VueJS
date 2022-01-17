@@ -14,7 +14,9 @@ using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Mvc.Helpers.Concrete;
 using VueJS.Services.AutoMapper.Profiles;
 using VueJS.Services.Extensions;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace VueJS.Mvc
 {
@@ -39,6 +41,28 @@ namespace VueJS.Mvc
             services.LoadMyServices(connectionString: Configuration.GetConnectionString("DefaultConnection"));
             services.AddScoped<IImageHelper, ImageHelper>();
             services.AddControllers();
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+
+            // Adding Jwt Bearer  
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = Configuration["JWT:ValidAudience"],
+                    ValidIssuer = Configuration["JWT:ValidIssuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
+                };
+            });
+           
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp";
@@ -89,7 +113,8 @@ namespace VueJS.Mvc
             //app.UseMvc();
             app.UseRouting();
             app.UseSpaStaticFiles();
-            app.UseAuthorization();
+            app.UseAuthentication();  
+            app.UseAuthorization(); 
 
             app.UseEndpoints(endpoints =>
             {

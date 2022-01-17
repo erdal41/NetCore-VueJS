@@ -170,6 +170,7 @@
                         }).then((response) => {                            
                             console.log(response.data);
                             if (response.data.UserLoginDto != null) {
+                                
                                 this.$router.replace(getHomeRouteForLoggedInUser("admin"))
                                     .then(() => {
                                         this.$toast({
@@ -211,7 +212,7 @@
                     }
                 })
             },
-            loginasdas() {
+            login1() {
                 this.$refs.loginForm.validate().then(success => {
                     if (success) {
                         useJwt.login({
@@ -219,6 +220,7 @@
                             password: this.password,
                         })
                             .then(response => {
+                                console.log(response.data);
                                 const { userData } = response.data
                                 useJwt.setToken(response.data.accessToken)
                                 useJwt.setRefreshToken(response.data.refreshToken)

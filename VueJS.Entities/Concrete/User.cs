@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,6 +18,8 @@ namespace VueJS.Entities.Concrete
         public string LinkedInLink { get; set; }
         public string GitHubLink { get; set; }
         public string WebsiteLink { get; set; }
+        public string RefreshToken { get; set; }
+        public DateTime? RefreshTokenEndDate { get; set; }
 
         [InverseProperty("Users")]
         public Upload ProfileImage { get; set; }

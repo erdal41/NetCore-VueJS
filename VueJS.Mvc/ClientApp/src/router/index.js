@@ -11,6 +11,9 @@ import pages from './routes/pages'
 import chartsMaps from './routes/charts-maps'
 import formsTable from './routes/forms-tables'
 import others from './routes/others'
+import AuthService from '@/auth/auth-service';
+
+const auth = new AuthService();
 
 Vue.use(VueRouter)
 

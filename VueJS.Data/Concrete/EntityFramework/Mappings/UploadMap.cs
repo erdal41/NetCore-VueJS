@@ -71,22 +71,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                     CreatedDate = DateTime.Now,
                     ModifiedDate = DateTime.Now,
                     Description = "Bu resim varsayılan logo resmidir."
-                },
-                new Upload
-                {
-                    Id = 4,
-                    FileName = "default-icon.ico",
-                    AltText = "Varsayılan Icon",
-                    Title = "Varsayılan Icon Resmi",
-                    SubTitle = "Varsayılan Icon Resmi",
-                    FileUrl = "/assets/ap/img/default-icon.ico",
-                    ContentType = "image/x-icon",
-                    Size = 1,
-                    UserId = 1,
-                    CreatedDate = DateTime.Now,
-                    ModifiedDate = DateTime.Now,
-                    Description = "Bu resim varsayılan icon resmidir."
-                }
+                }                
             );
         }
     }

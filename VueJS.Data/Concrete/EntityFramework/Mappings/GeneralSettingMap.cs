@@ -29,7 +29,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                     UserId = 1,
                     LogoId = 3,
                     MobileLogoId = 3,
-                    IconId = 4,
+                    IconId = 3,
                     IsUseLogoAdminPanel = false,
                     IsUseIconAdminPanel = false,
                     CreatedDate = DateTime.Now,
