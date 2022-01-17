@@ -22,7 +22,7 @@
                                                  name="Email"
                                                  rules="required|email">
                                 <b-form-input id="email"
-                                              v-model="userLoginDto.Email"
+                                              v-model="userEmail"
                                               name="login-email"
                                               :state="errors.length > 0 ? false:null"
                                               placeholder="john@example.com"
@@ -45,7 +45,7 @@
                                 <b-input-group class="input-group-merge"
                                                :class="errors.length > 0 ? 'is-invalid':null">
                                     <b-form-input id="password"
-                                                  v-model="userLoginDto.Password"
+                                                  v-model="password"
                                                   :type="passwordFieldType"
                                                   class="form-control-merge"
                                                   :state="errors.length > 0 ? false:null"
@@ -65,7 +65,7 @@
                         <!-- checkbox -->
                         <b-form-group>
                             <b-form-checkbox id="remember-me"
-                                             v-model="userLoginDto.RememberMe"
+                                             v-model="status"
                                              name="checkbox-1">
                                 Beni Hatırla
                             </b-form-checkbox>
@@ -165,12 +165,16 @@
             login2() {
                 this.$refs.loginForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/auth/login', {
-                            UserLoginDto: this.userLoginDto,
-                        }).then((response) => {                            
-                            console.log(response.data);
+                        useJwt.login({
+                            email: this.userEmail,
+                            password: this.password,
+                        }).then((response) => {
+                            console.log("asdasd: " + response.data);
                             if (response.data.UserLoginDto != null) {
-                                
+                                const { userData } = response.data
+                                useJwt.setToken(response.data.accessToken)
+                                useJwt.setRefreshToken(response.data.refreshToken)
+                                localStorage.setItem('userData', JSON.stringify(userData))
                                 this.$router.replace(getHomeRouteForLoggedInUser("admin"))
                                     .then(() => {
                                         this.$toast({
@@ -196,19 +200,10 @@
                                     }
                                 })
                             }
-                        }).catch((error) => {
-                            console.log(error);
-                            console.log(error.request);
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: 'Giriş yapılırken hata oluştu. Lütfen tekrar deneyiniz.',
-                                }
-                            })
-                        });
+                        }).catch(error => {
+                            this.$refs.loginForm.setErrors(error.response.data.error)
+                            console.log(error.response.data.error)
+                        })
                     }
                 })
             },

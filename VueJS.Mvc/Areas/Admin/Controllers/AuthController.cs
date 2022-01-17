@@ -12,6 +12,7 @@ using System;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using TokenHandler = VueJS.Mvc.Areas.Admin.Helper.TokenHandler;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -54,34 +55,24 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
        loginViewModel.UserLoginDto.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    var userRoles = await _userManager.GetRolesAsync(user);
+                    TokenHandler tokenHandler = new TokenHandler(_configuration);
+                    TokenModel token = tokenHandler.CreateAccessToken(user);
 
-                    var authClaims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, user.UserName),
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    };
-
-                    foreach (var userRole in userRoles)
-                    {
-                        authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                    }
-
-                    var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-
-                    var token = new JwtSecurityToken(
-                       issuer: _configuration["JWT:ValidIssuer"],
-                       audience: _configuration["JWT:ValidAudience"],
-                       expires: DateTime.Now.AddHours(3),
-                       claims: authClaims,
-                       signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                       );
+                    //Refresh token Users tablosuna işleniyor.
+                    user.RefreshToken = token.RefreshToken;
+                    user.RefreshTokenEndDate = token.Expiration.AddMinutes(3);
+                    await _userManager.UpdateAsync(user);
 
                     var loginViewModelJson = new LoginViewModel
                     {
+                        User = user,
                         UserLoginDto = loginViewModel.UserLoginDto,
-                        Token = new JwtSecurityTokenHandler().WriteToken(token),
-                        Expiration = token.ValidTo
+                        TokenModel= new TokenModel
+                        {
+                            AccessToken = token.AccessToken,
+                            RefreshToken = token.RefreshToken,
+                            Expiration = token.Expiration,
+                        }
                     };
                     return Json(loginViewModelJson);
                 }

@@ -17,6 +17,7 @@ using VueJS.Services.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System;
 
 namespace VueJS.Mvc
 {
@@ -41,28 +42,21 @@ namespace VueJS.Mvc
             services.LoadMyServices(connectionString: Configuration.GetConnectionString("DefaultConnection"));
             services.AddScoped<IImageHelper, ImageHelper>();
             services.AddControllers();
-            services.AddAuthentication(options =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-
-            // Adding Jwt Bearer  
-            .AddJwtBearer(options =>
-            {
-                options.SaveToken = true;
-                options.RequireHttpsMetadata = false;
-                options.TokenValidationParameters = new TokenValidationParameters()
+                option.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidAudience = Configuration["JWT:ValidAudience"],
-                    ValidIssuer = Configuration["JWT:ValidIssuer"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
+                    ValidateIssuer = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["Token:Issuer"],
+                    ValidAudience = Configuration["Token:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:SecurityKey"])),
+                    ClockSkew = TimeSpan.Zero
                 };
             });
-           
+
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp";
