@@ -95,7 +95,7 @@ export default class JwtService {
     localStorage.setItem(this.jwtConfig.storageRefreshTokenKeyName, value)
   }
 
-  login(...args) {
+    login(...args) {
     return this.axiosIns.post(this.jwtConfig.loginEndpoint, ...args)
   }
 

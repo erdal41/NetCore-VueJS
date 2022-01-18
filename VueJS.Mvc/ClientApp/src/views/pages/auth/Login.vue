@@ -169,25 +169,35 @@
                             email: this.userEmail,
                             password: this.password,
                         }).then((response) => {
-                            console.log("asdasd: " + response.data);
-                            if (response.data.UserLoginDto != null) {
+                            console.log("login response: ");
+                            console.log(response.data);
+                            if (response.data.userData != null) {
                                 const { userData } = response.data
                                 useJwt.setToken(response.data.accessToken)
                                 useJwt.setRefreshToken(response.data.refreshToken)
                                 localStorage.setItem('userData', JSON.stringify(userData))
-                                this.$router.replace(getHomeRouteForLoggedInUser("admin"))
-                                    .then(() => {
-                                        this.$toast({
-                                            component: ToastificationContent,
-                                            position: 'top-right',
-                                            props: {
-                                                title: `Hoşgeldin ${response.data.UserLoginDto.FirstName || response.data.UserLoginDto.LastName}`,
-                                                icon: 'CoffeeIcon',
-                                                variant: 'success',
-                                                text: `admin olarak başarıyla giriş yaptınız.`,
-                                            },
-                                        })
+
+                                var ability =  [
+                                    {
+                                        action: 'manage',
+                                        subject: 'all',
+                                    },
+                                ];
+
+
+                                this.$ability.update(ability)
+                                this.$router.replace(getHomeRouteForLoggedInUser("admin")).then(() => {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        position: 'top-right',
+                                        props: {
+                                            title: `Hoşgeldin ${userData.FirstName || userData.LastName}`,
+                                            icon: 'CoffeeIcon',
+                                            variant: 'success',
+                                            text: `admin olarak başarıyla giriş yaptınız.`,
+                                        },
                                     })
+                                })
                             }
                             else {
                                 this.$toast({
@@ -201,8 +211,15 @@
                                 })
                             }
                         }).catch(error => {
-                            this.$refs.loginForm.setErrors(error.response.data.error)
-                            console.log(error.response.data.error)
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Hata!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: error.response.data.error.email,
+                                }
+                            })
                         })
                     }
                 })
@@ -215,6 +232,7 @@
                             password: this.password,
                         })
                             .then(response => {
+                                console.log(response);
                                 console.log(response.data);
                                 const { userData } = response.data
                                 useJwt.setToken(response.data.accessToken)
@@ -242,7 +260,10 @@
                                     })
                             })
                             .catch(error => {
-                                this.$refs.loginForm.setErrors(error.response.data.error)
+                                /*this.$refs.loginForm.setErrors(error.response.data.error)*/
+                                console.log(error)
+                                console.log(error.request)
+                                console.log(error.message)
                             })
                     }
                 })

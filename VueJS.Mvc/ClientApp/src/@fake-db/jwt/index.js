@@ -56,61 +56,104 @@ const jwtConfig = {
     expireTime: '10m',
     refreshTokenExpireTime: '10m',
 }
+const userAxiosData = {};
 
 mock.onPost('/jwt/login').reply(request => {
     const { email, password } = JSON.parse(request.data)
 
+    let error = {
+        email: ['Something went wrong'],
+    }
     const userLoginDto = {
         Email: email,
         Password: password
     }
-    console.log("request: " + request.data)
-    console.log("e: " + email)
-    console.log("p: " + password)
-
-    let error = {
-        email: ['Something went wrong'],
-    }
 
     axios.post('/admin/auth/login', {
         UserLoginDto: userLoginDto,
-    }).then((response) => {
-        const user = response.data.User;
-        //const user = data.users.find(u => u.email === email && u.password === password)
-        console.log("user: " + user);
-        if (user != null) {
-            try {
-                const accessToken = jwt.sign({ id: user.Id }, jwtConfig.secret, { expiresIn: jwtConfig.expireTime })
-                const refreshToken = jwt.sign({ id: user.Id }, jwtConfig.refreshTokenSecret, {
-                    expiresIn: jwtConfig.refreshTokenExpireTime,
-                })
-                console.log("actoken: " + accessToken);
-                console.log("reftoken: " + refreshToken);
-                const userData = { ...user }
-                console.log(userData);
-                //delete userData.Password
-
-                const responseData = {
-                    userData,
-                    accessToken,
-                    refreshToken,
-                }
-                console.log(responseData)
-                return [200, responseData]
-            } catch (e) {
-                error = e
-                console.log(e);
-                console.log(error);
-            }
+    }).then(response => {
+        console.log(response.data.User)
+        if (response.data.User != null) {
+            userAxiosData = response.data.User;
+            console.log("userAxiosDasdasdsaata");
+            console.log(userAxiosData); 
         } else {
             error = {
                 email: ['Email or Password is Invalid'],
             }
         }
-    });
-    error = "aaaa";
+    })
+    console.log("userAxiosData");
+    console.log(userAxiosData);
+    if (userAxiosData != "{}") {
+        console.log("22")
+        console.log(userAxiosData)
+        try {
+            const accessToken = jwt.sign({ id: userAxiosData.Id }, jwtConfig.secret, { expiresIn: jwtConfig.expireTime })
+            const refreshToken = jwt.sign({ id: userAxiosData.Id }, jwtConfig.refreshTokenSecret, {
+                expiresIn: jwtConfig.refreshTokenExpireTime,
+            })
+            const userData = userAxiosData
+            delete userData.password
+
+            const response = {
+                userData,
+                accessToken,
+                refreshToken,
+            }
+
+            return [200, response]
+        } catch (e) {
+            error = e
+        }
+    } else {
+        error = {
+            email: "E-posta adresiniz veya parolanýz yanlýþ olabilir. Lütfen kontrol ediniz.",
+        }
+    }
+
     return [400, { error }]
 })
+
+
+//mock.onPost('/jwt/login').reply(request => {
+//    const { email, password } = JSON.parse(request.data)
+
+//    let error = {
+//        email: ['Something went wrong'],
+//    }
+
+//    const user = data.users.find(u => u.email === email && u.password === password)
+
+//    if (user) {
+//        try {
+//            const accessToken = jwt.sign({ id: user.id }, jwtConfig.secret, { expiresIn: jwtConfig.expireTime })
+//            const refreshToken = jwt.sign({ id: user.id }, jwtConfig.refreshTokenSecret, {
+//                expiresIn: jwtConfig.refreshTokenExpireTime,
+//            })
+//            const userData = { ...user }
+//            console.log(userData)
+//            delete userData.password
+
+//            const response = {
+//                userData,
+//                accessToken,
+//                refreshToken,
+//            }
+
+//            return [200, response]
+//        } catch (e) {
+//            error = e
+//        }
+//    } else {
+//        error = {
+//            email: ['Email or Password is Invalid'],
+//        }
+//    }
+
+//    return [400, { error }]
+//})
+
 
 mock.onPost('/jwt/register').reply(request => {
     const { username, email, password } = JSON.parse(request.data)
@@ -177,7 +220,6 @@ mock.onPost('/jwt/register').reply(request => {
 
 mock.onPost('/jwt/refresh-token').reply(request => {
     const { refreshToken } = JSON.parse(request.data)
-    console.log("aa");
     try {
         const { id } = jwt.verify(refreshToken, jwtConfig.refreshTokenSecret)
 
