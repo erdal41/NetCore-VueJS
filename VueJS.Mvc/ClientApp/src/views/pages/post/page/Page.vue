@@ -297,6 +297,7 @@
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
+import { integer } from '../../../../@core/utils/validations/validations'
 
     export default {
         components: {
@@ -366,7 +367,7 @@
                 publishPostsCount: '',
                 draftPostsCount: '',
                 trashPostsCount: '',
-                hoveredRow: null
+                hoveredRow: null,
             }
         },
         methods: {
@@ -512,72 +513,24 @@
                 })
             },
             multiPostStatusChange: function (event) {
-
                 var postStatus = "";
                 if (event.target.id == "multi-publish") {
                     postStatus = "publish";
-                    console.log(postStatus);
                 } else if (event.target.id == "multi-draft") {
                     postStatus = "draft";
-                    console.log(postStatus);
+                } else if (event.target.id == "multi-untrash") {
+                    postStatus = "draft";
                 } else {
                     postStatus = "trash";
-                    console.log(postStatus);
                 }
 
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: this.checkedRowsCount + " sayfa kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post(`/admin/term/multitrash?posts=` + this.checkedRows)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
+                this.checkedRows.forEach((id, index) => {
+                    axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
+                        .then((response) => {                            
+                            if (this.response.data.PostDto.ResultStatus === 0) {
+                                this.getAllData();
+                            }
+                        });
                 })
             },
             multiDeleteData() {

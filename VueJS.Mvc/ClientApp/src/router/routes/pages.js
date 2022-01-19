@@ -14,32 +14,36 @@ export default [
         name: 'pages-post-preview',
         component: () => import('@/views/pages/post/Preview.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'update',
             layout: 'full',
         },
     },
     {
-        path: '/admin/:postName',
+        path: '/:postName',
         name: 'pages-page-view',
         component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'web',
+            resource: 'Auth',
         },
     },
     {
-        path: '/admin/kategori/:slug',
+        path: '/kategori/:slug',
         name: 'pages-category-view',
         component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'full',
+            resource: 'Auth',
         },
     },
     {
-        path: '/admin/etiket/:slug',
+        path: '/etiket/:slug',
         name: 'pages-tag-view',
         component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'full',
+            resource: 'Auth',
         },
     },
     {
@@ -47,7 +51,8 @@ export default [
         name: 'pages-post-edit',
         component: () => import('@/views/pages/post/Edit.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'update',
         },
     },
     {
@@ -55,7 +60,8 @@ export default [
         name: 'pages-basepage-list',
         component: () => import('@/views/pages/post/basepage/BasePage.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'read',
         },
     },
     {
@@ -63,7 +69,8 @@ export default [
         name: 'pages-basepage-add',
         component: () => import('@/views/pages/post/basepage/NewBasePage.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'read',
         },
     },
     {
@@ -71,7 +78,8 @@ export default [
         name: 'pages-page-list',
         component: () => import('@/views/pages/post/page/Page.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'read',
         },
     },
     {
@@ -79,7 +87,8 @@ export default [
         name: 'pages-page-add',
         component: () => import('@/views/pages/post/page/NewPage.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'read',
         },
     },
 
@@ -87,10 +96,10 @@ export default [
     {
         path: '/admin/articles',
         name: 'pages-article-list',
-        name: 'pages-article-list',
         component: () => import('@/views/pages/post/article/Article.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'read',
         },
     },
     {
@@ -98,7 +107,8 @@ export default [
         name: 'pages-article-add',
         component: () => import('@/views/pages/post/article/NewArticle.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Post',
+            action: 'read',
         },
     },
     {
@@ -106,7 +116,8 @@ export default [
         name: 'pages-category-list',
         component: () => import('@/views/pages/term/Category.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Category',
+            action: 'read',
         }
     },
     {
@@ -114,7 +125,8 @@ export default [
         name: 'pages-tag-list',
         component: () => import('@/views/pages/term/Tag.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Tag',
+            action: 'read',
         }
     },
     {
@@ -122,7 +134,8 @@ export default [
         name: 'pages-term-edit',
         component: () => import('@/views/pages/term/Edit.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'Term',
+            action: 'update',
         },
     },
 
@@ -132,7 +145,8 @@ export default [
         name: 'pages-urlredirect-list',
         component: () => import('@/views/pages/url-redirect/UrlRedirect.vue'),
         meta: {
-            resource: 'Auth',
+            resource: 'UrlRedirect',
+            action: 'read',
         },
     },
 
@@ -255,7 +269,6 @@ export default [
         component: () => import('@/views/pages/miscellaneous/NotAuthorized.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
         },
     },
     {

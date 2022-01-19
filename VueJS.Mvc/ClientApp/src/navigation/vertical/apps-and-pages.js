@@ -10,6 +10,8 @@
             {
                 title: 'Tüm Temel Sayfalar',
                 route: { name: 'pages-base-list' },
+                resource: 'Post',
+                action: 'read',
             },
             {
                 title: 'Yeni Ekle',
@@ -24,6 +26,8 @@
             {
                 title: 'Tüm Sayfalar',
                 route: { name: 'pages-page-list' },
+                resource: 'Post',
+                action: 'read',
             },
             {
                 title: 'Yeni Ekle',
@@ -41,6 +45,8 @@
             {
                 title: 'Tüm Makaleler',
                 route: { name: 'pages-article-list' },
+                resource: 'Post',
+                action: 'read',
             },
             {
                 title: 'Yeni Ekle',

@@ -170,11 +170,11 @@
                             password: this.password,
                         }).then((response) => {
                             console.log("login response: ");
-                            console.log(response.data);
-                            if (response.data.userData != null) {
-                                const { userData } = response.data
-                                useJwt.setToken(response.data.accessToken)
-                                useJwt.setRefreshToken(response.data.refreshToken)
+                            console.log(response);
+                            if (response[0] == 200) {
+                                const { userData } = response[1]
+                                useJwt.setToken(response[1].accessToken)
+                                useJwt.setRefreshToken(response[1].refreshToken)
                                 localStorage.setItem('userData', JSON.stringify(userData))
 
                                 var ability =  [
@@ -186,7 +186,7 @@
 
 
                                 this.$ability.update(ability)
-                                this.$router.replace(getHomeRouteForLoggedInUser("admin")).then(() => {
+                                this.$router.replace(getHomeRouteForLoggedInUser("client")).then(() => {
                                     this.$toast({
                                         component: ToastificationContent,
                                         position: 'top-right',
@@ -206,7 +206,7 @@
                                         variant: 'danger',
                                         title: 'Hata!',
                                         icon: 'AlertOctagonIcon',
-                                        text: 'E-posta adresiniz veya parolanız yanlış olabilir. Lütfen kontrol ediniz.',
+                                        text: response[1].error,
                                     }
                                 })
                             }
@@ -217,7 +217,7 @@
                                     variant: 'danger',
                                     title: 'Hata!',
                                     icon: 'AlertOctagonIcon',
-                                    text: error.response.data.error.email,
+                                    text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
                                 }
                             })
                         })
@@ -232,6 +232,7 @@
                             password: this.password,
                         })
                             .then(response => {
+                                console.log("LOGİN RESPONSE");
                                 console.log(response);
                                 console.log(response.data);
                                 const { userData } = response.data

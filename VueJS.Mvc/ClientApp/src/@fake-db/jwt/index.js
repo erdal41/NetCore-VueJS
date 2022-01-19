@@ -60,7 +60,8 @@ const userAxiosData = {};
 
 mock.onPost('/jwt/login').reply(request => {
     const { email, password } = JSON.parse(request.data)
-
+    console.log("mock");
+    console.log(request);
     let error = {
         email: ['Something went wrong'],
     }
