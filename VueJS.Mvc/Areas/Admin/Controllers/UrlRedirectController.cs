@@ -36,7 +36,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/urlredirect/new")]
         public async Task<JsonResult> New(UrlRedirectViewModel urlRedirectViewModel)
         {
-            var result = await _urlRedirectService.AddAsync(urlRedirectViewModel.UrlRedirectAddDto, 1);
+            var result = await _urlRedirectService.AddAsync(urlRedirectViewModel.UrlRedirectAddDto, LoggedInUser.Id);
             var urlRedirectViewModelJson = new UrlRedirectViewModel
             {
                 UrlRedirectDto = result.Data,
@@ -54,7 +54,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/urlredirect/edit")]
         public async Task<JsonResult> Edit(UrlRedirectViewModel urlRedirectViewModel)
         {
-            var result = await _urlRedirectService.UpdateAsync(urlRedirectViewModel.UrlRedirectUpdateDto, 1);
+            var result = await _urlRedirectService.UpdateAsync(urlRedirectViewModel.UrlRedirectUpdateDto, LoggedInUser.Id);
             var urlRedirectViewModelJson = new UrlRedirectViewModel
             {
                 UrlRedirectDto = result.Data

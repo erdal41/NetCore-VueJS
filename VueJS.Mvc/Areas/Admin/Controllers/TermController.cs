@@ -47,7 +47,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
             if (termResult.Data.ResultStatus == ResultStatus.Success)
             {
-                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termViewModel.TermAddDto.TermType, termResult.Data.Term.Id, termViewModel.SeoObjectSettingAddDto, 1);
+                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termViewModel.TermAddDto.TermType, termResult.Data.Term.Id, termViewModel.SeoObjectSettingAddDto, LoggedInUser.Id);
                 //await FileHelper.CreateSitemapInRootDirectoryAsync();
                 var termViewModelJson = new TermViewModel
                 {
@@ -108,7 +108,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
 
             if (termResult.ResultStatus == ResultStatus.Success)
             {
-                await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, 1);
+                await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, LoggedInUser.Id);
 
                 var termViewModelJson = new TermViewModel
                 {

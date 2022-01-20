@@ -5,8 +5,7 @@
         <!-- Navbar -->
         <b-navbar :toggleable="false"
                   :variant="navbarBackgroundColor"
-                  class="header-navbar navbar navbar-shadow align-items-center"
-                  :class="[navbarTypeClass]">
+                  class="header-navbar navbar-shadow align-items-center navbar-light navbar-expand fixed-top">
             <slot name="navbar"
                   :toggleVerticalMenuActive="toggleVerticalMenuActive"
                   :navbarBackgroundColor="navbarBackgroundColor"

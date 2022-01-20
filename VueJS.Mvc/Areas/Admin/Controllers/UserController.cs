@@ -7,7 +7,6 @@ using VueJS.Entities.Dtos;
 using VueJS.Mvc.Areas.Admin.Models;
 using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
-using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
@@ -24,25 +23,28 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _signInManager = signInManager;
         }
 
-        [HttpGet("/admin/user/getallusers")]
+        [HttpGet("/admin/user/allusers")]
         public async Task<JsonResult> GetAllUsers()
         {
             var users = await UserManager.Users.ToListAsync();
-            var userListDto = JsonConvert.SerializeObject(new UserListDto
+            if (users.Count > 0)
             {
-                Users = users,
-                ResultStatus = ResultStatus.Success
-            }, new JsonSerializerSettings
+                var userListDto = new UserListDto
+                {
+                    Users = users,
+                    ResultStatus = ResultStatus.Success
+                };
+                return Json(userListDto);
+            }
+            else
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
-            return Json(userListDto);
-        }
-
-        [HttpGet("/admin/user/new")]
-        public IActionResult New()
-        {
-            return View();
+                var userListDtoError = new UserListDto
+                {
+                    Users = null,
+                    ResultStatus = ResultStatus.Error
+                };
+                return Json(userListDtoError);
+            }
         }
 
         [HttpPost("/admin/user/new")]
@@ -52,54 +54,42 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var result = await UserManager.CreateAsync(user, userViewModel.UserAddDto.Password);
             if (result.Succeeded)
             {
-                var userAjaxViewModel = JsonConvert.SerializeObject(new UserViewModel
+                var userViewModelJson = new UserViewModel
                 {
                     User = user
-                }, new JsonSerializerSettings()
-                {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                });
-                return Json(userAjaxViewModel);
+                };
+                return Json(userViewModelJson);
             }
             else
             {
-                var userAjaxViewModel = JsonConvert.SerializeObject(new UserViewModel
+                var userViewModelJsonError = new UserViewModel
                 {
                     User = null
-                });
-                return Json(userAjaxViewModel);
+                };
+                return Json(userViewModelJsonError);
             }
         }
 
         [HttpGet("/admin/user/edit")]
-        public IActionResult Edit(int user)
-        {
-            return View();
-        }
-
-        [HttpGet("/admin/user/getajaxedit")]
-        public async Task<JsonResult> GetAjaxEdit(int user)
+        public async Task<JsonResult> Edit(int user)
         {
             var userResult = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == user);
             if (userResult != null)
             {
-                var userUpdateDto = Mapper.Map<UserUpdateDto>((object)userResult);
-                var userViewModel = JsonConvert.SerializeObject(new UserViewModel
+                var userUpdateDto = Mapper.Map<UserUpdateDto>(userResult);
+                var userViewModel = new UserViewModel
                 {
                     UserUpdateDto = userUpdateDto
-                }, new JsonSerializerSettings()
-                {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                });
+                };
                 return Json(userViewModel);
             }
             else
             {
-                var userViewModel = JsonConvert.SerializeObject(new UserViewModel
+                var userViewModelError = new UserViewModel
                 {
                     UserUpdateDto = null
-                });
-                return Json(userViewModel);
+                };
+                return Json(userViewModelError);
             }
         }
 
@@ -107,23 +97,23 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> Edit(UserViewModel userViewModel)
         {
             var oldUser = await UserManager.FindByIdAsync(userViewModel.UserUpdateDto.Id.ToString());
-            var updatedUserDto = Mapper.Map(userViewModel.UserUpdateDto, oldUser);
-            var result = await UserManager.UpdateAsync(updatedUserDto);
+            var updatedUser = Mapper.Map(userViewModel.UserUpdateDto, oldUser);
+            var result = await UserManager.UpdateAsync(updatedUser);
             if (result.Succeeded)
             {
-                var userAjaxViewModel = JsonConvert.SerializeObject(updatedUserDto, new JsonSerializerSettings
+                var userViewModelJson = new UserViewModel
                 {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                });
-                return Json(userAjaxViewModel);
+                    User = updatedUser
+                };
+                return Json(userViewModelJson);
             }
             else
             {
-                var userAjaxViewModel = JsonConvert.SerializeObject(updatedUserDto, new JsonSerializerSettings
+                var userViewModelJsonError = new UserViewModel
                 {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                });
-                return Json(userAjaxViewModel);
+                    User = null
+                };
+                return Json(userViewModelJsonError);
             }
         }
 
@@ -134,13 +124,13 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var result = await UserManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                var deletedUser = JsonConvert.SerializeObject(new UserDto
+                var userDto = new UserDto
                 {
                     ResultStatus = ResultStatus.Success,
-                    Message = $"{user.UserName} adlı kullanıcı adına sahip kullanıcı başarıyla silinmiştir.",
+                    Message = $"{user.UserName} adlı kullanıcı silindi.",
                     User = user
-                });
-                return Json(deletedUser);
+                };
+                return Json(userDto);
             }
             else
             {
@@ -150,68 +140,21 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                     errorMessages = $"*{error.Description}\n";
                 }
 
-                var deletedUserErrorModel = JsonConvert.SerializeObject(new UserDto
+                var userDtoError = new UserDto
                 {
                     ResultStatus = ResultStatus.Error,
                     Message =
-                        $"{user.UserName} adlı kullanıcı adına sahip kullanıcı silinirken bazı hatalar oluştu.\n{errorMessages}",
+                        $"{user.UserName} adlı kullanıcı silinirken bazı hatalar oluştu.\n{errorMessages}",
                     User = user
-                });
-                return Json(deletedUserErrorModel);
+                };
+                return Json(userDtoError);
             }
-        }
-
-        [HttpPost("/admin/user/multidelete")]
-        public async Task<JsonResult> MultiDelete(int[] userIds)
-        {
-            var jsonResult = string.Empty;
-
-            foreach (var userId in userIds)
-            {
-                var user = await UserManager.FindByIdAsync(userId.ToString());
-                var result = await UserManager.DeleteAsync(user);
-                if (result.Succeeded)
-                {
-                    var deletedUser = JsonConvert.SerializeObject(new UserDto
-                    {
-                        ResultStatus = ResultStatus.Success,
-                        Message = $"{user.UserName} adlı kullanıcı adına sahip kullanıcı başarıyla silinmiştir.",
-                        User = user
-                    });
-                    jsonResult = deletedUser;
-                }
-                else
-                {
-                    string errorMessages = String.Empty;
-                    foreach (var error in result.Errors)
-                    {
-                        errorMessages = $"*{error.Description}\n";
-                    }
-
-                    var deletedUserErrorModel = JsonConvert.SerializeObject(new UserDto
-                    {
-                        ResultStatus = ResultStatus.Error,
-                        Message =
-                            $"{user.UserName} adlı kullanıcı adına sahip kullanıcı silinirken bazı hatalar oluştu.\n{errorMessages}",
-                        User = user
-                    });
-                    return Json(deletedUserErrorModel);
-                }
-            }
-            return Json(jsonResult);
-        }
-
-        [HttpGet("/admin/user/passwordchange")]
-        public ViewResult PasswordChange()
-        {
-            return View();
         }
 
         [HttpPost("/admin/user/passwordchange")]
-        public async Task<IActionResult> PasswordChange(UserPasswordChangeDto userPasswordChangeDto)
+        public async Task<JsonResult> PasswordChange(UserPasswordChangeDto userPasswordChangeDto)
         {
-            if (ModelState.IsValid)
-            {
+
                 var user = await UserManager.GetUserAsync(HttpContext.User);
                 var isVerified = await UserManager.CheckPasswordAsync(user, userPasswordChangeDto.CurrentPassword);
                 if (isVerified)
@@ -223,7 +166,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                         await UserManager.UpdateSecurityStampAsync(user);
                         await _signInManager.SignOutAsync();
                         await _signInManager.PasswordSignInAsync(user, userPasswordChangeDto.NewPassword, true, false);
-                        return View();
+                        return Json(userPasswordChangeDto);
                     }
                     else
                     {
@@ -232,19 +175,14 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                             ModelState.AddModelError("", error.Description);
                         }
 
-                        return View(userPasswordChangeDto);
+                        return Json(userPasswordChangeDto);
                     }
                 }
                 else
                 {
                     ModelState.AddModelError("", "Lütfen, girmiş olduğunuz şu anki şifrenizi kontrol ediniz.");
-                    return View(userPasswordChangeDto);
+                    return Json(userPasswordChangeDto);
                 }
-            }
-            else
-            {
-                return View(userPasswordChangeDto);
-            }
         }
 
         [HttpGet("/password-reset/")]
@@ -257,18 +195,16 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> PasswordReset(UserPasswordResetDto userPasswordResetDto, string u, string t)
         {
             var user = await UserManager.FindByIdAsync(u);
-            var tokenConvert = t.Replace("%2F", "/").Replace("%2B","+").Replace("%3D","=");
+            var tokenConvert = t.Replace("%2F", "/").Replace("%2B", "+").Replace("%3D", "=");
             IdentityResult result = await UserManager.ResetPasswordAsync(user, tokenConvert, userPasswordResetDto.NewPassword);
             if (result.Succeeded)
             {
                 await UserManager.UpdateSecurityStampAsync(user);
-                var jsonResult = JsonConvert.SerializeObject(result);
-                return Json(jsonResult);
+                return Json(result);
             }
             else
             {
-                var jsonResult = JsonConvert.SerializeObject(result);
-                return Json(jsonResult);
+                return Json(result);
             }
         }
     }

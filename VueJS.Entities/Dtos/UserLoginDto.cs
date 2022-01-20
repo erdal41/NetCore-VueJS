@@ -5,10 +5,6 @@ namespace VueJS.Entities.Dtos
 {
     public class UserLoginDto
     {
-        public string UserName { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-
         [DisplayName("E-Posta Adresi")]
         [Required(ErrorMessage = "{0} boş geçilmemelidir.")]
         [MaxLength(100, ErrorMessage = "{0} {1} karakterden büyük olmamalıdır.")]

@@ -492,7 +492,8 @@
                         this.isSpinnerShow = false;
                         this.checkedRowsCount = "";
                         this.checkedRows = [];
-                        this.isHiddenStatusButton = false;
+                        this.isHiddenMultiDeleteButton = false;
+
                     })
                     .catch((error) => {
                         this.$toast({

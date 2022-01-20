@@ -9,6 +9,7 @@ namespace VueJS.Mvc.Areas.Admin.Models
     {
         public List<Role> Roles { get; set; }
         public UserLoginDto UserLoginDto { get; set; }
+        public UserLoginViewModel UserLoginViewModel { get; set; }
         public GeneralSettingDto GeneralSettingDto { get; set; }
     }
 }

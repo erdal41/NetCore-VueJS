@@ -90,7 +90,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/post/new")]
         public async Task<IActionResult> New(PostViewModel postViewModel)
         {
-            var postResult = await _postService.AddAsync(postViewModel.PostAddDto, 1, postViewModel.PostAddDto.PostType);
+            var postResult = await _postService.AddAsync(postViewModel.PostAddDto, LoggedInUser.Id, postViewModel.PostAddDto.PostType);
             if (string.IsNullOrEmpty(postViewModel.SeoObjectSettingAddDto.SeoTitle))
             {
                 postViewModel.SeoObjectSettingAddDto.SeoTitle = postViewModel.PostAddDto.Title;
@@ -98,7 +98,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             if (postResult.ResultStatus == ResultStatus.Success)
             {
                 //_cacheService.Clear();
-                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.post, postViewModel.PostAddDto.PostType, postResult.Data.Post.Id, postViewModel.SeoObjectSettingAddDto, 1);
+                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.post, postViewModel.PostAddDto.PostType, postResult.Data.Post.Id, postViewModel.SeoObjectSettingAddDto, LoggedInUser.Id);
                 //await _fileHelper.CreateSitemapInRootDirectoryAsync();
                 var postAddViewModelJson = new PostViewModel
                 {
@@ -145,12 +145,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/post/edit")]
         public async Task<IActionResult> Edit(PostViewModel postViewModel)
         {
-            var postResult = await _postService.UpdateAsync(postViewModel.PostUpdateDto, 1);
+            var postResult = await _postService.UpdateAsync(postViewModel.PostUpdateDto, LoggedInUser.Id);
             if (postResult.ResultStatus == ResultStatus.Success)
             {
                 //_cacheService.Clear();
                 //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-                await _seoService.SeoObjectSettingUpdateAsync(postViewModel.PostUpdateDto.Id, postViewModel.PostUpdateDto.PostType, postViewModel.SeoObjectSettingUpdateDto, 1);
+                await _seoService.SeoObjectSettingUpdateAsync(postViewModel.PostUpdateDto.Id, postViewModel.PostUpdateDto.PostType, postViewModel.SeoObjectSettingUpdateDto, LoggedInUser.Id);
 
                 var postViewModelJson = new PostViewModel
                 {
@@ -224,7 +224,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/post/poststatuschange")]
         public async Task<JsonResult> PostStatusChange(int postId, PostStatus status)
         {
-            var result = await _postService.PostStatusChangeAsync(postId, status, 1);
+            var result = await _postService.PostStatusChangeAsync(postId, status, LoggedInUser.Id);
             var postViewModel = new PostViewModel
             {
                 PostDto = result.Data,

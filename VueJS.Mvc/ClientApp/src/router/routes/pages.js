@@ -150,6 +150,35 @@ export default [
         },
     },
 
+    //User
+    {
+        path: '/admin/users',
+        name: 'pages-user-list',
+        component: () => import('@/views/pages/user/User.vue'),
+        meta: {
+            resource: 'User',
+            action: 'read',
+        },
+    },
+    {
+        path: '/admin/user/new',
+        name: 'pages-user-add',
+        component: () => import('@/views/pages/user/User.vue'),
+        meta: {
+            resource: 'User',
+            action: 'create',
+        },
+    },
+    {
+        path: '/admin/user',
+        name: 'pages-user-edit',
+        component: () => import('@/views/pages/post/Edit.vue'),
+        meta: {
+            resource: 'User',
+            action: 'update',
+        },
+    },
+
     {
         path: '/error-404',
         name: 'error-404',

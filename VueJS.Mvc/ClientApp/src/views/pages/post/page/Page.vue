@@ -524,19 +524,21 @@ import { integer } from '../../../../@core/utils/validations/validations'
                     postStatus = "trash";
                 }
 
+
                 this.checkedRows.forEach((id, index) => {
                     axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
                         .then((response) => {                            
-                            if (this.response.data.PostDto.ResultStatus === 0) {
+                            if (response.data.PostDto.ResultStatus === 0) {
                                 this.getAllData();
                             }
                         });
                 })
+
             },
             multiDeleteData() {
                 this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: this.checkedRowsCount + "adet sayfa kalıcı olarak silinecektir?",
+                    title: 'Toplu olarak silmek istediğinizden emin misiniz?',
+                    text: this.checkedRowsCount + " adet sayfa kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -548,43 +550,14 @@ import { integer } from '../../../../@core/utils/validations/validations'
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post(`/admin/term/multitrash?posts=` + this.checkedRows)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
+                        this.checkedRows.forEach((id, index) => {
+                            axios.post('/admin/post/delete?postId=' + id)
+                                .then((response) => {
+                                    if (response.data.PostDto.ResultStatus === 0) {
+                                        this.getAllData();
+                                    }
+                                });
+                        })
                     }
                 })
             },

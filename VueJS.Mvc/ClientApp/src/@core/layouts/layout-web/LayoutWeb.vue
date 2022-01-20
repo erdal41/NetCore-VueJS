@@ -1,7 +1,6 @@
 <template>
   <div
-    class="horizontal-layout"
-    :class="[layoutClasses]"
+    class="horizontal-layout navbar-fixed"
     :data-col="isNavMenuHidden ? '1-column' : null"
     style="height:inherit"
   >

@@ -8,6 +8,7 @@ using VueJS.Mvc.Areas.Admin.Models;
 using Microsoft.Extensions.Configuration;
 using VueJS.Entities.Dtos;
 using AutoMapper;
+using System.Collections.Generic;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -18,14 +19,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ISettingService _settingService;
         private readonly IMailService _mailService;
-        private IConfiguration _configuration;
 
-        public AuthController(UserManager<User> userManager, IMapper mapper, SignInManager<User> signInManager, ISettingService settingService, IMailService mailService, IConfiguration configuration) : base(userManager, mapper)
+        public AuthController(UserManager<User> userManager, IMapper mapper, SignInManager<User> signInManager, ISettingService settingService, IMailService mailService) : base(userManager, mapper)
         {
             _signInManager = signInManager;
             _settingService = settingService;
             _mailService = mailService;
-            _configuration = configuration;
         }
 
         [HttpGet("/admin/auth/login")]
@@ -45,22 +44,24 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var user = await UserManager.FindByEmailAsync(loginViewModel.UserLoginDto.Email);
             if (user != null && await UserManager.CheckPasswordAsync(user, loginViewModel.UserLoginDto.Password))
             {
-                var userLoginDto = Mapper.Map<UserLoginDto>(user);
+                var userLoginViewModel = Mapper.Map<UserLoginViewModel>(user);
 
                 var result = await _signInManager.PasswordSignInAsync(user, loginViewModel.UserLoginDto.Password,
        loginViewModel.UserLoginDto.RememberMe, false);
                 if (result.Succeeded)
-                {                   
+                {
+                    var roles = UserManager.GetRolesAsync(user);
+                    userLoginViewModel.Roles = roles.Result;
                     var loginViewModelJson = new LoginViewModel
                     {
-                        UserLoginDto = loginViewModel.UserLoginDto,
+                        UserLoginViewModel = userLoginViewModel
                     };
                     return Json(loginViewModelJson);
                 }
             }
             var loginViewModelJsonError = new LoginViewModel
             {
-                UserLoginDto = null,
+                UserLoginViewModel = null,
             };
             return Json(loginViewModelJsonError);
         }

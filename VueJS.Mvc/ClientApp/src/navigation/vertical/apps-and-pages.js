@@ -2,6 +2,8 @@
 
     {
         header: 'Sayfa İşlemleri',
+        resource: 'Post',
+        action: 'read',
     },
     {
         title: 'Temel Sayfalar',
@@ -37,6 +39,8 @@
     },
     {
         header: 'Blog',
+        resource: 'Post',
+        action: 'read',
     },
     {
         title: 'Makaleler',
@@ -71,6 +75,29 @@
         title: 'Link Yönlendirmeleri',
         icon: 'RepeatIcon',
         route: 'pages-urlredirect-list',
+    },
+    {
+        header: 'Kullanıcı İşlemleri',
+        resource: 'User',
+        action: 'read',
+    },
+    {
+        title: 'Kullanıcılar',
+        icon: 'UsersIcon',
+        children: [
+            {
+                title: 'Tüm Kullanıcılar',
+                route: { name: 'pages-user-list' },
+                resource: 'User',
+                action: 'read',
+            },
+            {
+                title: 'Yeni Ekle',
+                route: { name: 'pages-user-add' },
+                resource: 'User',
+                action: 'create',
+            },
+        ],
     },
     {
         header: 'Apps & Pages',

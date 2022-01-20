@@ -2,11 +2,11 @@
     <b-row>
         <b-col class="content-header-left mb-2"
                cols="12"
-               md="12">
+               md="6">
             <b-row class="breadcrumbs-top">
                 <b-col cols="12">
                     <h2 class="content-header-title float-left pr-1 mb-0">
-                        Kategoriler
+                        Kullanıcılar
                     </h2>
                     <div class="breadcrumb-wrapper">
                         <b-breadcrumb>
@@ -26,76 +26,23 @@
                 </b-col>
             </b-row>
         </b-col>
-        <b-col md="12"
-               lg="4">
-            <b-card title="Kategori Ekle">
-                <validation-observer ref="simpleRules">
-                    <b-form>
-                        <b-row>
-                            <b-col cols="12">
-                                <b-form-group label-for="name"
-                                              description="Sitenizde gösterilecek olan isim.">
-                                    <validation-provider #default="{ errors }"
-                                                         name="name"
-                                                         vid="name"
-                                                         rules="required">
-                                        <b-form-input id="name"
-                                                      v-model="termAddDto.Name"
-                                                      :state="errors.length > 0 ? false:null"
-                                                      type="text"
-                                                      placeholder="Kategori Adı" />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
-                                </b-form-group>
-
-                                <b-form-group label-for="slug"
-                                              description="'slug' yazı isminin URL versiyonudur. Genellikle tümü küçük harflerden oluşur, sadece harf, rakam ve tire içerir.">
-                                    <b-form-input id="slug"
-                                                  v-model="termAddDto.Slug"
-                                                  type="text"
-                                                  placeholder="Kısa İsim" />
-                                </b-form-group>
-
-                                <b-form-group label-for="parentTerms"
-                                              description="Mevcut kategori için üst kategoriyi buradan seçebilirsiniz.">
-                                    <v-select id="parentTerms"
-                                              v-model="selected"
-                                              :options="allParentTerms"
-                                              label="Name"
-                                              :reduce="(option) => option.Id"
-                                              placeholder="— Üst Kategori —"
-                                              @input="onChangeMethod($event)" />
-                                </b-form-group>
-
-                                <b-form-textarea id="description"
-                                                 v-model="termAddDto.Description"
-                                                 placeholder="Açıklama"
-                                                 rows="3" />
-
-                                <!-- reset button -->
-                                <b-button variant="primary"
-                                          class="float-right mt-1"
-                                          type="submit"
-                                          @click.prevent="validationForm">
-                                    Ekle
-                                </b-button>
-                            </b-col>
-                        </b-row>
-                    </b-form>
-                </validation-observer>
-            </b-card>
+        <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
+               md="6"
+               cols="12">
+            <b-button v-b-tooltip.hover
+                      title="Yeni kullanıcı ekle"
+                      v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                      variant="primary"
+                      :to="{ name:'pages-user-add'}"
+                      class=" ml-1">Yeni Ekle</b-button>
         </b-col>
         <b-col md="12"
-               lg="8">
+               lg="12">
 
-            <b-card title="Tüm Kategoriler"
-                    header-tag="header"
+            <b-card header-tag="header"
                     no-body>
                 <template #header>
-                    <h3 class="modal-title">
-                        Tüm Kategoriler
-                    </h3>
-                    <div class="ml-auto">
+                    <div class="float-left">
                         <b-input-group size="sm">
                             <b-input-group-prepend is-text>
                                 <feather-icon icon="SearchIcon" />
@@ -116,7 +63,7 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body v-if="isHiddenMultiDeleteButton === true">
+                <b-card-body v-show="isHiddenMultiDeleteButton === true">
                     <div class="d-flex justify-content-between flex-wrap">
                         <b-form-group class="mb-0">
                             <b-button variant="danger"
@@ -124,7 +71,7 @@
                                       @click="multiDeleteData">
                                 <feather-icon icon="Trash2Icon"
                                               class="mr-50" />
-                                <span class="align-middle">{{ checkedRowsCount }} Kategoriyi Sil</span>
+                                <span class="align-middle">{{ checkedRowsCount }} Kullanıcıyı Sil</span>
                             </b-button>
                             <b-button v-b-tooltip.hover
                                       title="Seçili kayıtları kalıcı olarak siler. Bu işlem geri alınamaz."
@@ -135,14 +82,13 @@
                                 <feather-icon icon="InfoIcon" />
                             </b-button>
                         </b-form-group>
-                        <div></div>
                     </div>
                 </b-card-body>
                 <div v-if="isSpinnerShow == true"
                      class="text-center mt-2 mb-2">
                     <b-spinner variant="primary" />
                 </div>
-                <div v-else>
+                <div v-else-if="isSpinnerShow == false && users.length > 0">
                     <b-table :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
@@ -159,48 +105,54 @@
                                              v-model="checkedRows"
                                              @change="checkChange($event)"></b-form-checkbox>
                         </template>
-                        <template #cell(Name)="row">
-                            <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
+                        <template #cell(ProfileImage)="row">
+                            <div class="image-icon">
+                                <b-img rounded
+                                       v-bind:src="row.item.ProfileImage == null ? noImage : require('@/assets/images/media/' + row.item.ProfileImage.FileName)"
+                                       :alt="row.item.ProfileImage == null ? '' : row.item.ProfileImage.AltText" />
+                            </div>
+                        </template>
+                        <template #cell(UserName)="row">
+                            <b-link :to="{ name:'pages-user-edit', query: { edit : row.item.Id } }">
                                 <b>{{row.item.Name}}</b>
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to=" {name: 'pages-category-view', params: { slug: row.item.Slug }}"
+                                    <b-link :to=" {name: 'pages-user-view', params: { slug: row.item.UserName }}"
                                             class="text-primary small">Görüntüle</b-link>
                                     <small class="text-muted"> | </small>
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                    <b-link :to="{ name:'pages-user-edit', query: { edit : row.item.Id } }"
                                             class="text-success small"
                                             variant="flat-danger">Düzenle</b-link>
                                     <small class="text-muted"> | </small>
                                     <b-link href="javascript:;"
                                             no-prefetch
                                             class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
+                                            @click="singleDeleteData(row.item.Id, row.item.UserName)">Sil</b-link>
                                 </div>
                             </div>
-                        </template>
+                        </template>                        
                     </b-table>
                 </div>
-                <div v-show="terms.length <= 0"
-                     class="text-center mt-1">{{ dataNullMessage  }}</div>
-                <b-card-body class="d-flex justify-content-between flex-wrap pt-1">
+                <div v-else-if="isSpinnerShow == false && users.length <= 0"
+                     class="text-center mt-1">Hiç bir kullanıcı bulunamadı.</div>
+                <b-card-body>
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <!-- page length -->
+                        <b-form-group label="Kayıt Sayısı: "
+                                      label-cols="6"
+                                      label-align="left"
+                                      label-size="sm"
+                                      label-for="sortBySelect"
+                                      class="text-nowrap mb-md-0 mr-1">
+                            <b-form-select id="perPageSelect"
+                                           v-model="perPage"
+                                           size="sm"
+                                           inline
+                                           :options="pageOptions" />
+                        </b-form-group>
 
-                    <!-- page length -->
-                    <b-form-group label="Kayıt Sayısı: "
-                                  label-cols="6"
-                                  label-align="left"
-                                  label-size="sm"
-                                  label-for="sortBySelect"
-                                  class="text-nowrap mb-md-0 mr-1">
-                        <b-form-select id="perPageSelect"
-                                       v-model="perPage"
-                                       size="sm"
-                                       inline
-                                       :options="pageOptions" />
-                    </b-form-group>
-
-                    <!-- pagination -->
-                    <div>
+                        <!-- pagination -->
                         <b-pagination v-model="currentPage"
                                       :total-rows="totalRows"
                                       :per-page="perPage"
@@ -213,6 +165,7 @@
                                 <feather-icon icon="ChevronLeftIcon"
                                               size="18" />
                             </template>
+
                             <template #next-text>
                                 <feather-icon icon="ChevronRightIcon"
                                               size="18" />
@@ -226,10 +179,10 @@
 </template>
 
 <script>
+    import moment from 'moment'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import required from '@validations'
     import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormGroup, BFormSelect, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
@@ -237,28 +190,27 @@
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
 
-    extend('required', {
-        ...required,
-        message: 'Lütfen gerekli bilgileri yazınız.'
-    });
-
     export default {
         components: {
             BBreadcrumb,
             BBreadcrumbItem,
+            BDropdown,
+            BDropdownItem,
             BSpinner,
+            BBadge,
             BCardTitle,
             BForm,
+            BFormSelect,
             BTable,
             BButton,
             BFormCheckbox,
+            BImg,
             BFormTextarea,
             BCard,
             BRow,
             BCol,
             BCardBody,
             BFormGroup,
-            BFormSelect,
             BPagination,
             BInputGroup,
             BFormInput,
@@ -267,7 +219,8 @@
             ValidationProvider,
             ValidationObserver,
             vSelect,
-            BLink
+            BLink,
+            moment
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -277,21 +230,18 @@
             return {
                 breadcrumbs: [
                     {
-                        text: 'Kategoriler',
+                        text: 'Kullanıcılar',
                         active: true,
                     }
                 ],
-                required,
+                noImage: require('@/assets/images/default/default-user-image.png'),
                 isSpinnerShow: true,
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],
                 totalRows: 1,
                 currentPage: 1,
                 filterText: '',
-                filterOnData: [],
-                terms: [],
-                dataNullMessage: '',
-                allParentTerms: [],
+                posts: [],
                 selected: '',
                 selectedValue: null,
                 isHiddenMultiDeleteButton: false,
@@ -299,23 +249,13 @@
                 name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
-                    { key: 'Name', label: 'İSİM', sortable: true, thStyle: { width: "200px" } },
-                    { key: 'Description', label: 'Açıklama', sortable: true },
-                    { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }],
+                    { key: 'ProfileImage', label: 'Profil Resmi', sortable: false, thStyle: { width: "50px" } },
+                    { key: 'UserName', label: 'Kullanıcı Adı', sortable: true, thStyle: { width: "200px" } },
+                    { key: 'FirstName', label: 'Ad Soyad', sortable: true, thStyle: { width: "150px" } },
+                    { key: 'Email', label: 'E-Posta Adresi', sortable: true, thStyle: { width: "100px" } }],
                 checkedRows: [],
-                checkedRowsCount: 0,
-                termAddDto: {
-                    Name: "",
-                    Slug: "",
-                    ParentId: null,
-                    Description: "",
-                    TermType: "category"
-                },
-                seoObjectSettingAddDto: {
-                    SeoTitle: this.Name
-                },
-                hoveredRow: null
+                checkedRowsCount: '',
+                hoveredRow: null,
             }
         },
         methods: {
@@ -335,7 +275,7 @@
             checkChange() {
                 if (this.checkedRows.length > 0) {
                     this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = this.checkedRowsCount = "( " + this.checkedRows.length + " )";
+                    this.checkedRowsCount = "( " + this.checkedRows.length + " )";
                 }
                 else {
                     this.isHiddenMultiDeleteButton = false;
@@ -345,8 +285,8 @@
                 if (value === true) {
                     var idList = [];
                     for (var i = 0; i < this.perPage; i++) {
-                        if (this.terms[i] != null) {
-                            idList.push(this.terms[i].Id);
+                        if (this.posts[i] != null) {
+                            idList.push(this.posts[i].Id);
                         }
                     }
                     this.checkedRows = idList;
@@ -357,57 +297,10 @@
                 }
                 this.checkChange();
             },
-            validationForm() {
-                this.$refs.simpleRules.validate().then(success => {
-                    if (success) {
-                        axios.post('/admin/term/new',
-                            {
-                                TermAddDto: this.termAddDto,
-                                SeoObjectSettingAddDto: this.seoObjectSettingAddDto
-                            })
-                            .then((response) => {
-                                if (response.data.TermDto.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.TermDto.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
             singleDeleteData(id, name) {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " isimli terim kalıcı olarak silinecektir?",
+                    text: name + " adlı kullanıcı kalıcı olarak silinecektir.",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -419,16 +312,16 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/term/delete?term=' + id)
+                        axios.post('/admin/user/delete?userId=' + id)
                             .then((response) => {
-                                if (response.data.ResultStatus === 0) {
+                                if (response.data.PostDto.ResultStatus === 0) {
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
                                             variant: 'success',
                                             title: 'Başarılı İşlem!',
                                             icon: 'CheckIcon',
-                                            text: response.data.Message
+                                            text: response.data.PostDto.Message
                                         }
                                     })
                                     this.getAllData();
@@ -440,7 +333,7 @@
                                             variant: 'danger',
                                             title: 'Başarısız İşlem!',
                                             icon: 'AlertOctagonIcon',
-                                            text: response.data.Message
+                                            text: response.data.PostDto.Message
                                         },
                                     })
                                 }
@@ -462,7 +355,7 @@
             multiDeleteData() {
                 this.$swal({
                     title: 'Toplu olarak silmek istediğinizden emin misiniz?',
-                    text: this.checkedRowsCount + " kategori kalıcı olarak silinecektir?",
+                    text: this.checkedRowsCount + " adet makale kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -475,42 +368,30 @@
                 }).then(result => {
                     if (result.value) {
                         this.checkedRows.forEach((id, index) => {
-                            axios.post('/admin/term/delete?term=' + id)
+                            axios.post('/admin/user/delete?userId=' + id)
                                 .then((response) => {
-                                    if (response.data.ResultStatus === 0) {
-                                        this.checkedRowsCount = "";
-                                        this.isHiddenMultiDeleteButton = false;
+                                    if (response.data.PostDto.ResultStatus === 0) {
                                         this.getAllData();
                                     }
                                 });
-                        });
+                        })
                     }
                 })
             },
             getAllData() {
                 this.isSpinnerShow = true;
-                axios.get('/admin/term/allterms', {
-                    params: {
-                        term_type: "category"
-                    }
-                })
+                axios.get('/admin/user/allusers')
                     .then((response) => {
-                        this.totalRows = response.data.Terms.length;
+                        console.log(response.data)
                         if (response.data.ResultStatus === 0) {
-                            this.terms = response.data.Terms;
-                            this.allParentTerms = response.data.Terms;
+                            this.users = response.data.Users;
+                        } else {
+                            this.users = [];
                         }
-                        else {
-                            this.isSpinnerShow = false;
-                            this.terms = [];
-                            this.allParentTerms = [];
-                            this.dataNullMessage = response.data.Message;
-                        }
-
                         this.filterText = "";
                         this.isSpinnerShow = false;
                         this.checkedRowsCount = "";
-                        this.checkedRows = [];
+                        this.checkedRows = "";
                         this.isHiddenMultiDeleteButton = false;
                     })
                     .catch((error) => {
@@ -520,7 +401,7 @@
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: this.title + ' listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: 'Kullanıcılar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });
@@ -531,12 +412,12 @@
                     return true;
                 }
 
-                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+                return (data.UserName.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
         computed: {
             filteredData: function () {
-                return this.terms
+                return this.posts
                     .filter(this.filterByName);
             }
         },
@@ -546,14 +427,26 @@
     }
 </script>
 
-<style lang="scss">
-    @import '@core/scss/vue/libs/vue-select.scss';
-
+<style>
     [dir] .table th, [dir] .table td {
         padding: 0.72rem !important;
     }
 
-    [dir] .table th:last-child, [dir] .table td:last-child {
-        text-align: center;
+    .image-icon {
+        width: 50px;
+        height: 50px;
+        position: relative;
     }
+
+        .image-icon img {
+            max-height: 100%;
+            max-width: 100%;
+            border-radius: 5px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+        }
 </style>

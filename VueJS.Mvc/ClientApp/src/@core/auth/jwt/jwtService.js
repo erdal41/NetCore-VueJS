@@ -110,13 +110,13 @@ export default class JwtService {
         }
         return this.axiosIns.post(this.jwtConfig.loginEndpoint, { UserLoginDto: userLoginDto }).then((response) => {
             let error = "Birþeyler ters gitti.";
-            if (response.data.User != null) {
+            if (response.data.UserLoginViewModel != null) {
                 try {
-                    const accessToken = jwt.sign({ id: response.data.User.Id }, this.jwtTokenConfig.secret, { expiresIn: this.jwtTokenConfig.expireTime })
-                    const refreshToken = jwt.sign({ id: response.data.User.Id }, this.jwtTokenConfig.refreshTokenSecret, {
+                    const accessToken = jwt.sign({ id: response.data.UserLoginViewModel.Id }, this.jwtTokenConfig.secret, { expiresIn: this.jwtTokenConfig.expireTime })
+                    const refreshToken = jwt.sign({ id: response.data.UserLoginViewModel.Id }, this.jwtTokenConfig.refreshTokenSecret, {
                         expiresIn: this.jwtTokenConfig.refreshTokenExpireTime,
                     })
-                    const userData = response.data.User
+                    const userData = response.data.UserLoginViewModel
                     console.log("userData");
                     console.log(response.data.User);
                     //delete request.password

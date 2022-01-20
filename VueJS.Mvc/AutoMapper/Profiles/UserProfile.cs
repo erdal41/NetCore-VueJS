@@ -15,8 +15,8 @@ namespace VueJS.Mvc.AutoMapper.Profiles
             CreateMap<UserUpdateDto, User>();
             CreateMap<UserViewModel, User>();
 
-            CreateMap<UserLoginDto, User>();
-            CreateMap<User, UserLoginDto>();
+            CreateMap<UserLoginViewModel, User>();
+            CreateMap<User, UserLoginViewModel>();
         }
     }
 }

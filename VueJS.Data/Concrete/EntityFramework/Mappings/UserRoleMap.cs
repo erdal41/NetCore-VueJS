@@ -121,6 +121,106 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     UserId = 1,
                     RoleId = 22
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 23
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 24
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 25
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 26
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 27
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 28
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 29
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 30
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 31
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 32
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 33
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 34
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 35
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 36
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 37
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 38
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 39
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 40
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 41
+                },
+                new UserRole
+                {
+                    UserId = 1,
+                    RoleId = 42
                 });
         }
     }
