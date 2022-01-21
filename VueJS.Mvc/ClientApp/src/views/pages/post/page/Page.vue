@@ -629,6 +629,10 @@ import { integer } from '../../../../@core/utils/validations/validations'
         padding: 0.72rem !important;
     }
 
+    .card-header {
+        padding: 15px 0px 15px 10px !important;
+    }
+
     .image-icon {
         width: 50px;
         height: 50px;

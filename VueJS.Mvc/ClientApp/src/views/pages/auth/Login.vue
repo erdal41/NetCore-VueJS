@@ -87,7 +87,7 @@
 </template>
 
 <script>
-    import { ValidationProvider, ValidationObserver } from 'vee-validate'
+    import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import {
         BImg, BButton, BForm, BFormInput, BFormGroup, BCard, BLink, BCardTitle, BCardText, BInputGroup, BInputGroupAppend, BFormCheckbox,
     } from 'bootstrap-vue'
@@ -98,6 +98,16 @@
     import { getHomeRouteForLoggedInUser } from '@/auth/utils'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import axios from 'axios'
+
+    extend('required', {
+        ...required,
+        message: 'Lütfen gerekli bilgileri yazınız.'
+    });
+
+    extend('email', {
+        ...email,
+        message: 'Lütfen geçerli bir e-posta adresi giriniz.'
+    });
 
     export default {
         components: {

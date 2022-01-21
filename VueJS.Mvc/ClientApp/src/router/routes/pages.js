@@ -172,7 +172,7 @@ export default [
     {
         path: '/admin/user',
         name: 'pages-user-edit',
-        component: () => import('@/views/pages/post/Edit.vue'),
+        component: () => import('@/views/pages/user/user-edit/UserEdit.vue'),
         meta: {
             resource: 'User',
             action: 'update',

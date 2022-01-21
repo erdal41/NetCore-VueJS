@@ -106,7 +106,11 @@
                                              @change="checkChange($event)"></b-form-checkbox>
                         </template>
                         <template #cell(ProfileImage)="row">
-                            <div class="image-icon">
+                            <feather-icon v-if="row.item.ProfileImage == null"
+                                          icon="UserIcon"
+                                          size="30" />
+                            <div v-else
+                                 class="image-icon">
                                 <b-img rounded
                                        v-bind:src="row.item.ProfileImage == null ? noImage : require('@/assets/images/media/' + row.item.ProfileImage.FileName)"
                                        :alt="row.item.ProfileImage == null ? '' : row.item.ProfileImage.AltText" />
@@ -114,7 +118,7 @@
                         </template>
                         <template #cell(UserName)="row">
                             <b-link :to="{ name:'pages-user-edit', query: { edit : row.item.Id } }">
-                                <b>{{row.item.Name}}</b>
+                                <b>{{row.item.UserName}}</b>
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
@@ -131,11 +135,11 @@
                                             @click="singleDeleteData(row.item.Id, row.item.UserName)">Sil</b-link>
                                 </div>
                             </div>
-                        </template>                        
+                        </template>
                     </b-table>
                 </div>
                 <div v-else-if="isSpinnerShow == false && users.length <= 0"
-                     class="text-center mt-1">Hiç bir kullanıcı bulunamadı.</div>
+                     class="text-center mt-1">Hiç bir kullaimgnıcı bulunamadı.</div>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
@@ -179,48 +183,36 @@
 </template>
 
 <script>
-    import moment from 'moment'
-    import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import {
-        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BFormSelect, BFormGroup, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
 
     export default {
         components: {
             BBreadcrumb,
             BBreadcrumbItem,
-            BDropdown,
-            BDropdownItem,
             BSpinner,
-            BBadge,
             BCardTitle,
-            BForm,
-            BFormSelect,
             BTable,
             BButton,
             BFormCheckbox,
             BImg,
-            BFormTextarea,
             BCard,
             BRow,
             BCol,
             BCardBody,
+            BFormSelect,
             BFormGroup,
             BPagination,
             BInputGroup,
             BFormInput,
             BInputGroupPrepend,
             ToastificationContent,
-            ValidationProvider,
-            ValidationObserver,
-            vSelect,
             BLink,
-            moment
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -241,7 +233,7 @@
                 totalRows: 1,
                 currentPage: 1,
                 filterText: '',
-                posts: [],
+                users: [],
                 selected: '',
                 selectedValue: null,
                 isHiddenMultiDeleteButton: false,
@@ -249,7 +241,7 @@
                 name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
-                    { key: 'ProfileImage', label: 'Profil Resmi', sortable: false, thStyle: { width: "50px" } },
+                    { key: 'ProfileImage', label: 'Resim', sortable: false, thStyle: { width: "50px" } },
                     { key: 'UserName', label: 'Kullanıcı Adı', sortable: true, thStyle: { width: "200px" } },
                     { key: 'FirstName', label: 'Ad Soyad', sortable: true, thStyle: { width: "150px" } },
                     { key: 'Email', label: 'E-Posta Adresi', sortable: true, thStyle: { width: "100px" } }],
@@ -285,8 +277,8 @@
                 if (value === true) {
                     var idList = [];
                     for (var i = 0; i < this.perPage; i++) {
-                        if (this.posts[i] != null) {
-                            idList.push(this.posts[i].Id);
+                        if (this.users[i] != null) {
+                            idList.push(this.users[i].Id);
                         }
                     }
                     this.checkedRows = idList;
@@ -417,7 +409,7 @@
         },
         computed: {
             filteredData: function () {
-                return this.posts
+                return this.users
                     .filter(this.filterByName);
             }
         },
@@ -428,6 +420,10 @@
 </script>
 
 <style>
+    .card-header {
+        padding: 15px 0px 15px 10px !important;
+    }
+
     [dir] .table th, [dir] .table td {
         padding: 0.72rem !important;
     }

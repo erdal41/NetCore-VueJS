@@ -549,6 +549,10 @@
 <style lang="scss">
     @import '@core/scss/vue/libs/vue-select.scss';
 
+    .card-header {
+        padding: 15px 0px 15px 10px !important;
+    }
+
     [dir] .table th, [dir] .table td {
         padding: 0.72rem !important;
     }
