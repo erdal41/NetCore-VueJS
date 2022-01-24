@@ -17,10 +17,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
     public class UserController : BaseController
     {
         private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<Role> _roleManager;
 
-        public UserController(UserManager<User> userManager, IMapper mapper, SignInManager<User> signInManager, IImageHelper imageHelper) : base(userManager, mapper, imageHelper)
+        public UserController(UserManager<User> userManager, IMapper mapper, IImageHelper imageHelper, SignInManager<User> signInManager, RoleManager<Role> roleManager) : base(userManager, mapper, imageHelper)
         {
             _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
         [HttpGet("/admin/user/allusers")]
@@ -77,9 +79,31 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             if (userResult != null)
             {
                 var userUpdateDto = Mapper.Map<UserUpdateDto>(userResult);
+
+                var roles = await _roleManager.Roles.ToListAsync();
+                var userRoles = await UserManager.GetRolesAsync(userResult);
+
+                UserRoleAssignDto userRoleAssignDto = new UserRoleAssignDto
+                {
+                    UserId = userResult.Id,
+                    UserName = userResult.UserName
+                };
+
+                foreach (var role in roles)
+                {
+                    RoleAssignDto rolesAssignDto = new RoleAssignDto
+                    {
+                        RoleId = role.Id,
+                        RoleName = role.Name,
+                        HasRole = userRoles.Contains(role.Name)
+                    };
+                    userRoleAssignDto.RoleAssignDtos.Add(rolesAssignDto);
+                }
+
                 var userViewModel = new UserViewModel
                 {
-                    UserUpdateDto = userUpdateDto
+                    UserUpdateDto = userUpdateDto,
+                    UserRoleAssignDto = userRoleAssignDto
                 };
                 return Json(userViewModel);
             }
@@ -155,34 +179,34 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> PasswordChange(UserPasswordChangeDto userPasswordChangeDto)
         {
 
-                var user = await UserManager.GetUserAsync(HttpContext.User);
-                var isVerified = await UserManager.CheckPasswordAsync(user, userPasswordChangeDto.CurrentPassword);
-                if (isVerified)
+            var user = await UserManager.GetUserAsync(HttpContext.User);
+            var isVerified = await UserManager.CheckPasswordAsync(user, userPasswordChangeDto.CurrentPassword);
+            if (isVerified)
+            {
+                var result = await UserManager.ChangePasswordAsync(user, userPasswordChangeDto.CurrentPassword,
+                    userPasswordChangeDto.NewPassword);
+                if (result.Succeeded)
                 {
-                    var result = await UserManager.ChangePasswordAsync(user, userPasswordChangeDto.CurrentPassword,
-                        userPasswordChangeDto.NewPassword);
-                    if (result.Succeeded)
-                    {
-                        await UserManager.UpdateSecurityStampAsync(user);
-                        await _signInManager.SignOutAsync();
-                        await _signInManager.PasswordSignInAsync(user, userPasswordChangeDto.NewPassword, true, false);
-                        return Json(userPasswordChangeDto);
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error.Description);
-                        }
-
-                        return Json(userPasswordChangeDto);
-                    }
+                    await UserManager.UpdateSecurityStampAsync(user);
+                    await _signInManager.SignOutAsync();
+                    await _signInManager.PasswordSignInAsync(user, userPasswordChangeDto.NewPassword, true, false);
+                    return Json(userPasswordChangeDto);
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Lütfen, girmiş olduğunuz şu anki şifrenizi kontrol ediniz.");
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+
                     return Json(userPasswordChangeDto);
                 }
+            }
+            else
+            {
+                ModelState.AddModelError("", "Lütfen, girmiş olduğunuz şu anki şifrenizi kontrol ediniz.");
+                return Json(userPasswordChangeDto);
+            }
         }
 
         [HttpGet("/password-reset/")]

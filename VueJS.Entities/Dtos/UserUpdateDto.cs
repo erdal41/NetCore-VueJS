@@ -1,6 +1,7 @@
 ﻿using VueJS.Entities.Concrete;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace VueJS.Entities.Dtos
 {
@@ -80,5 +81,6 @@ namespace VueJS.Entities.Dtos
         public string WebsiteLink { get; set; }
 
         public Upload ProfileImage { get; set; }
+        public IList<string> Roles { get; set; }
     }
 }

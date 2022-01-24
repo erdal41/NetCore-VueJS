@@ -72,11 +72,11 @@
                     </b-form-group>
                 </b-col>
                 <b-col sm="6">
-                    <b-form-group label="Kullanıcı Adı"
+                    <b-form-group label="Yalnızca harfler, sayılar, kısa çizgiler veya alt çizgilerden oluşabilir."
                                   label-for="username">
                         <validation-provider #default="{ errors }"
                                              name="username"
-                                             rules="required">
+                                             rules="required|minmax|alpha-dash">
                             <b-form-input id="username"
                                           v-model="optionsLocal.UserName"
                                           :state="errors.length > 0 ? false:null"
@@ -91,13 +91,13 @@
                                   label-for="email">
                         <validation-provider #default="{ errors }"
                                              name="email"
-                                             rules="required|email">                            
-                                <b-form-input id="email"
-                                              v-model="optionsLocal.Email"
-                                              name="email"
-                                              :state="errors.length > 0 ? false:null"
-                                              placeholder="E-posta Adresi"
-                                              autofocus />
+                                             rules="required|email">
+                            <b-form-input id="email"
+                                          v-model="optionsLocal.Email"
+                                          name="email"
+                                          :state="errors.length > 0 ? false:null"
+                                          placeholder="E-posta Adresi"
+                                          autofocus />
                             <small class="text-danger">{{ errors[0] }}</small>
                         </validation-provider>
                     </b-form-group>
@@ -128,7 +128,7 @@
 
 <script>
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import { required, email } from '@validations'
+    import { required, minmax, alpha, email } from '@validations'
 
     import {
         BButton, BForm, BFormGroup, BFormInput, BInputGroup, BInputGroupPrepend, BRow, BCol, BCard, BCardText, BImg,
@@ -141,6 +141,18 @@
     extend('required', {
         ...required,
         message: 'Lütfen gerekli bilgileri yazınız.'
+    });
+
+    extend('minmax', {
+        validate(value) {
+            return value.length >= 6 && value.length <= 30;
+        },
+        message: 'Kullanıcı Adı, en az 6 ve en fazla 30 karakter olmalıdır.'
+    });
+
+    extend('alpha-dash', {
+        ...alpha,
+        message: 'Kullanıcı Adı, harfler, sayılar, kısa çizgiler veya alt çizgilerden oluşabilir.'
     });
 
     extend('email', {
@@ -185,6 +197,8 @@
                     altText: null,
                 },
                 required,
+                minmax,
+                alpha,
                 email,
             }
         },

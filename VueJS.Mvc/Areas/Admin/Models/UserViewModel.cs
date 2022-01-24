@@ -11,6 +11,8 @@ namespace VueJS.Mvc.Areas.Admin.Models
         public UserAddDto UserAddDto { get; set; }
 
         public UserUpdateDto UserUpdateDto { get; set; }
+
+        public UserRoleAssignDto UserRoleAssignDto { get; set; }
         public string UserUpdatePartial { get; set; }
     }
 }

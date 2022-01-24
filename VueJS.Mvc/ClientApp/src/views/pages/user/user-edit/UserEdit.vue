@@ -103,6 +103,21 @@
                                       :social-data="users.UserUpdateDto" />
                 </b-tab>
 
+                <!-- roles -->
+                <b-tab>
+
+                    <!-- title -->
+                    <template #title>
+                        <feather-icon icon="ShieldIcon"
+                                      size="18"
+                                      class="mr-50" />
+                        <span class="font-weight-bold">Roller</span>
+                    </template>
+
+                    <user-edit-role v-if="users.UserUpdateDto"
+                                      :role-data="users.UserRoleAssignDto" />
+                </b-tab>
+
                 <!-- notification -->
                 <b-tab>
 
@@ -127,6 +142,7 @@
     import UserEditPassword from './UserEditPassword.vue'
     import UserEditInformation from './UserEditInformation.vue'
     import UserEditSocial from './UserEditSocial.vue'
+    import UserEditRole from './UserEditRole.vue'
     import UserEditNotification from './UserEditNotification.vue'
 
     export default {
@@ -142,6 +158,7 @@
             UserEditPassword,
             UserEditInformation,
             UserEditSocial,
+            UserEditRole,
             UserEditNotification,
         },
         data() {

@@ -19,12 +19,11 @@
                         <b-input-group class="input-group-merge"
                                        :class="oldPasswordValidation ? 'is-valid' : 'is-invalid'">
                             <b-form-input id="account-old-password"
-                                          v-model="passwordValueOld"
+                                          v-model="oldPasswordValue"
                                           name="old-password"
                                           :type="passwordFieldTypeOld"
                                           :state="oldPasswordValidation"
-                                          placeholder="Mevcut şifrenizi yazınız"
-                                          @keyup.space="preventLeadingSpace" />
+                                          placeholder="Mevcut şifrenizi yazınız" />
                             <b-input-group-append is-text>
                                 <feather-icon :icon="passwordToggleIconOld"
                                               class="cursor-pointer"
@@ -32,11 +31,8 @@
                             </b-input-group-append>
                         </b-input-group>
                         <b-form-invalid-feedback :state="oldPasswordValidation">
-                            Lütfen mevcut şifrenizi giriniz.
+                            Mevcut Şifre alanı boş olmamalıdır.
                         </b-form-invalid-feedback>
-                        <b-form-valid-feedback :state="oldPasswordValidation">
-                            Looks Good.
-                        </b-form-valid-feedback>
                     </b-form-group>
                 </b-col>
                 <!--/ old password -->
@@ -44,12 +40,14 @@
             <b-row>
                 <!-- new password -->
                 <b-col md="6">
-                    <b-form-group label-for="Yeni Şifreniz"
+                    <b-form-group label-for="account-new-password"
                                   label="Yeni Şifreniz">
-                        <b-input-group class="input-group-merge">
+                        <b-input-group class="input-group-merge"
+                                       :class="newPasswordValidation ? 'is-valid' : 'is-invalid'">
                             <b-form-input id="account-new-password"
                                           v-model="newPasswordValue"
                                           :type="passwordFieldTypeNew"
+                                          :state="newPasswordValidation"
                                           name="new-password"
                                           placeholder="Yeni şifrenizi yazınız" />
                             <b-input-group-append is-text>
@@ -58,17 +56,25 @@
                                               @click="togglePasswordNew" />
                             </b-input-group-append>
                         </b-input-group>
+                        <b-form-invalid-feedback :state="newPasswordValidation">
+                            Şifreniz en az bir büyük harf, bir küçük harf, bir özel karakter ve bir rakam içermelidir.
+                        </b-form-invalid-feedback>
+                        <b-form-valid-feedback :state="newPasswordValidation">
+                            İyi görünüyor.
+                        </b-form-valid-feedback>
                     </b-form-group>
                 </b-col>
                 <!--/ new password -->
                 <!-- retype password -->
                 <b-col md="6">
-                    <b-form-group label-for="Yeni Şifreniz"
+                    <b-form-group label-for="account-retype-new-password"
                                   label="Tekrar Yeni Şifreniz">
-                        <b-input-group class="input-group-merge">
+                        <b-input-group class="input-group-merge"
+                                       :class="newPasswordRetypeValidation ? 'is-valid' : 'is-invalid'">
                             <b-form-input id="account-retype-new-password"
                                           v-model="RetypePassword"
                                           :type="passwordFieldTypeRetype"
+                                          :state="newPasswordRetypeValidation"
                                           name="retype-password"
                                           placeholder="Yeni şifrenizi tekrar yazınız" />
                             <b-input-group-append is-text>
@@ -77,6 +83,12 @@
                                               @click="togglePasswordRetype" />
                             </b-input-group-append>
                         </b-input-group>
+                        <b-form-invalid-feedback :state="newPasswordRetypeValidation">
+                            Girmiş olduğunuz yeni şifreler uyuşmuyor.
+                        </b-form-invalid-feedback>
+                        <b-form-valid-feedback :state="newPasswordRetypeValidation">
+                            İyi görünüyor.
+                        </b-form-valid-feedback>
                     </b-form-group>
                 </b-col>
                 <!--/ retype password -->
@@ -111,6 +123,7 @@
     } from 'bootstrap-vue'
     import Ripple from 'vue-ripple-directive'
 
+
     export default {
         components: {
             BButton,
@@ -123,27 +136,59 @@
             BInputGroup,
             BInputGroupAppend,
             BFormInvalidFeedback,
-            BFormValidFeedback
+            BFormValidFeedback,
         },
         directives: {
             Ripple,
         },
         data() {
-            return {
-                passwordValueOld: '',
+            return {                
+                oldPasswordValue: '',
                 newPasswordValue: '',
                 RetypePassword: '',
                 passwordFieldTypeOld: 'password',
                 passwordFieldTypeNew: 'password',
                 passwordFieldTypeRetype: 'password',
+                passwordLength: 0,
+                containsEightCharacters: false,
+                containsNumber: false,
+                containsLowercase: false,
+                containsUppercase: false,
+                containsSpecialCharacter: false,
+                validPassword: false
             }
         },
         computed: {
             oldPasswordValidation() {
+                return this.oldPasswordValue.length > 0
             },
-            preventLeadingSpace(e) {
-                console.log(e)
-                
+            newPasswordValidation() {
+                this.passwordLength = this.newPasswordValue.length;
+                const format = /[ !@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+
+                if (this.passwordLength > 8) {
+                    this.containsEightCharacters = true;
+                } else {
+                    this.containsEightCharacters = false;
+                }
+                this.containsNumber = /\d/.test(this.newPasswordValue);
+                this.containsLowercase = /[a-z]/.test(this.newPasswordValue);
+                this.containsUppercase = /[A-Z]/.test(this.newPasswordValue);
+                this.containsSpecialCharacter = format.test(this.newPasswordValue);
+
+                if (this.containsEightCharacters === true &&
+                    this.containsSpecialCharacter === true &&
+                    this.containsLowercase === true &&
+                    this.containsUppercase === true &&
+                    this.containsNumber === true) {
+                    this.validPassword = true;
+                } else {
+                    this.validPassword = false;
+                }
+                return this.validPassword;
+            },
+            newPasswordRetypeValidation() {
+                return this.RetypePassword.length > 0 && this.newPasswordValue == this.RetypePassword;
             },
             passwordToggleIconOld() {
                 return this.passwordFieldTypeOld === 'password' ? 'EyeIcon' : 'EyeOffIcon'
