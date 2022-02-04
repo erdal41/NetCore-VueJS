@@ -6,9 +6,13 @@
 
   <ItemGroup>
     <Compile Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+    <Compile Remove="ClientApp\src\views\pages\user\NewFolder\**" />
     <Content Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+    <Content Remove="ClientApp\src\views\pages\user\NewFolder\**" />
     <EmbeddedResource Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+    <EmbeddedResource Remove="ClientApp\src\views\pages\user\NewFolder\**" />
     <None Remove="ClientApp\src\%40core\layouts\layout-web\components\horizontal-nav-menu\components - Kopyala\**" />
+    <None Remove="ClientApp\src\views\pages\user\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>

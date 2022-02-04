@@ -331,8 +331,4 @@
     [dir] .table th, [dir] .table td {
         padding: 0.72rem !important;
     }
-
-    [dir] .table th:last-child, [dir] .table td:last-child {
-        text-align: center;
-    }
 </style>

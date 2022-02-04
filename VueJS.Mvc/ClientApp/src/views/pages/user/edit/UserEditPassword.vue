@@ -101,7 +101,9 @@
                 <b-col cols="12">
                     <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
                               variant="primary"
-                              class="mt-1 mr-1">
+                              class="mt-1 mr-1"
+                              :disabled="disabledButton ? false : true"
+                              @click.prevent="passwordChange">
                         Güncelle
                     </b-button>
                     <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
@@ -122,7 +124,8 @@
         BButton, BForm, BFormGroup, BFormInput, BRow, BCol, BCard, BInputGroup, BInputGroupAppend, BFormInvalidFeedback, BFormValidFeedback
     } from 'bootstrap-vue'
     import Ripple from 'vue-ripple-directive'
-
+    import axios from 'axios';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
 
     export default {
         components: {
@@ -142,7 +145,7 @@
             Ripple,
         },
         data() {
-            return {                
+            return {
                 oldPasswordValue: '',
                 newPasswordValue: '',
                 RetypePassword: '',
@@ -159,6 +162,14 @@
             }
         },
         computed: {
+            disabledButton() {
+                if (this.oldPasswordValidation === true && this.newPasswordValidation === true && this.newPasswordRetypeValidation === true) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            },
             oldPasswordValidation() {
                 return this.oldPasswordValue.length > 0
             },
@@ -210,6 +221,53 @@
             togglePasswordRetype() {
                 this.passwordFieldTypeRetype = this.passwordFieldTypeRetype === 'password' ? 'text' : 'password'
             },
+            passwordChange() {
+                if (this.oldPasswordValidation === true && this.newPasswordValidation === true && this.newPasswordRetypeValidation === true) {
+                    axios.post('/admin/user/passwordchange',
+                        {
+                            CurrentPassword: this.oldPasswordValue,
+                            NewPassword: this.newPasswordValue,
+                            RepeatPassword: this.RetypePassword,
+                        }).then((response) => {
+                            console.log(response.data)
+                            if (response.data.UserDto.ResultStatus === 0) {
+                                this.$toast({
+                                    component: ToastificationContent,
+                                    props: {
+                                        variant: 'success',
+                                        title: 'Başarılı İşlem!',
+                                        icon: 'CheckIcon',
+                                        text: response.data.UserDto.Message
+                                    }
+                                })
+                            }
+                            else {
+                                this.$toast({
+                                    component: ToastificationContent,
+                                    props: {
+                                        variant: 'danger',
+                                        title: 'Başarısız İşlem!',
+                                        icon: 'AlertOctagonIcon',
+                                        text: response.data.UserDto.Message
+                                    },
+                                })
+                            }
+                        })
+                        .catch((error) => {
+                            console.log(error)
+                            console.log(error.request)
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Hata Oluştu!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                                },
+                            })
+                        });
+                }
+            }
         },
     }
 </script>

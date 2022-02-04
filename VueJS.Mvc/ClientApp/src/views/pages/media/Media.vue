@@ -106,7 +106,8 @@
                     <b-spinner variant="primary" />
                 </div>
                 <div v-else>
-                    <b-table :items="filteredData"
+                    <b-table id="media-table"
+                             :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
                              :current-page="currentPage"
@@ -539,7 +540,7 @@
         padding: 0.72rem !important;
     }
 
-    [dir] .table th:last-child, [dir] .table td:last-child {
+    [dir] #media-table.table th:last-child, [dir] .table td:last-child {
         text-align: center;
     }
 </style>

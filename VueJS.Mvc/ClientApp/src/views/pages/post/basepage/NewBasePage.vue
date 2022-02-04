@@ -449,7 +449,7 @@
     import 'quill/dist/quill.snow.css'
 
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
-    import required from '@validations';
+    import { required } from '@validations';
     import {
         BBreadcrumb, BBreadcrumbItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';

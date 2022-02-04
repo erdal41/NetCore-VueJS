@@ -163,7 +163,8 @@
                     <b-spinner variant="primary" />
                 </div>
                 <div v-else-if="isSpinnerShow == false && posts.length > 0">
-                    <b-table :items="filteredData"
+                    <b-table id="articles-table"
+                             :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
                              :current-page="currentPage"

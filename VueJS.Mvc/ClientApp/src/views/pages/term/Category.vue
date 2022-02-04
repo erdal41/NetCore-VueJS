@@ -26,6 +26,9 @@
                 </b-col>
             </b-row>
         </b-col>
+        <modal-media v-bind:show="modalShow"
+                     @changeImage="imageChange"
+                     ref="modalMedia"></modal-media>
         <b-col md="12"
                lg="4">
             <b-card title="Kategori Ekle">
@@ -143,7 +146,8 @@
                     <b-spinner variant="primary" />
                 </div>
                 <div v-else>
-                    <b-table :items="filteredData"
+                    <b-table id="categories-table"
+                             :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
                              :current-page="currentPage"
@@ -227,7 +231,7 @@
 
 <script>
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import required from '@validations'
+    import { required } from '@validations'
     import {
         BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormGroup, BFormSelect, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
@@ -281,6 +285,7 @@
                         active: true,
                     }
                 ],
+                modalShow: false,
                 required,
                 isSpinnerShow: true,
                 perPage: 10,
@@ -557,7 +562,7 @@
         padding: 0.72rem !important;
     }
 
-    [dir] .table th:last-child, [dir] .table td:last-child {
+    [dir] #categories-table.table th:last-child, [dir] .table td:last-child {
         text-align: center;
     }
 </style>

@@ -222,7 +222,7 @@
 
 <script>
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import required from '@validations'
+    import { required } from '@validations'
     import {
         BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'

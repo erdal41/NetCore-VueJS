@@ -24,7 +24,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         //private readonly IFileHelper _fileHelper;
         //private readonly ICacheService _cacheService;
 
-        public PostController(IPostService postService, ISeoService seoService, UserManager<User> userManager, IMapper mapper, IImageHelper imageHelper) : base(userManager, mapper, imageHelper)
+        public PostController(IPostService postService, ISeoService seoService, UserManager<User> userManager, IMapper mapper) : base(userManager, mapper)
         {
             _postService = postService;
             _seoService = seoService;

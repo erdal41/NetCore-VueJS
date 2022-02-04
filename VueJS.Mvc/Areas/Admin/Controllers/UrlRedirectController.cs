@@ -21,7 +21,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
     {
         private readonly IUrlRedirectService _urlRedirectService;
 
-        public UrlRedirectController(IUrlRedirectService urlRedirectService, UserManager<User> userManager, IMapper mapper, IImageHelper imageHelper) : base(userManager, mapper, imageHelper)
+        public UrlRedirectController(IUrlRedirectService urlRedirectService, UserManager<User> userManager, IMapper mapper) : base(userManager, mapper)
         {
             _urlRedirectService = urlRedirectService;
         }

@@ -115,22 +115,8 @@
                     </template>
 
                     <user-edit-role v-if="users.UserUpdateDto"
-                                      :role-data="users.UserRoleAssignDto" />
-                </b-tab>
-
-                <!-- notification -->
-                <b-tab>
-
-                    <!-- title -->
-                    <template #title>
-                        <feather-icon icon="BellIcon"
-                                      size="18"
-                                      class="mr-50" />
-                        <span class="font-weight-bold">Bildirimler</span>
-                    </template>
-                    <user-edit-notification v-if="users.UserUpdateDto"
-                                            :notification-data="users.UserUpdateDto" />
-                </b-tab>
+                                    :role-data="users.UserRolesViewModel" />
+                </b-tab>                
             </b-tabs>
         </b-col>
     </b-row>
@@ -143,7 +129,6 @@
     import UserEditInformation from './UserEditInformation.vue'
     import UserEditSocial from './UserEditSocial.vue'
     import UserEditRole from './UserEditRole.vue'
-    import UserEditNotification from './UserEditNotification.vue'
 
     export default {
         components: {
@@ -159,7 +144,6 @@
             UserEditInformation,
             UserEditSocial,
             UserEditRole,
-            UserEditNotification,
         },
         data() {
             return {
@@ -183,9 +167,12 @@
                 this.options = res.data
             })
 
-            this.$http.get('/admin/user/edit?user=' + this.$route.query.edit).then(res => {
+            this.$http.get('/admin/user-edit?user=' + this.$route.query.edit).then(res => {
                 console.log(res.data)
                 this.users = res.data
+            }).catch((error) => {
+                console.log(error)
+                console.log(error.request)
             })
         },
     }

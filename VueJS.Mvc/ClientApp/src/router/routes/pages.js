@@ -163,7 +163,7 @@ export default [
     {
         path: '/admin/user/new',
         name: 'pages-user-add',
-        component: () => import('@/views/pages/user/User.vue'),
+        component: () => import('@/views/pages/user/New.vue'),
         meta: {
             resource: 'User',
             action: 'create',
@@ -172,7 +172,7 @@ export default [
     {
         path: '/admin/user',
         name: 'pages-user-edit',
-        component: () => import('@/views/pages/user/user-edit/UserEdit.vue'),
+        component: () => import('@/views/pages/user/edit/UserEdit.vue'),
         meta: {
             resource: 'User',
             action: 'update',

@@ -287,7 +287,7 @@
 <script>
     import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
-    import required from '@validations';
+    import { required } from '@validations';
     import {
         BBreadcrumb, BBreadcrumbItem, BModal, BCollapse, VBModal, BImg, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BCardText, BRow, BCol, BForm, BFormGroup, BFormInput, BFormSelect, BFormTextarea, VBTooltip, BLink, BTabs, BTab, BFormTags, BMedia, BMediaAside, BMediaBody
     } from 'bootstrap-vue';

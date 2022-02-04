@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VueJS.Entities.Concrete;
 using VueJS.Mvc.Helpers.Abstract;
+using VueJS.Services.Concrete;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {

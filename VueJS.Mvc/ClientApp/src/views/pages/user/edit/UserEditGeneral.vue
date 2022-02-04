@@ -58,7 +58,7 @@
                 <b-col sm="6">
                     <b-form-group label="Ad"
                                   label-for="Ad">
-                        <b-form-input v-model="optionsLocal.FirstName"
+                        <b-form-input v-model="userUpdateDto.FirstName"
                                       name="firstname"
                                       placeholder="Ad" />
                     </b-form-group>
@@ -66,7 +66,7 @@
                 <b-col sm="6">
                     <b-form-group label="Soyad"
                                   label-for="Soyad">
-                        <b-form-input v-model="optionsLocal.LastName"
+                        <b-form-input v-model="userUpdateDto.LastName"
                                       name="lastname"
                                       placeholder="Soyad" />
                     </b-form-group>
@@ -78,7 +78,7 @@
                                              name="username"
                                              rules="required|minmax|alpha-dash">
                             <b-form-input id="username"
-                                          v-model="optionsLocal.UserName"
+                                          v-model="userUpdateDto.UserName"
                                           :state="errors.length > 0 ? false:null"
                                           placeholder="Kullanıcı Adı"
                                           name="username" />
@@ -93,7 +93,7 @@
                                              name="email"
                                              rules="required|email">
                             <b-form-input id="email"
-                                          v-model="optionsLocal.Email"
+                                          v-model="userUpdateDto.Email"
                                           name="email"
                                           :state="errors.length > 0 ? false:null"
                                           placeholder="E-posta Adresi"
@@ -110,7 +110,8 @@
                 <b-col cols="12">
                     <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
                               variant="primary"
-                              class="mt-1 mr-1">
+                              class="mt-1 mr-1"
+                              @click.prevent="updateData">
                         Güncelle
                     </b-button>
                     <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
@@ -128,7 +129,7 @@
 
 <script>
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
-    import { required, minmax, alpha, email } from '@validations'
+    import { required, alpha, email } from '@validations'
 
     import {
         BButton, BForm, BFormGroup, BFormInput, BInputGroup, BInputGroupPrepend, BRow, BCol, BCard, BCardText, BImg,
@@ -137,6 +138,8 @@
     import ModalMedia from '@/views/pages/media/ModalMedia.vue';
     import { useInputImageRenderer } from '@core/comp-functions/forms/form-utils'
     import { ref } from '@vue/composition-api'
+    import axios from 'axios';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
 
     extend('required', {
         ...required,
@@ -188,7 +191,7 @@
         },
         data() {
             return {
-                optionsLocal: JSON.parse(JSON.stringify(this.generalData)),
+                localOptions: JSON.parse(JSON.stringify(this.generalData)),
                 modalShow: Boolean,
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
                 profileImage: {
@@ -197,30 +200,97 @@
                     altText: null,
                 },
                 required,
-                minmax,
                 alpha,
                 email,
+                userUpdateDto: {
+                    Id: this.$route.query.edit,
+                    ProfileImageId: null,
+                    FirstName: null,
+                    LastName: null,
+                    UserName: null,
+                    Email: null,
+                    About: null,
+                    WebSiteLink: null,
+                    PhoneNumber: null,
+                    FacebookLink: null,
+                    TwitterLink: null,
+                    InstagramLink: null,
+                    LinkedInLink: null,
+                    YoutubeLink: null,
+                    GitHubLink: null,
+                }
             }
         },
         methods: {
-            resetForm() {
-                this.optionsLocal = JSON.parse(JSON.stringify(this.generalData))
+            updateData() {
+                this.userUpdateDto.ProfileImageId = this.profileImage.id;
+                axios.post('/admin/user/edit',
+                    {
+                        UserUpdateDto: this.userUpdateDto
+                    }).then((response) => {
+                        if (response.data.User != null) {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'success',
+                                    title: 'Başarılı İşlem!',
+                                    icon: 'CheckIcon',
+                                    text: response.data.User.UserName + ' adlı kullanıcı güncellendi.'
+                                }
+                            })
+                        }
+                        else {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Başarısız İşlem!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: 'Kullanıcı güncellenirken hata oluştu.',
+                                },
+                            })
+                        }
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            },
+                        })
+                    });
+            },
+            getAllData() {
+                this.userUpdateDto.FirstName = this.localOptions.FirstName;
+                this.userUpdateDto.LastName = this.localOptions.LastName;
+                this.userUpdateDto.UserName = this.localOptions.UserName;
+                this.userUpdateDto.Email = this.localOptions.Email;
+                this.userUpdateDto.About = this.localOptions.About;
+                this.userUpdateDto.WebsiteLink = this.localOptions.WebsiteLink;
+                this.userUpdateDto.PhoneNumber = this.localOptions.PhoneNumber;
+                this.userUpdateDto.FacebookLink = this.localOptions.FacebookLink;
+                this.userUpdateDto.TwitterLink = this.localOptions.TwitterLink;
+                this.userUpdateDto.InstagramLink = this.localOptions.InstagramLink;
+                this.userUpdateDto.LinkedInLink = this.localOptions.LinkedInLink;
+                this.userUpdateDto.YoutubeLink = this.localOptions.YoutubeLink;
+                this.userUpdateDto.GitHubLink = this.localOptions.GitHubLink;
 
-                if (this.optionsLocal.ProfileImage != null) {
-                    this.profileImage.id = this.optionsLocal.ProfileImage.Id;
-                    this.profileImage.fileName = this.optionsLocal.ProfileImage.FileName;
-                    this.profileImage.altText = this.optionsLocal.ProfileImage.AltText;
+                console.log(this.localOptions.ProfileImage)
+
+                if (this.localOptions.ProfileImage != null) {
+                    this.profileImage.id = this.localOptions.ProfileImage.Id;
+                    this.profileImage.fileName = this.localOptions.ProfileImage.FileName;
+                    this.profileImage.altText = this.localOptions.ProfileImage.AltText;
                 }
                 else {
                     this.removeImage();
                 }
             },
-            profileImageLoad() {
-                if (this.optionsLocal.ProfileImage != null) {
-                    this.profileImage.id = this.optionsLocal.ProfileImage.Id;
-                    this.profileImage.fileName = this.optionsLocal.ProfileImage.FileName;
-                    this.profileImage.altText = this.optionsLocal.ProfileImage.AltText;
-                }
+            resetForm() {
+                this.getAllData();
             },
             imageChange(id, name, altText) {
                 this.profileImage.id = id;
@@ -238,7 +308,7 @@
             },
         },
         mounted() {
-            this.profileImageLoad();
+            this.getAllData();
         },
         setup() {
             const refInputEl = ref(null)

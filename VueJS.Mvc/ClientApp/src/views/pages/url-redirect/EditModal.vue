@@ -303,36 +303,4 @@
 
 <style lang="scss">
     @import '@core/scss/vue/libs/vue-select.scss';
-
-    .image-list {
-        max-width: 130px;
-        width: 130px;
-        max-height: 130px;
-        height: 130px;
-        padding: 5px;
-        cursor: pointer;
-    }
-
-    .check-image {
-        position: absolute;
-        right: -6px;
-        top: 1px;
-    }
-
-    .select-image {
-        max-width: 100%;
-        max-height: 100%;
-        position: relative;
-        top: 50%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-50%);
-    }
-
-    [dir] .table th, [dir] .table td {
-        padding: 0.72rem !important;
-    }
-
-    [dir] .table th:last-child, [dir] .table td:last-child {
-        text-align: center;
-    }
 </style>

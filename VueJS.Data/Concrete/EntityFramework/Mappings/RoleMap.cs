@@ -121,29 +121,29 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
              new Role
              {
                  Id = 15,
-                 Name = "Page.create",
-                 NormalizedName = "PAGE.CREATE",
+                 Name = "OtherPage.create",
+                 NormalizedName = "OTHERPAGE.CREATE",
                  ConcurrencyStamp = Guid.NewGuid().ToString()
              },
             new Role
             {
                 Id = 16,
-                Name = "Page.read",
-                NormalizedName = "PAGE.READ",
+                Name = "OtherPage.read",
+                NormalizedName = "OTHERPAGE.READ",
                 ConcurrencyStamp = Guid.NewGuid().ToString()
             },
             new Role
             {
                 Id = 17,
-                Name = "Page.update",
-                NormalizedName = "PAGE.UPDATE",
+                Name = "OtherPage.update",
+                NormalizedName = "OTHERPAGE.UPDATE",
                 ConcurrencyStamp = Guid.NewGuid().ToString()
             },
             new Role
             {
                 Id = 18,
-                Name = "Page.delete",
-                NormalizedName = "PAGE.DELETE",
+                Name = "OtherPage.delete",
+                NormalizedName = "OTHERPAGE.DELETE",
                 ConcurrencyStamp = Guid.NewGuid().ToString()
             },
             new Role

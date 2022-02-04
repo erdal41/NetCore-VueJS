@@ -89,7 +89,8 @@
                     <b-spinner variant="primary" />
                 </div>
                 <div v-else-if="isSpinnerShow == false && users.length > 0">
-                    <b-table :items="filteredData"
+                    <b-table id="user-table"
+                             :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
                              :current-page="currentPage"
@@ -97,13 +98,14 @@
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
                         <template #head(Id)="slot">
-                            <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
+                            <b-form-checkbox :checked="selectMultiCheck"
+                                             @change="selectAllRows"></b-form-checkbox>
                         </template>
                         <template #cell(Id)="row">
                             <b-form-checkbox :value="row.item.Id.toString()"
                                              :id="row.item.Id.toString()"
                                              v-model="checkedRows"
-                                             @change="checkChange($event)"></b-form-checkbox>
+                                             @change="checkChange"></b-form-checkbox>
                         </template>
                         <template #cell(ProfileImage)="row">
                             <feather-icon v-if="row.item.ProfileImage == null"
@@ -112,8 +114,8 @@
                             <div v-else
                                  class="image-icon">
                                 <b-img rounded
-                                       v-bind:src="row.item.ProfileImage == null ? noImage : require('@/assets/images/media/' + row.item.ProfileImage.FileName)"
-                                       :alt="row.item.ProfileImage == null ? '' : row.item.ProfileImage.AltText" />
+                                       v-bind:src="require('@/assets/images/media/' + row.item.ProfileImage.FileName)"
+                                       :alt="row.item.ProfileImage.AltText" />
                             </div>
                         </template>
                         <template #cell(UserName)="row">
@@ -226,7 +228,6 @@
                         active: true,
                     }
                 ],
-                noImage: require('@/assets/images/default/default-user-image.png'),
                 isSpinnerShow: true,
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],
@@ -245,6 +246,7 @@
                     { key: 'UserName', label: 'Kullanıcı Adı', sortable: true, thStyle: { width: "200px" } },
                     { key: 'FirstName', label: 'Ad Soyad', sortable: true, thStyle: { width: "150px" } },
                     { key: 'Email', label: 'E-Posta Adresi', sortable: true, thStyle: { width: "100px" } }],
+                selectMultiCheck: false,
                 checkedRows: [],
                 checkedRowsCount: '',
                 hoveredRow: null,
@@ -268,9 +270,18 @@
                 if (this.checkedRows.length > 0) {
                     this.isHiddenMultiDeleteButton = true;
                     this.checkedRowsCount = "( " + this.checkedRows.length + " )";
+
+                    if (this.users.length == this.checkedRows.length) {
+                        this.selectMultiCheck = true;
+                    }
+                    else {
+                        this.selectMultiCheck = false;
+                    }
+
                 }
                 else {
                     this.isHiddenMultiDeleteButton = false;
+                    this.selectMultiCheck = false;
                 }
             },
             selectAllRows(value) {
