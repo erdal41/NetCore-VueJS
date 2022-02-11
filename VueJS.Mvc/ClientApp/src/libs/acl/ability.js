@@ -7,21 +7,14 @@ import { initialAbility } from './config'
 // ! Anyone can update localStorage so be careful and please update this
 const userData = JSON.parse(localStorage.getItem('userData'))
 const ability = new Array();
-console.log("default");
-console.log(ability);
+
 ability.push({ subject: 'Auth', action: 'read' })
-console.log("userData");
-console.log(userData);
+
 if (userData != null) {
     for (let role of userData.Roles) {
         ability.push({ subject: role.split(".")[0], action: role.split(".")[1] });
     }
 }
-
-console.log("roles");
-console.log(ability);
-
-
 
 const existingAbility = userData ? ability : null
 

@@ -23,13 +23,8 @@ const router = new VueRouter({
     },
     routes: [
         { path: '/', redirect: { name: 'dashboard-ecommerce' } },
-        ...apps,
         ...dashboard,
         ...pages,
-        ...chartsMaps,
-        ...formsTable,
-        ...uiElements,
-        ...others,
         {
             path: '*',
             redirect: 'error-404',
@@ -50,8 +45,7 @@ router.beforeEach((to, _, next) => {
 
     // Redirect if logged in
     if (to.meta.redirectIfLoggedIn && isLoggedIn) {
-        const userData = getUserData()
-        next(getHomeRouteForLoggedInUser(userData ? "client" : null))
+        next('/admin/dashboard')
     }
 
     return next()

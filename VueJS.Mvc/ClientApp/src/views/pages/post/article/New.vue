@@ -532,7 +532,7 @@
                     Title: '',
                     Content: '',
                     PostType: 'article',
-                    PostStatus: null,
+                    PostStatus: '',
                     CommentStatus: Boolean,
                     FeaturedImageId: '',
                     IsShowFeaturedImage: Boolean
@@ -611,7 +611,7 @@
         },
         methods: {
             allCategories() {
-                axios.get('/admin/term/allterms', {
+                axios.get('/admin/term-allterms', {
                     params: {
                         term_type: 'category'
                     }
@@ -635,7 +635,7 @@
                     });
             },
             allTags() {
-                axios.get('/admin/term/allterms', {
+                axios.get('/admin/term-allterms', {
                     params: {
                         term_type: 'tag'
                     }
@@ -717,7 +717,7 @@
                 }
             },
             getSchnemaPageType() {
-                axios.get('/admin/post/getschnemapagetype')
+                axios.get('/admin/post-schnemapagetype')
                     .then((response) => {
                         this.schnemaPageTypes = response.data;
                     })
@@ -734,7 +734,7 @@
                     });
             },
             getSchnemaArticleType() {
-                axios.get('/admin/post/getschnemaarticletype')
+                axios.get('/admin/post-schnemaarticletype')
                     .then((response) => {
                         this.schnemaArticleTypes = response.data;
                     })
@@ -771,7 +771,7 @@
                 }
                 this.$refs.articleAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/post/new',
+                        axios.post('/admin/post-new',
                             {
                                 PostAddDto: this.postAddDto,
                                 SeoObjectSettingAddDto: this.articleSeoSettingAddDto
@@ -785,7 +785,7 @@
                                             this.postTermAddDto.TermId = this.selectedCategory[i];
                                             this.postTermAddDto.TermType = "category";
 
-                                            axios.post('/admin/term/newpostterm', {
+                                            axios.post('/admin/term-newpostterm', {
                                                 PostTermAddDto: this.postTermAddDto
                                             });
                                         }
@@ -796,7 +796,7 @@
                                             this.postTermAddDto.TermId = this.selectedTag[i];
                                             this.postTermAddDto.TermType = "tag";
 
-                                            axios.post('/admin/term/newpostterm', {
+                                            axios.post('/admin/term-newpostterm', {
                                                 PostTermAddDto: this.postTermAddDto
                                             });
                                         }
@@ -845,7 +845,7 @@
             validationFormCategory() {
                 this.$refs.categoryAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/term/new',
+                        axios.post('/admin/term-new',
                             {
                                 TermAddDto: this.categoryAddDto,
                                 SeoObjectSettingAddDto: this.termSeoSettingAddDto
@@ -893,7 +893,7 @@
             validationFormTag() {
                 this.$refs.tagAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/term/new',
+                        axios.post('/admin/term-new',
                             {
                                 TermAddDto: this.tagAddDto,
                                 SeoObjectSettingAddDto: this.termSeoSettingAddDto
@@ -920,61 +920,6 @@
                                             title: 'Başarısız İşlem!',
                                             icon: 'AlertOctagonIcon',
                                             text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
-            singleDeleteData(id, name) {
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " adlı makale kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post('/admin/term/delete?term=' + id)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.Message
                                         },
                                     })
                                 }

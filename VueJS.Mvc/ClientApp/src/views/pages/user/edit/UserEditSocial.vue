@@ -184,7 +184,7 @@
         },
         methods: {
             updateData() {
-                axios.post('/admin/user/edit',
+                axios.post('/admin/user-edit',
                     {
                         UserUpdateDto: this.userUpdateDto
                     }).then((response) => {

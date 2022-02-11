@@ -66,13 +66,10 @@
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
-    import TermEdit from '@/views/pages/term/Edit.vue'
 
     export default {
         components: {
-            TermEdit,
             BInputGroupPrepend,
             BImg,
             BButton,
@@ -161,7 +158,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/term/delete?term=' + id)
+                        axios.post('/admin/upload/delete?uploadId=' + id)
                             .then((response) => {
                                 if (response.data.ResultStatus === 0) {
                                     this.$toast({
@@ -216,7 +213,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post(`/admin/term/multidelete`, {
+                        axios.post(`/admin/upload/delete`, {
                             termsId: this.checkedRows
                         })
                             .then((response) => {
@@ -259,7 +256,7 @@
                 })
             },
             getAllData() {
-                axios.get('/admin/uploads/getall')
+                axios.get('/admin/upload-alluploads')
                     .then((response) => {
                         if (response.data.ResultStatus === 0) {
                             this.uploads = response.data.Data.Uploads;

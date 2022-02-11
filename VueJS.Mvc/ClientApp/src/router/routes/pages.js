@@ -1,20 +1,23 @@
 export default [
+
+    // Login    
     {
         path: '/login',
         name: 'auth-login',
         component: () => import('@/views/pages/auth/Login.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
             redirectIfLoggedIn: true,
         },
     },
+
+    // Preview & View
     {
         path: '/admin/post-preview=:preview',
         name: 'pages-post-preview',
         component: () => import('@/views/pages/post/Preview.vue'),
         meta: {
-            resource: 'Post',
+            resource: 'Article',
             action: 'update',
             layout: 'full',
         },
@@ -25,7 +28,6 @@ export default [
         component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'web',
-            resource: 'Auth',
         },
     },
     {
@@ -34,7 +36,6 @@ export default [
         component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
         },
     },
     {
@@ -43,98 +44,132 @@ export default [
         component: () => import('@/views/pages/post/View.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
         },
     },
-    {
-        path: '/admin/post',
-        name: 'pages-post-edit',
-        component: () => import('@/views/pages/post/Edit.vue'),
-        meta: {
-            resource: 'Post',
-            action: 'update',
-        },
-    },
+
+    // Base Pages
     {
         path: '/admin/basepages',
         name: 'pages-basepage-list',
         component: () => import('@/views/pages/post/basepage/BasePage.vue'),
         meta: {
-            resource: 'Post',
+            resource: 'Basepage',
             action: 'read',
         },
     },
     {
         path: '/admin/basepage/new',
         name: 'pages-basepage-add',
-        component: () => import('@/views/pages/post/basepage/NewBasePage.vue'),
+        component: () => import('@/views/pages/post/basepage/New.vue'),
         meta: {
-            resource: 'Post',
-            action: 'read',
+            resource: 'Basepage',
+            action: 'create',
         },
     },
+    {
+        path: '/admin/basepage',
+        name: 'pages-basepage-edit',
+        component: () => import('@/views/pages/post/basepage/Edit.vue'),
+        meta: {
+            resource: 'Basepage',
+            action: 'update',
+        },
+    },
+
+    // Other Pages
     {
         path: '/admin/pages',
         name: 'pages-page-list',
         component: () => import('@/views/pages/post/page/Page.vue'),
         meta: {
-            resource: 'Post',
+            resource: 'Basepage' || 'Otherpage' || 'Article',
             action: 'read',
         },
     },
     {
         path: '/admin/page/new',
         name: 'pages-page-add',
-        component: () => import('@/views/pages/post/page/NewPage.vue'),
+        component: () => import('@/views/pages/post/page/New.vue'),
         meta: {
-            resource: 'Post',
-            action: 'read',
+            resource: 'Otherpage',
+            action: 'create',
+        },
+    },
+    {
+        path: '/admin/page',
+        name: 'pages-page-edit',
+        component: () => import('@/views/pages/post/page/Edit.vue'),
+        meta: {
+            resource: 'Otherpage',
+            action: 'update',
         },
     },
 
-    // Blog
+    // Article
     {
         path: '/admin/articles',
         name: 'pages-article-list',
         component: () => import('@/views/pages/post/article/Article.vue'),
         meta: {
-            resource: 'Post',
+            resource: 'Article',
             action: 'read',
         },
     },
     {
         path: '/admin/article/new',
         name: 'pages-article-add',
-        component: () => import('@/views/pages/post/article/NewArticle.vue'),
+        component: () => import('@/views/pages/post/article/New.vue'),
         meta: {
-            resource: 'Post',
-            action: 'read',
+            resource: 'Article',
+            action: 'create',
         },
     },
     {
+        path: '/admin/article',
+        name: 'pages-article-edit',
+        component: () => import('@/views/pages/post/article/Edit.vue'),
+        meta: {
+            resource: 'Article',
+            action: 'update',
+        },
+    },
+
+    // Category
+    {
         path: '/admin/categories',
         name: 'pages-category-list',
-        component: () => import('@/views/pages/term/Category.vue'),
+        component: () => import('@/views/pages/term/category/Category.vue'),
         meta: {
             resource: 'Category',
             action: 'read',
         }
     },
     {
+        path: '/admin/category',
+        name: 'pages-category-edit',
+        component: () => import('@/views/pages/term/category/Edit.vue'),
+        meta: {
+            resource: 'Tag',
+            action: 'update',
+        },
+    },
+
+    // Tag
+    {
         path: '/admin/tags',
         name: 'pages-tag-list',
-        component: () => import('@/views/pages/term/Tag.vue'),
+        component: () => import('@/views/pages/term/tag/Tag.vue'),
         meta: {
             resource: 'Tag',
             action: 'read',
         }
     },
     {
-        path: '/admin/term',
-        name: 'pages-term-edit',
-        component: () => import('@/views/pages/term/Edit.vue'),
+        path: '/admin/tag',
+        name: 'pages-tag-edit',
+        component: () => import('@/views/pages/term/tag/Edit.vue'),
         meta: {
-            resource: 'Term',
+            resource: 'Tag',
             action: 'update',
         },
     },
@@ -145,7 +180,7 @@ export default [
         name: 'pages-urlredirect-list',
         component: () => import('@/views/pages/url-redirect/UrlRedirect.vue'),
         meta: {
-            resource: 'UrlRedirect',
+            resource: 'Urlredirect',
             action: 'read',
         },
     },
@@ -185,8 +220,6 @@ export default [
         component: () => import('@/views/error/Error404.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
-            action: 'read',
         },
     },
     //{
@@ -221,7 +254,6 @@ export default [
         component: () => import('@/views/pages/authentication/Register.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
             redirectIfLoggedIn: true,
         },
     },
@@ -247,7 +279,6 @@ export default [
         component: () => import('@/views/pages/authentication/ForgotPassword.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
             redirectIfLoggedIn: true,
         },
     },
@@ -265,7 +296,6 @@ export default [
         component: () => import('@/views/pages/authentication/ForgotPassword-v2.vue'),
         meta: {
             layout: 'full',
-            resource: 'Auth',
         },
     },
     {

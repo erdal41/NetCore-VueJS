@@ -1,5 +1,6 @@
 ﻿<template>
     <b-row>
+        <modal-edit :urlredirect-id="urlRedirectId"></modal-edit>
         <b-col class="content-header-left mb-2"
                cols="12"
                md="12">
@@ -26,7 +27,8 @@
                 </b-col>
             </b-row>
         </b-col>
-        <b-col md="12"
+        <b-col v-if="$can('create', 'Urlredirect')"
+               md="12"
                lg="12">
             <b-card title="Yönlendirme Ekle">
                 <validation-observer ref="simpleRules">
@@ -81,7 +83,6 @@
         </b-col>
         <b-col md="12"
                lg="12">
-
             <b-card title="Tüm Yönlendirmeler"
                     header-tag="header"
                     no-body>
@@ -110,7 +111,7 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body v-if="isHiddenMultiDeleteButton === true">
+                <b-card-body v-if="isHiddenMultiDeleteButton === true && $can('delete', 'Urlredirect')">
                     <div class="d-flex justify-content-between flex-wrap">
                         <b-form-group class="mb-0">
                             <b-button variant="danger"
@@ -144,30 +145,42 @@
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
                         <template #head(Id)="slot">
-                            <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
+                            <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
+                                             @change="selectAllRows($event)"></b-form-checkbox>
                         </template>
                         <template #cell(Id)="row">
-                            <b-form-checkbox :value="row.item.Id.toString()"
+                            <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
+                                             :value="row.item.Id.toString()"
                                              :id="row.item.Id.toString()"
                                              v-model="checkedRows"
                                              @change="checkChange($event)"></b-form-checkbox>
                         </template>
 
                         <template #cell(OldUrl)="row">
-                            <b-link :href="row.item.OldUrl">
-                                <b>{{row.item.OldUrl}}</b><br />
+                            <b-link :href="row.item.OldUrl"
+                                    target="_blank">
+                                <b>
+                                    {{row.item.OldUrl}}
+                                    <feather-icon icon="ExternalLinkIcon"
+                                                  size="14" />
+                                </b><br />
                                 <span class="text-muted">{{row.item.NewUrl}}</span>
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
                                     <b-link :href="row.item.OldUrl"
                                             class="text-primary small">Görüntüle</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                    <small v-if="$can('update', 'Urlredirect')"
+                                           class="text-muted"> | </small>
+                                    <b-link v-if="$can('update', 'Urlredirect')"
+                                            v-b-modal.modal-edit
                                             class="text-success small"
-                                            variant="flat-danger">Düzenle</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link href="javascript:;"
+                                            variant="flat-danger"
+                                            @click.prevent=updateClick(row.item.Id)>Düzenle</b-link>
+                                    <small v-if="$can('delete', 'Urlredirect')"
+                                           class="text-muted"> | </small>
+                                    <b-link v-if="$can('delete', 'Urlredirect')"
+                                            href="javascript:;"
                                             no-prefetch
                                             class="text-danger small"
                                             @click="singleDeleteData(row.item.Id, row.item.OldUrl)">Sil</b-link>
@@ -227,6 +240,7 @@
         BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
 
+    import ModalEdit from './ModalEdit.vue';
     import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
@@ -239,6 +253,7 @@
 
     export default {
         components: {
+            ModalEdit,
             BBreadcrumb,
             BBreadcrumbItem,
             BSpinner,
@@ -302,10 +317,15 @@
                     NewUrl: "",
                     Description: '',
                 },
-                hoveredRow: null
+                hoveredRow: null,
+                urlRedirectId: 0
             }
         },
         methods: {
+            updateClick(id) {
+                this.urlRedirectId = id;
+                console.log(this.urlRedirectId)
+            },
             rowHovered(item) {
                 this.hoveredRow = item;
                 this.isHiddenRowActions = true
@@ -365,7 +385,7 @@
                                 }
                             });
                         } else {
-                            axios.post('/admin/urlredirect/new',
+                            axios.post('/admin/urlredirect-new',
                                 {
                                     UrlRedirectAddDto: this.urlRedirectAddDto
                                 })
@@ -427,7 +447,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/urlredirect/delete?urlRedirectId=' + id)
+                        axios.post('/admin/urlredirect-delete?urlRedirectId=' + id)
                             .then((response) => {
                                 if (response.data.ResultStatus === 0) {
                                     this.$toast({
@@ -454,6 +474,7 @@
                                 }
                             })
                             .catch((error) => {
+                                console.log(error)
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
@@ -483,7 +504,7 @@
                 }).then(result => {
                     if (result.value) {
                         this.checkedRows.forEach((id, index) => {
-                            axios.post('/admin/urlredirect/delete?urlRedirectId=' + id)
+                            axios.post('/admin/urlredirect-delete?urlRedirectId=' + id)
                                 .then((response) => {
                                     if (response.data.ResultStatus === 0) {
                                         this.checkedRowsCount = "";
@@ -497,7 +518,7 @@
             },
             getAllData() {
                 this.isSpinnerShow = true;
-                axios.get('/admin/urlredirect/allurlredirects')
+                axios.get('/admin/urlredirect-allurlredirects')
                     .then((response) => {
                         console.log(response.data)
                         this.totalRows = response.data.UrlRedirects.length;
@@ -514,13 +535,14 @@
                         this.isHiddenStatusButton = false;
                     })
                     .catch((error) => {
+                        console.log(error)
                         this.$toast({
                             component: ToastificationContent,
                             props: {
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: this.title + ' listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: 'Yönlendirmeler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });

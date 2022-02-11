@@ -5,10 +5,7 @@ using VueJS.Services.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System.Threading.Tasks;
 using VueJS.Mvc.Areas.Admin.Models;
-using Microsoft.Extensions.Configuration;
-using VueJS.Entities.Dtos;
 using AutoMapper;
-using System.Collections.Generic;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -27,7 +24,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _mailService = mailService;
         }
 
-        [HttpGet("/admin/auth/login")]
+        [HttpGet("/admin/auth-login")]
         public async Task<IActionResult> Login()
         {
             var generalSetting = await _settingService.GetGeneralSettingAsync();
@@ -38,7 +35,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return Json(loginViewModel);
         }
 
-        [HttpPost("/admin/auth/login")]
+        [HttpPost("/admin/auth-login")]
         public async Task<JsonResult> Login(LoginViewModel loginViewModel)
         {
             var user = await UserManager.FindByEmailAsync(loginViewModel.UserLoginDto.Email);
@@ -66,20 +63,20 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return Json(loginViewModelJsonError);
         }
 
-        [HttpGet("/admin/auth/unauthorizedaccess")]
+        [HttpGet("/admin/auth-unauthorizedaccess")]
         public ViewResult UnauthorizedAccess()
         {
             return View();
         }
 
-        [HttpGet("/admin/auth/logout")]
+        [HttpGet("/admin/auth-logout")]
         public async Task<JsonResult> Logout()
         {
             await _signInManager.SignOutAsync();
             return Json(true);
         }
 
-        [HttpPost("/admin/auth/forgotpassword")]
+        [HttpPost("/admin/auth-forgotpassword")]
         public async Task<JsonResult> ForgotPassword(string email)
         {
             var domainName = HttpContext.Request.Scheme + "://" + HttpContext.Request.Host;

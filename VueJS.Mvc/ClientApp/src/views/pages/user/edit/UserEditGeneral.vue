@@ -224,7 +224,7 @@
         methods: {
             updateData() {
                 this.userUpdateDto.ProfileImageId = this.profileImage.id;
-                axios.post('/admin/user/edit',
+                axios.post('/admin/user-edit',
                     {
                         UserUpdateDto: this.userUpdateDto
                     }).then((response) => {
@@ -293,10 +293,10 @@
                 this.getAllData();
             },
             imageChange(id, name, altText) {
+                console.log(id);
                 this.profileImage.id = id;
                 this.profileImage.fileName = name;
                 this.profileImage.altText = altText;
-
             },
             selectImage: function (e) {
                 this.modalShow = true;

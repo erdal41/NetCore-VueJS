@@ -51,27 +51,27 @@
                     {{ data.item.module }}
                 </template>
                 <template #cell(read)="data">
-                    <b-form-checkbox v-model="checkedRoleRead"
+                    <b-form-checkbox v-show="data.value.show"
+                                     v-model="checkedRoleRead"
                                      :value="data.value.action"
-                                     :disabled="data.value.disabled"
                                      @change="changeReadRow" />
                 </template>
                 <template #cell(create)="data">
-                    <b-form-checkbox v-model="checkedRoleCreate"
+                    <b-form-checkbox v-show="data.value.show"
+                                     v-model="checkedRoleCreate"
                                      :value="data.value.action"
-                                     :disabled="data.value.disabled"
                                      @change="changeCreateRow" />
                 </template>
                 <template #cell(update)="data">
-                    <b-form-checkbox v-model="checkedRoleUpdate"
+                    <b-form-checkbox v-show="data.value.show"
+                                     v-model="checkedRoleUpdate"
                                      :value="data.value.action"
-                                     :disabled="data.value.disabled"
                                      @change="changeUpdateRow" />
                 </template>
                 <template #cell(delete)="data">
-                    <b-form-checkbox v-model="checkedRoleDelete"
+                    <b-form-checkbox v-show="data.value.show"
+                                     v-model="checkedRoleDelete"
                                      :value="data.value.action"
-                                     :disabled="data.value.disabled"
                                      @change="changeDeleteRow" />
                 </template>
             </b-table>
@@ -134,15 +134,15 @@
                     { key: 'delete', label: 'SİLME', sortable: false }],
                 moduleList: [
                     'Dashboard',
-                    'BasePage',
-                    'OtherPage',
+                    'Basepage',
+                    'Otherpage',
                     'Article',
                     'Category',
                     'Tag',
                     'User',
                     'Role',
                     'Comment',
-                    'UrlRedirect',
+                    'Urlredirect',
                     'Seo'
                 ],
                 roles: [],
@@ -167,19 +167,63 @@
                                 module: "Gösterge Paneli",
                                 read: {
                                     action: module + '.read',
-                                    disabled: rolesSplit.filter(x => x.Name.includes('read')) ? false : true
+                                    show: rolesSplit.filter(x => x.Name.includes('read')) ? true : false
                                 },
                                 create: {
                                     action: false,
-                                    disabled: true
+                                    show: false
                                 },
                                 update: {
                                     action: false,
-                                    disabled: true
+                                    show: false
                                 },
                                 delete: {
                                     action: false,
-                                    disabled: true
+                                    show: false
+                                },
+                            });
+                    } else if (module === 'Role') {
+                        var rolesSplit = this.localOptions.Roles.filter(role => role.Name.includes('Role'));
+                        this.roles.push(
+                            {
+                                module: "Roller",
+                                read: {
+                                    action: false,
+                                    show: false
+                                },
+                                create: {
+                                    action: module + '.create',
+                                    show: rolesSplit.filter(x => x.Name.includes('create')) ? true : false
+                                },
+                                update: {
+                                    action: module + '.update',
+                                    show: rolesSplit.filter(x => x.Name.includes('update')) ? true : false
+                                },
+                                delete: {
+                                    action: false,
+                                    show: false
+                                },
+                            });
+                    } else if (module === 'Seo') {
+                        var rolesSplit = this.localOptions.Roles.filter(role => role.Name.includes('Seo'));
+                        this.roles.push(
+                            {
+                                module: "Seo Ayarları",
+                                read: {
+                                    action: false,
+                                    show: false
+                                },
+                                create: {
+                                    action: module + '.create',
+                                    show: rolesSplit.filter(x => x.Name.includes('create')) ? true : false
+                                },
+                                update: {
+                                    action: module + '.update',
+                                    show: rolesSplit.filter(x => x.Name.includes('update')) ? true : false
+                                },
+                                delete: {
+                                    action: false,
+                                    show: false
                                 },
                             });
                     } else {
@@ -188,32 +232,30 @@
                             {
                                 module:
                                     module == 'Category' ? 'Kategori' :
-                                        module == 'BasePage' ? 'Temel Sayfalar' :
-                                            module == 'OtherPage' ? 'Sayfalar' :
+                                        module == 'Basepage' ? 'Temel Sayfalar' :
+                                            module == 'Otherpage' ? 'Sayfalar' :
                                                 module == 'Article' ? 'Makaleler' :
                                                     module == 'Category' ? 'Kategoriler' :
                                                         module == 'Tag' ? 'Etiketler' :
-                                                            module == 'User' ? 'Kullanıcılar' :
-                                                                module == 'Role' ? 'Roller' :
+                                                                module == 'User' ? 'Kullanıcılar' :
                                                                     module == 'Comment' ? 'Yorumlar' :
-                                                                        module == 'UrlRedirect' ? 'Link Yönlendirme' :
-                                                                            module == 'Seo' ? 'Seo Ayarları' :
-                                                                                null,
+                                                                        module == 'Urlredirect' ? 'Link Yönlendirme' :
+                                                                            null,
                                 read: {
                                     action: module + '.read',
-                                    disabled: rolesSplit.filter(x => x.Name.includes('read')) ? false : true
+                                    show: rolesSplit.filter(x => x.Name.includes('read')) ? true : false
                                 },
                                 create: {
                                     action: module + '.create',
-                                    disabled: false
+                                    show: true
                                 },
                                 update: {
                                     action: module + '.update',
-                                    disabled: false
+                                    show: true
                                 },
                                 delete: {
                                     action: module + '.delete',
-                                    disabled: false
+                                    show: true
                                 }
                             });
                     }
@@ -241,7 +283,7 @@
                 this.changeDeleteRow();
             },
             changeReadRow() {
-                if (this.checkedRoleRead.length == 11) {
+                if (this.checkedRoleRead.length == 8) {
                     this.selectMultiReadCheck = 'true';
                 }
                 else {
@@ -265,7 +307,7 @@
                 }
             },
             changeDeleteRow() {
-                if (this.checkedRoleDelete.length == 10) {
+                if (this.checkedRoleDelete.length == 8) {
                     this.selectMultiDeleteCheck = 'true';
                 }
                 else {
@@ -323,7 +365,7 @@
             roleAssign() {
                 this.userRoles = this.checkedRoleRead.concat(this.checkedRoleCreate.concat(this.checkedRoleUpdate.concat(this.checkedRoleDelete)));
 
-                axios.post('/admin/user/roleassign',
+                axios.post('/admin/user-roleassign',
                     {
                         UserId: this.$route.query.edit,
                         UserRoles: this.userRoles

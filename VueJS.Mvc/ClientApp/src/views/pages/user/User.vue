@@ -29,7 +29,8 @@
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="6"
                cols="12">
-            <b-button v-b-tooltip.hover
+            <b-button v-if="$can('create', 'User')"
+                      v-b-tooltip.hover
                       title="Yeni kullanıcı ekle"
                       v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                       variant="primary"
@@ -108,9 +109,11 @@
                                              @change="checkChange"></b-form-checkbox>
                         </template>
                         <template #cell(ProfileImage)="row">
-                            <feather-icon v-if="row.item.ProfileImage == null"
-                                          icon="UserIcon"
-                                          size="30" />
+                            <div v-if="row.item.ProfileImage == null"
+                                 class="image-icon">
+                                <feather-icon icon="UserIcon"
+                                              size="30" />
+                            </div>
                             <div v-else
                                  class="image-icon">
                                 <b-img rounded
@@ -242,7 +245,7 @@
                 name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
-                    { key: 'ProfileImage', label: 'Resim', sortable: false, thStyle: { width: "50px" } },
+                    { key: 'ProfileImage', label: 'Resim', sortable: false, thStyle: { width: "20px" } },
                     { key: 'UserName', label: 'Kullanıcı Adı', sortable: true, thStyle: { width: "200px" } },
                     { key: 'FirstName', label: 'Ad Soyad', sortable: true, thStyle: { width: "150px" } },
                     { key: 'Email', label: 'E-Posta Adresi', sortable: true, thStyle: { width: "100px" } }],
@@ -371,7 +374,7 @@
                 }).then(result => {
                     if (result.value) {
                         this.checkedRows.forEach((id, index) => {
-                            axios.post('/admin/user/delete?userId=' + id)
+                            axios.post('/admin/user-delete?userId=' + id)
                                 .then((response) => {
                                     if (response.data.PostDto.ResultStatus === 0) {
                                         this.getAllData();
@@ -383,7 +386,7 @@
             },
             getAllData() {
                 this.isSpinnerShow = true;
-                axios.get('/admin/user/allusers')
+                axios.get('/admin/user-allusers')
                     .then((response) => {
                         console.log(response.data)
                         if (response.data.ResultStatus === 0) {
@@ -435,8 +438,8 @@
         padding: 15px 0px 15px 10px !important;
     }
 
-    [dir] .table th, [dir] .table td {
-        padding: 0.72rem !important;
+    [dir] #user-table.table th, [dir] .table td {
+        padding: 0.72rem 0 0.72rem 0.72rem !important;
     }
 
     .image-icon {
@@ -445,7 +448,7 @@
         position: relative;
     }
 
-        .image-icon img {
+        .image-icon img, .image-icon svg {
             max-height: 100%;
             max-width: 100%;
             border-radius: 5px;

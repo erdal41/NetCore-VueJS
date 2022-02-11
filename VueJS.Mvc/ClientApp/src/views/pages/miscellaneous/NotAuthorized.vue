@@ -53,9 +53,8 @@
             },
         },
         methods: {
-            loginRoute() {
-                const user = JSON.parse(localStorage.getItem('userData'))
-                return getHomeRouteForLoggedInUser(user ? "client" : null)
+            loginRoute() {                
+                return '/admin/dashboard';
             },
         },
     }

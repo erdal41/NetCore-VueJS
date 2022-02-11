@@ -190,7 +190,7 @@
                         <template #cell(Title)="row">
                             <b v-if="row.item.PostStatus == 2">{{row.item.Title}}</b>
                             <b-link v-else
-                                    :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }">
+                                    :to="{ name:'pages-article-edit', query: { edit : row.item.Id } }">
                                 <b>{{row.item.Title}}</b>
                             </b-link>
                             <div class="row-actions">
@@ -204,7 +204,7 @@
                                     <small v-show="row.item.PostStatus != 2"
                                            class="text-muted"> | </small>
                                     <b-link v-if="row.item.PostStatus != 2"
-                                            :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
+                                            :to="{ name:'pages-article-edit', query: { edit : row.item.Id } }"
                                             class="text-success small"
                                             variant="flat-danger">Düzenle</b-link>
                                     <b-link v-else
@@ -416,7 +416,7 @@
                     postStatus = "draft";
                 }
 
-                axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
+                axios.post('/admin/post-poststatuschange?postId=' + id + "&status=" + postStatus)
                     .then((response) => {
                         if (response.data.PostDto.ResultStatus === 0) {
                             this.$toast({
@@ -467,7 +467,7 @@
                 }
 
                 this.checkedRows.forEach((id, index) => {
-                    axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
+                    axios.post('/admin/post-poststatuschange?postId=' + id + "&status=" + postStatus)
                         .then((response) => {
                             if (response.data.PostDto.ResultStatus === 0) {
                                 this.getAllData();
@@ -490,7 +490,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/post/delete?postId=' + id)
+                        axios.post('/admin/post-delete?postId=' + id)
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
                                     this.$toast({
@@ -546,7 +546,7 @@
                 }).then(result => {
                     if (result.value) {
                         this.checkedRows.forEach((id, index) => {
-                            axios.post('/admin/post/delete?postId=' + id)
+                            axios.post('/admin/post-delete?postId=' + id)
                                 .then((response) => {
                                     if (response.data.PostDto.ResultStatus === 0) {
                                         this.getAllData();
@@ -558,7 +558,7 @@
             },
             getAllData() {
                 this.isSpinnerShow = true;
-                axios.get('/admin/post/allposts', {
+                axios.get('/admin/post-allposts', {
                     params: {
                         post_type: 'article',
                         post_status: this.$route.query.status

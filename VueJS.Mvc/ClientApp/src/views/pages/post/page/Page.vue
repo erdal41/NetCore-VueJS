@@ -29,7 +29,8 @@
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="6"
                cols="12">
-            <b-button v-b-tooltip.hover
+            <b-button v-if="$can('create', 'Otherpage')"
+                      v-b-tooltip.hover
                       title="Yeni sayfa ekle"
                       v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                       variant="primary"
@@ -90,10 +91,9 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body v-show="isHiddenStatusButton === true">
+                <b-card-body v-show="isHiddenStatusButton === true && (($can('update', 'Otherpage') && $route.query.status !== 'trash') || ($can('delete', 'Otherpage') && $route.query.status === 'trash'))">
                     <div class="d-flex justify-content-between flex-wrap">
-                        <b-form-group 
-                                      class="mb-0">
+                        <b-form-group class="mb-0">
                             <b-dropdown id="dropdown-left"
                                         text="Durum"
                                         variant="link"
@@ -110,15 +110,26 @@
                                         <span>{{ checkedRowsCount }}</span>
 
                                     </b-button>
+                                    <b-button v-if="$can('update', 'Otherpage') && $can('delete', 'Otherpage')"
+                                              v-b-tooltip.hover
+                                              title="Seçili sayfaların durumlarını değiştirmenizi sağlar."
+                                              v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                              variant="flat-secondary"
+                                              size="sm"
+                                              class="btn-icon rounded-circle ml-0">
+                                        <feather-icon icon="InfoIcon" />
+                                    </b-button>
                                 </template>
-                                <b-dropdown-item v-show="$route.query.status != 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Otherpage') && $route.query.status !== 'publish'"
+                                                 v-show="$route.query.status != 'trash'"
                                                  href="javascript:;"
                                                  id="multi-publish"
                                                  variant="success"
                                                  @click="multiPostStatusChange">
                                     Yayınla
                                 </b-dropdown-item>
-                                <b-dropdown-item v-show="$route.query.status != 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Otherpage') && $route.query.status !== 'draft'"
+                                                 v-show="$route.query.status != 'trash'"
                                                  href="javascript:;"
                                                  id="multi-draft"
                                                  variant="warning"
@@ -126,21 +137,24 @@
                                     Taslak Olarak Kaydet
                                 </b-dropdown-item>
 
-                                <b-dropdown-item v-show="$route.query.status != 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Otherpage')"
+                                                 v-show="$route.query.status != 'trash'"
                                                  href="javascript:;"
                                                  id="multi-trash"
                                                  variant="danger"
                                                  @click="multiPostStatusChange">
                                     Çöp Kutusuna Taşı
                                 </b-dropdown-item>
-                                <b-dropdown-item v-show="$route.query.status == 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Otherpage')"
+                                                 v-show="$route.query.status == 'trash'"
                                                  href="javascript:;"
                                                  id="multi-untrash"
                                                  variant="warning"
                                                  @click="multiPostStatusChange">
                                     Geri Al
                                 </b-dropdown-item>
-                                <b-dropdown-item v-show="$route.query.status == 'trash'"
+                                <b-dropdown-item v-if="$can('delete', 'Otherpage')"
+                                                 v-show="$route.query.status == 'trash'"
                                                  href="javascript:;"
                                                  id="multi-untrash"
                                                  variant="danger"
@@ -148,14 +162,6 @@
                                     Kalıcı Olarak Sil
                                 </b-dropdown-item>
                             </b-dropdown>
-                            <b-button v-b-tooltip.hover
-                                      title="Seçili sayfaların durumlarını değiştirmenizi sağlar."
-                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                      variant="flat-secondary"
-                                      size="sm"
-                                      class="btn-icon rounded-circle ml-0">
-                                <feather-icon icon="InfoIcon" />
-                            </b-button>
                         </b-form-group>
                     </div>
                 </b-card-body>
@@ -172,10 +178,12 @@
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
                         <template #head(Id)="slot">
-                            <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
+                            <b-form-checkbox :disabled="((!$can('update', 'Otherpage') && $route.query.status !== 'trash') || (!$can('delete', 'Otherpage') && $route.query.status === 'trash'))"
+                                             @change="selectAllRows($event)"></b-form-checkbox>
                         </template>
                         <template #cell(Id)="row">
-                            <b-form-checkbox :value="row.item.Id.toString()"
+                            <b-form-checkbox :disabled="((!$can('update', 'Otherpage') && $route.query.status !== 'trash') || (!$can('delete', 'Otherpage') && $route.query.status === 'trash'))"
+                                             :value="row.item.Id.toString()"
                                              :id="row.item.Id.toString()"
                                              v-model="checkedRows"
                                              @change="checkChange($event)"></b-form-checkbox>
@@ -188,39 +196,42 @@
                             </div>
                         </template>
                         <template #cell(Title)="row">
-                            <b v-if="row.item.PostStatus == 2">{{row.item.Title}}</b>
+                            <b v-if="row.item.PostStatus == 2 || !$can('update', 'Otherpage')">{{row.item.Title}}</b>
                             <b-link v-else
-                                    :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }">
+                                    :to="{ name:'pages-page-edit', query: { edit : row.item.Id } }">
                                 <b>{{row.item.Title}}</b>
                             </b-link>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link v-if="row.item.PostStatus != 0 && row.item.PostStatus != 2"
+                                    <b-link v-show="row.item.PostStatus != 0 && row.item.PostStatus != 2 && $can('update', 'Otherpage')"
                                             :to="{ name:'pages-post-preview', query: { preview : row.item.Id } }"
                                             class="text-primary small">Önizle</b-link>
                                     <b-link v-show="row.item.PostStatus == 0"
                                             :to="{ name:'pages-page-view', params: { postName : row.item.PostName } }"
                                             class="text-primary small">Görüntüle</b-link>
-                                    <small v-show="row.item.PostStatus != 2"
+                                    <small v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
                                            class="text-muted"> | </small>
-                                    <b-link v-if="row.item.PostStatus != 2"
-                                            :to="{ name:'pages-post-edit', query: { edit : row.item.Id } }"
+                                    <b-link v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
+                                            :to="{ name:'pages-page-edit', query: { edit : row.item.Id } }"
                                             class="text-success small"
                                             variant="flat-danger">Düzenle</b-link>
-                                    <b-link v-else
-                                            id="untrash"
-                                            href="javascript:;"
-                                            no-prefetch
-                                            class="text-warning small"
-                                            @click="postStatusChange($event, row.item.Id, row.item.Title)">Geri Al</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link v-if="row.item.PostStatus != 2"
+                                    <small v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
+                                           class="text-muted"> | </small>
+                                    <b-link v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
                                             id="trash"
                                             href="javascript:;"
                                             no-prefetch
                                             class="text-danger small"
                                             @click="postStatusChange($event, row.item.Id, row.item.Title)">Çöp</b-link>
-                                    <b-link v-else
+                                    <b-link v-show="row.item.PostStatus === 2 && $can('update', 'Otherpage')"
+                                            id="untrash"
+                                            href="javascript:;"
+                                            no-prefetch
+                                            class="text-warning small"
+                                            @click="postStatusChange($event, row.item.Id, row.item.Title)">Geri Al</b-link>
+                                    <small v-show="row.item.PostStatus === 2 && $can('update', 'Otherpage') && $can('delete', 'Otherpage')"
+                                           class="text-muted"> | </small>
+                                    <b-link v-show="row.item.PostStatus === 2 && $can('delete', 'Otherpage')"
                                             href="javascript:;"
                                             no-prefetch
                                             class="text-danger small"
@@ -297,7 +308,7 @@
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
-import { integer } from '../../../../@core/utils/validations/validations'
+    import { integer } from '../../../../@core/utils/validations/validations'
 
     export default {
         components: {
@@ -419,7 +430,7 @@ import { integer } from '../../../../@core/utils/validations/validations'
                     console.log(postStatus);
                 }
 
-                axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
+                axios.post('/admin/post-poststatuschange?postId=' + id + "&status=" + postStatus)
                     .then((response) => {
                         if (response.data.PostDto.ResultStatus === 0) {
                             this.$toast({
@@ -472,7 +483,7 @@ import { integer } from '../../../../@core/utils/validations/validations'
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/post/delete?postId=' + id)
+                        axios.post('/admin/post-delete?postId=' + id)
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
                                     this.$toast({
@@ -526,8 +537,8 @@ import { integer } from '../../../../@core/utils/validations/validations'
 
 
                 this.checkedRows.forEach((id, index) => {
-                    axios.post('/admin/post/poststatuschange?postId=' + id + "&status=" + postStatus)
-                        .then((response) => {                            
+                    axios.post('/admin/post-poststatuschange?postId=' + id + "&status=" + postStatus)
+                        .then((response) => {
                             if (response.data.PostDto.ResultStatus === 0) {
                                 this.getAllData();
                             }
@@ -551,7 +562,7 @@ import { integer } from '../../../../@core/utils/validations/validations'
                 }).then(result => {
                     if (result.value) {
                         this.checkedRows.forEach((id, index) => {
-                            axios.post('/admin/post/delete?postId=' + id)
+                            axios.post('/admin/post-delete?postId=' + id)
                                 .then((response) => {
                                     if (response.data.PostDto.ResultStatus === 0) {
                                         this.getAllData();
@@ -563,7 +574,7 @@ import { integer } from '../../../../@core/utils/validations/validations'
             },
             getAllData() {
                 this.isSpinnerShow = true;
-                axios.get('/admin/post/allposts', {
+                axios.get('/admin/post-allposts', {
                     params: {
                         post_type: 'page',
                         post_status: this.$route.query.status

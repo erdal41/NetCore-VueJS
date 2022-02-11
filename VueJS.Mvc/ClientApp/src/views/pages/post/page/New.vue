@@ -6,7 +6,7 @@
             <b-row class="breadcrumbs-top">
                 <b-col cols="12">
                     <h2 class="content-header-title float-left pr-1 mb-0">
-                        Makale Ekle
+                        Sayfa Ekle
                     </h2>
                     <div class="breadcrumb-wrapper">
                         <b-breadcrumb>
@@ -50,7 +50,7 @@
         <b-col md="12"
                lg="8">
             <b-card>
-                <validation-observer ref="articleAddForm">
+                <validation-observer ref="pageAddForm">
                     <b-form>
                         <b-row>
                             <b-col cols="12">
@@ -74,7 +74,8 @@
                     </b-form>
                 </validation-observer>
             </b-card>
-            <b-card-actions title="SEO Ayarları"
+            <b-card-actions v-show="$can('create','Seo')"
+                            title="SEO Ayarları"
                             action-collapse
                             collapsed>
                 <b-tabs>
@@ -86,7 +87,7 @@
                                     <b-form-group label-for="SeoTitle"
                                                   description="Arama motoru optimizasyonu için geçerli olan SEO Başlığının uzunluğu 60 karakter olarak önerilir.">
                                         <b-form-input id="SeoTitle"
-                                                      v-model="articleSeoSettingAddDto.SeoTitle"
+                                                      v-model="pageSeoSettingAddDto.SeoTitle"
                                                       type="text"
                                                       placeholder="Seo Başlığı" />
                                     </b-form-group>
@@ -101,21 +102,21 @@
                                     <b-form-group label-for="SeoDescription"
                                                   description="Arama motoru optimizayonu için geçerli olan SEO açıklamasının uzunluğu 50-160 karakter arasında girilmesi önerilir.">
                                         <b-form-textarea id="SeoDescription"
-                                                         v-model="articleSeoSettingAddDto.SeoDescription"
+                                                         v-model="pageSeoSettingAddDto.SeoDescription"
                                                          placeholder="Meta Açıklama"
                                                          rows="3" />
                                     </b-form-group>
                                     <app-collapse>
                                         <app-collapse-item title="Gelişmiş">
                                             <b-form-group label-for="CanonicalUrl"
-                                                          description="Geçerli makale ile benzer içeriğe sahip olan makalenin linkini giriniz.">
+                                                          description="Geçerli sayfa ile benzer içeriğe sahip olan sayfanın linkini giriniz.">
                                                 <b-form-input id="CanonicalUrl"
-                                                              v-model="articleSeoSettingAddDto.CanonicalUrl"
+                                                              v-model="pageSeoSettingAddDto.CanonicalUrl"
                                                               type="text"
                                                               placeholder="Benzer Link" />
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoIndex"
+                                                <b-form-checkbox v-model="pageSeoSettingAddDto.IsRobotsNoIndex"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -123,7 +124,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoFollow"
+                                                <b-form-checkbox v-model="pageSeoSettingAddDto.IsRobotsNoFollow"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -131,7 +132,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoArchive"
+                                                <b-form-checkbox v-model="pageSeoSettingAddDto.IsRobotsNoArchive"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -139,7 +140,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoImageIndex"
+                                                <b-form-checkbox v-model="pageSeoSettingAddDto.IsRobotsNoImageIndex"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -147,7 +148,7 @@
                                                 </b-form-checkbox>
                                             </b-form-group>
                                             <b-form-group>
-                                                <b-form-checkbox v-model="articleSeoSettingAddDto.IsRobotsNoSnippet"
+                                                <b-form-checkbox v-model="pageSeoSettingAddDto.IsRobotsNoSnippet"
                                                                  name="check-button"
                                                                  switch
                                                                  inline>
@@ -167,22 +168,20 @@
                             Bu, arama motorlarının web sitenizi ve içeriğinizi anlamasına yardımcı olur. Bu sayfa için bazı ayarlarınızı aşağıda değiştirebilirsiniz.
                         </p>
                         <b-form-group label="Sayfa Türü">
-                            <v-select id="schnemaPageType"
-                                      v-model="articleSeoSettingAddDto.SchemaPageType"
-                                      :options="schnemaPageTypes"
+                            <v-select id="schemaPageType"
+                                      v-model="pageSeoSettingAddDto.SchemaPageType"
+                                      :options="schemaPageTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Sayfa Türü Seçiniz..."
-                                      @input="changePageType()" />
+                                      placeholder="Sayfa Türü Seçiniz..." />
                         </b-form-group>
                         <b-form-group label="Makale Türü">
-                            <v-select id="schnemaArticleType"
-                                      v-model="selectedArticleType"
-                                      :options="schnemaArticleTypes"
+                            <v-select id="schemaArticleType"
+                                      v-model="pageSeoSettingAddDto.SchemaArticleType"
+                                      :options="schemaArticleTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Makale Türü Seçiniz..."
-                                      @input="changeArticleType" />
+                                      placeholder="Makale Türü Seçiniz..." />
                         </b-form-group>
                     </b-tab>
                     <b-tab title="Sosyal Medya">
@@ -226,13 +225,13 @@
                                 </b-row>
                                 <b-form-group class="mt-1">
                                     <b-form-input id="OpenGraphTitle"
-                                                  v-model="articleSeoSettingAddDto.OpenGraphTitle"
+                                                  v-model="pageSeoSettingAddDto.OpenGraphTitle"
                                                   type="text"
                                                   placeholder="Sosyal Medya Başlığı" />
                                 </b-form-group>
                                 <b-form-group>
                                     <b-form-textarea id="OpenGraphDescription"
-                                                     v-model="articleSeoSettingAddDto.OpenGraphDescription"
+                                                     v-model="pageSeoSettingAddDto.OpenGraphDescription"
                                                      placeholder="Sosyal Medya Açıklaması"
                                                      rows="3" />
                                 </b-form-group>
@@ -276,13 +275,13 @@
                                 </b-row>
                                 <b-form-group class="mt-1">
                                     <b-form-input id="TwitterTitle"
-                                                  v-model="articleSeoSettingAddDto.TwitterTitle"
+                                                  v-model="pageSeoSettingAddDto.TwitterTitle"
                                                   type="text"
                                                   placeholder="Twitter Başlığı" />
                                 </b-form-group>
                                 <b-form-group>
                                     <b-form-textarea id="TwitterDescription"
-                                                     v-model="articleSeoSettingAddDto.TwitterDescription"
+                                                     v-model="pageSeoSettingAddDto.TwitterDescription"
                                                      placeholder="Twitter Açıklaması"
                                                      rows="3" />
                                 </b-form-group>
@@ -294,113 +293,18 @@
         </b-col>
         <b-col md="12"
                lg="4">
-            <b-card title="Kategori">
+            <b-card-actions title="Ebeveyn Sayfa"
+                            action-collapse>
                 <b-form-group>
-                    <v-select id="categoryList"
-                              v-model="selectedCategory"
-                              :options="categories"
-                              label="Name"
+                    <v-select v-model="postAddDto.ParentId"
+                              :options="topPosts"
+                              label="Title"
                               :reduce="(option) => option.Id"
-                              placeholder="Kategori Seçiniz..."
-                              taggable 
-                              multiple
-                              @input="changeCategory" />
+                              placeholder="— Ebeveyn Sayfa —"/>
                 </b-form-group>
-                <b-button v-b-toggle.new-category
-                          size="sm"
-                          variant="flat-primary">
-                    + Yeni Kategori Ekle
-                </b-button>
-                <b-collapse id="new-category">
-                    <b-card class="card-border">
-                        <validation-observer ref="categoryAddForm">
-                            <b-form>
-                                <b-form-group>
-                                    <validation-provider #default="{ errors }"
-                                                         name="categoryName"
-                                                         vid="categoryName"
-                                                         rules="required">
-                                        <b-form-input v-model="categoryAddDto.Name"
-                                                      :state="errors.length > 0 ? false:null"
-                                                      type="text"
-                                                      size="sm"
-                                                      placeholder="Kategori Adı" />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
-                                </b-form-group>
-                                <b-form-group>
-                                    <v-select id="parentTerms"
-                                              v-model="selectedParentTerm"
-                                              :options="allParentTerms"
-                                              label="Name"
-                                              :reduce="(option) => option.Id"
-                                              class="select-size-sm"
-                                              placeholder="— Üst Kategori —"
-                                              @input="changeParentTerm" />
-                                </b-form-group>
-                                <b-button variant="outline-primary"
-                                          size="sm"
-                                          @click.prevent="validationFormCategory">
-                                    Ekle
-                                </b-button>
-                            </b-form>
-                        </validation-observer>
-                    </b-card>
-                </b-collapse>
-            </b-card>
-            <b-card title="Etiket">
-                <b-form-group>
-                    <v-select v-model="selectedTag"
-                              :options="tags"
-                              label="Name"
-                              :reduce="(option) => option.Id"
-                              placeholder="Etiket Seçiniz..."
-                              multiple
-                              @input="changeTag" />
-                </b-form-group>
-                <b-button v-b-toggle.new-tag
-                          size="sm"
-                          variant="flat-primary">
-                    + Yeni Etiket Ekle
-                </b-button>
-                <b-collapse id="new-tag">
-                    <b-card class="card-border">
-                        <validation-observer ref="tagAddForm">
-                            <b-form>
-                                <b-form-group>
-                                    <validation-provider #default="{ errors }"
-                                                         name="tagName"
-                                                         vid="tagName"
-                                                         rules="required">
-                                        <b-form-input v-model="tagAddDto.Name"
-                                                      :state="errors.length > 0 ? false:null"
-                                                      type="text"
-                                                      size="sm"
-                                                      placeholder="Etiket Adı" />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
-                                </b-form-group>
-                                <b-button variant="outline-primary"
-                                          size="sm"
-                                          @click.prevent="validationFormTag">
-                                    Ekle
-                                </b-button>
-                            </b-form>
-                        </validation-observer>
-                    </b-card>
-                </b-collapse>
-            </b-card>
+            </b-card-actions>
             <b-card-actions title="Resim"
-                            action-collapse
-                            collapsed>
-                <b-form-group>
-                    <b-form-checkbox v-model="postAddDto.IsShowFeaturedImage"
-                                     name="check-button"
-                                     switch
-                                     inline>
-                        Görsel yazıda gösterilsin mi?
-                    </b-form-checkbox>
-                </b-form-group>
+                            action-collapse>
                 <div class="image-thumb">
                     <b-img rounded
                            v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
@@ -434,11 +338,11 @@
             <b-card-actions title="Diğer Ayarlar"
                             action-collapse
                             collapsed>
-                <b-form-checkbox v-model="postAddDto.CommentStatus"
+                <b-form-checkbox v-model="postAddDto.IsShowSubPosts"
                                  name="check-button"
                                  switch
                                  inline>
-                    Bu yazı için yorumlar açılsın mı?
+                    Gönderi, diğer sayfalarda gösterilsin mi?
                 </b-form-checkbox>
             </b-card-actions>
         </b-col>
@@ -513,16 +417,16 @@
             return {
                 breadcrumbs: [
                     {
-                        text: 'Makaleler',
-                        to: { name: 'pages-article-list' }
+                        text: 'Sayfalar',
+                        to: { name: 'pages-page-list' }
                     },
                     {
-                        text: 'Makale Ekle',
+                        text: 'Sayfa Ekle',
                         active: true,
                     },
                 ],
                 editorOption: {
-                    placeholder: 'Makale İçeriği',
+                    placeholder: 'Sayfa İçeriği',
                     theme: 'snow'
                 },
                 required,
@@ -531,22 +435,16 @@
                 postAddDto: {
                     Title: '',
                     Content: '',
-                    PostType: 'article',
-                    PostStatus: '',
-                    CommentStatus: Boolean,
+                    BottomContent: '',
+                    PostType: 'page',
+                    PostStatus: null,
+                    ParentId: '',
                     FeaturedImageId: '',
-                    IsShowFeaturedImage: Boolean
+                    IsShowFeaturedImage: Boolean,
+                    IsShowPage: Boolean,
+                    IsShowSubPosts: Boolean,
                 },
-                categoryAddDto: {
-                    Name: '',
-                    ParentId: null,
-                    TermType: 'category'
-                },
-                tagAddDto: {
-                    Name: '',
-                    TermType: 'tag'
-                },
-                articleSeoSettingAddDto: {
+                pageSeoSettingAddDto: {
                     SeoTitle: '',
                     FocusKeyword: '',
                     SeoDescription: '',
@@ -556,8 +454,8 @@
                     IsRobotsNoArchive: Boolean,
                     IsRobotsNoImageIndex: Boolean,
                     IsRobotsNoSnippet: Boolean,
-                    SchemaPageType: '',
-                    SchemaArticleType: '',
+                    SchemaPageType: 0,
+                    SchemaArticleType: 9,
                     OpenGraphImageId: '',
                     OpenGraphTitle: '',
                     OpenGraphDescription: '',
@@ -565,23 +463,7 @@
                     TwitterTitle: '',
                     TwitterDescription: '',
                 },
-                termSeoSettingAddDto: {
-                    SeoTitle: ''
-                },
-                postTermAddDto: {
-                    PostId: '',
-                    TermId: '',
-                    TermType: ''
-                },
-                categories: [],
-                selectedCategory: [],
-                allParentTerms: [],
-                selectedParentTerm: '',
-                selectedParentTermValue: null,
-                categoryName: '',
-                tags: [],
-                selectedTag: [],
-                tagName: '',
+                topPosts: [],
                 featuredImage: {
                     id: null,
                     fileName: null,
@@ -603,23 +485,22 @@
                 },
                 isOpenGraphImageChoose: false,
                 isTwitterImageChoose: false,
-                schnemaPageTypes: [],
-                schnemaArticleTypes: [],
-                selectedPageType: { Id: '0', Name: 'Sayfalar için varsayılan(Web sayfası)' },
-                selectedArticleType: { Id: '0', Name: 'Yazılar için varsayılan(Makale)' }
+                schemaPageTypes: [],
+                schemaArticleTypes: []
             }
         },
         methods: {
-            allCategories() {
-                axios.get('/admin/term/allterms', {
-                    params: {
-                        term_type: 'category'
-                    }
-                })
+            allTopPosts() {
+                axios.get('/admin/post-alltopposts',
+                    {
+                        params: {
+                            postId: null
+                        }
+                    })
                     .then((response) => {
+                        console.log(response.data);
                         if (response.data.ResultStatus === 0) {
-                            this.categories = response.data.Terms;
-                            this.allParentTerms = response.data.Terms;
+                            this.topPosts = response.data.Posts;
                         }
                     })
                     .catch((error) => {
@@ -629,49 +510,10 @@
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: 'Terimler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: 'Ebeveyn sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });
-            },
-            allTags() {
-                axios.get('/admin/term/allterms', {
-                    params: {
-                        term_type: 'tag'
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.tags = response.data.Terms;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Terimler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            changeCategory(value) {
-                this.selectedCategory = value;
-            },
-            changeParentTerm(value) {
-                this.categoryAddDto.ParentId = value;
-            },
-            changeTag(value) {
-                this.selectedTag = value;
-            },
-            addNewTerm: function (e) {
-                if (e.target.id == "newCategory") {
-
-                } else if (e.target.id == "newTag") {
-
-                }
             },
             imageChange(id, name, altText) {
                 if (this.isFeaturedImageChoose == true) {
@@ -716,10 +558,10 @@
                     this.twitterImage.altText = null;
                 }
             },
-            getSchnemaPageType() {
-                axios.get('/admin/post/getschnemapagetype')
+            getSchemaPageType() {
+                axios.get('/admin/post-getschnemapagetype')
                     .then((response) => {
-                        this.schnemaPageTypes = response.data;
+                        this.schemaPageTypes = response.data;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -733,10 +575,10 @@
                         })
                     });
             },
-            getSchnemaArticleType() {
-                axios.get('/admin/post/getschnemaarticletype')
+            getSchemaArticleType() {
+                axios.get('/admin/post-getschnemaarticletype')
                     .then((response) => {
-                        this.schnemaArticleTypes = response.data;
+                        this.schemaArticleTypes = response.data;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -749,61 +591,34 @@
                             }
                         })
                     });
-            },
-            changePageType(value) {
-                this.articleSeoSettingAddDto.SchemaPageType = value;
-            },
-            changeArticleType(value) {
-                this.articleSeoSettingAddDto.SchemaArticleType = value;
             },
             validationForm: function (e) {
                 this.postAddDto.FeaturedImageId = this.featuredImage.id;
-                this.articleSeoSettingAddDto.FocusKeyword = this.keywords.toString();
-                this.articleSeoSettingAddDto.OpenGraphImageId = this.openGraphImage.id;
-                this.articleSeoSettingAddDto.TwitterImageId = this.twitterImage.id;
-                this.articleSeoSettingAddDto.SchemaPageType = this.selectedPageType.Id;
-                this.articleSeoSettingAddDto.SchemaArticleType = this.selectedArticleType.Id;
+                this.pageSeoSettingAddDto.FocusKeyword = this.keywords.toString();
+                this.pageSeoSettingAddDto.OpenGraphImageId = this.openGraphImage.id;
+                this.pageSeoSettingAddDto.TwitterImageId = this.twitterImage.id;
+                console.log(this.pageSeoSettingAddDto.SchemaPageType);
+                console.log(this.pageSeoSettingAddDto.SchemaArticleType);
                 if (e.target.id == "save") {
                     this.postAddDto.PostStatus = "publish";
                 }
                 else if (e.target.id == "draft") {
                     this.postAddDto.PostStatus = "draft";
                 }
-                this.$refs.articleAddForm.validate().then(success => {
+                this.$refs.pageAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/post/new',
+                        axios.post('/admin/post-new',
                             {
                                 PostAddDto: this.postAddDto,
-                                SeoObjectSettingAddDto: this.articleSeoSettingAddDto
+                                SeoObjectSettingAddDto: this.pageSeoSettingAddDto
                             })
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
-
-                                    this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
-                                    if (this.selectedCategory.length > 0) {
-                                        for (var i = 0; i < this.selectedCategory.length; i++) {
-                                            this.postTermAddDto.TermId = this.selectedCategory[i];
-                                            this.postTermAddDto.TermType = "category";
-
-                                            axios.post('/admin/term/newpostterm', {
-                                                PostTermAddDto: this.postTermAddDto
-                                            });
-                                        }
+                                    if (this.$can('update', 'Otherpage')) {
+                                        this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } });
+                                    } else {
+                                        this.$router.push({ name: 'pages-page-list'});
                                     }
-
-                                    if (this.selectedTag.length > 0) {
-                                        for (var i = 0; i < this.selectedTag.length; i++) {
-                                            this.postTermAddDto.TermId = this.selectedTag[i];
-                                            this.postTermAddDto.TermType = "tag";
-
-                                            axios.post('/admin/term/newpostterm', {
-                                                PostTermAddDto: this.postTermAddDto
-                                            });
-                                        }
-                                    }
-
-                                    this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } })
-
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
@@ -812,7 +627,7 @@
                                             icon: 'CheckIcon',
                                             text: response.data.PostDto.Message
                                         }
-                                    })
+                                    });
                                 }
                                 else {
                                     this.$toast({
@@ -823,7 +638,7 @@
                                             icon: 'AlertOctagonIcon',
                                             text: response.data.PostDto.Message
                                         },
-                                    })
+                                    });
                                 }
                             })
                             .catch((error) => {
@@ -842,111 +657,13 @@
                     }
                 })
             },
-            validationFormCategory() {
-                this.$refs.categoryAddForm.validate().then(success => {
-                    if (success) {
-                        axios.post('/admin/term/new',
-                            {
-                                TermAddDto: this.categoryAddDto,
-                                SeoObjectSettingAddDto: this.termSeoSettingAddDto
-                            })
-                            .then((response) => {
-                                if (response.data.TermDto.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.TermDto.Message
-                                        }
-                                    })
-                                    this.allCategories();
-                                    this.selectedCategory.push(response.data.TermDto.Term.Id)
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
-            validationFormTag() {
-                this.$refs.tagAddForm.validate().then(success => {
-                    if (success) {
-                        axios.post('/admin/term/new',
-                            {
-                                TermAddDto: this.tagAddDto,
-                                SeoObjectSettingAddDto: this.termSeoSettingAddDto
-                            })
-                            .then((response) => {
-                                if (response.data.TermDto.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.TermDto.Message
-                                        }
-                                    })
-                                    this.allTags();
-                                    this.selectedTag.push(response.data.TermDto.Term.Id)
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
         },
         computed: {
         },
         mounted() {
-            this.allCategories();
-            this.allTags();
-            this.getSchnemaPageType();
-            this.getSchnemaArticleType();
-            console.log(this.selectedTag);
+            this.allTopPosts();
+            this.getSchemaPageType();
+            this.getSchemaArticleType();
         }
     }
 </script>

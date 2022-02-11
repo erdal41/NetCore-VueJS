@@ -1,6 +1,6 @@
 export default [
     {
-        path: '/admin/dashboard/analytics',
+        path: '/admin/dashboard',
         name: 'dashboard-analytics',
         component: () => import('@/views/dashboard/analytics/Analytics.vue'),
         meta: {

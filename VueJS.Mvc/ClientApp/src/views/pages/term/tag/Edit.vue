@@ -8,7 +8,7 @@
                    cols="12"
                    md="8">
                 <h2 class="content-header-title float-left pr-1 mb-0">
-                    {{ title }}
+                    Etiket Düzenle
                 </h2>
                 <div class="breadcrumb-wrapper">
                     <b-breadcrumb>
@@ -17,13 +17,12 @@
                                           size="16"
                                           class="align-text-top" />
                         </b-breadcrumb-item>
-                        <b-breadcrumb-item v-if="isParent == true"
-                                           :to="{ name: 'pages-category-list' }">Kategoriler</b-breadcrumb-item>
-                        <b-breadcrumb-item v-else
+                        <b-breadcrumb-item 
                                            :to="{ name: 'pages-tag-list' }">Etiketler</b-breadcrumb-item>
                         <b-breadcrumb-item active>Düzenle</b-breadcrumb-item>
-                        <b-button v-b-tooltip.hover
-                                  :title="tooltipText"
+                        <b-button v-if="$can('create','Tag')"
+                                  v-b-tooltip.hover
+                                  title="Yeni Etiket Ekle"
                                   v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                   variant="outline-primary"
                                   size="sm"
@@ -35,22 +34,15 @@
             <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                    md="4"
                    cols="12">
-                <b-button variant="flat-danger"
+                <b-button v-if="$can('delete','Tag')"
+                          variant="flat-danger"
                           class="mr-1"
                           size="sm"
                           type="button"
                           @click="deleteData">
                     Kalıcı Sil
                 </b-button>
-                <b-button v-if="termUpdateDto.TermType == 2 || termUpdateDto.TermType == 'category'"
-                          variant="outline-primary"
-                          class="mr-1"
-                          size="sm"
-                          type="button"
-                          :to=" {name: 'pages-category-view', params: { slug: termUpdateDto.Slug }}">
-                    Görüntüle
-                </b-button>
-                <b-button v-else-if="termUpdateDto.TermType == 3 || termUpdateDto.TermType == 'tag'"
+                <b-button 
                           variant="outline-primary"
                           class="mr-1"
                           size="sm"
@@ -81,7 +73,7 @@
                                                           v-model="termUpdateDto.Name"
                                                           :state="errors.length > 0 ? false:null"
                                                           type="text"
-                                                          :placeholder="namePlaceholder" />
+                                                          placeholder="Etiket Adı" />
                                             <small class="text-danger">{{ errors[0] }}</small>
                                         </validation-provider>
                                     </b-form-group>
@@ -92,19 +84,7 @@
                                                       v-model="termUpdateDto.Slug"
                                                       type="text"
                                                       placeholder="Kısa İsim" />
-                                    </b-form-group>
-
-                                    <b-form-group v-show="isParent"
-                                                  label-for="parentTerms"
-                                                  description="Mevcut kategori için üst kategoriyi buradan seçebilirsiniz.">
-                                        <v-select id="parentTerms"
-                                                  v-model="selected"
-                                                  :options="allParentTerms"
-                                                  label="Name"
-                                                  :reduce="(option) => option.Id"
-                                                  placeholder="Üst Kategori Seçiniz..."
-                                                  @input="onChangeMethod($event)" />
-                                    </b-form-group>
+                                    </b-form-group>                                    
 
                                     <b-form-textarea id="description"
                                                      v-model="termUpdateDto.Description"
@@ -116,7 +96,8 @@
                     </validation-observer>
                 </b-card>
             </b-col>
-            <b-col md="12"
+            <b-col v-if="$can('update','Seo')"
+                   md="12"
                    lg="8">
                 <b-card title="SEO Ayarları">
                     <b-tabs>
@@ -296,7 +277,7 @@
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
     import vSelect from 'vue-select';
     import Ripple from 'vue-ripple-directive';
-    import ModalMedia from '../media/ModalMedia.vue';
+    import ModalMedia from '../../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
 
@@ -355,14 +336,9 @@
                 doHaveData: Boolean,
                 required,
                 terms: [],
-                allParentTerms: [],
-                isParent: false,
                 selected: '',
                 selectedValue: null,
                 fields: [{ key: 'Id', sortable: false, thStyle: { width: "20px", padding: "0.72rem !important" } }, { key: 'Name', label: 'İSİM', sortable: true, thStyle: { padding: "0.72rem  !important" } }, { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "50px", padding: "0.72rem  !important" } }, { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "80px", padding: "0.72rem  !important", textalign: "center" } }],
-                title: '',
-                namePlaceholder: '',
-                tooltipText: '',
                 termUpdateDto: {
                     Id: this.$route.query.edit,
                     Name: '',
@@ -435,16 +411,13 @@
                     this.twitterImage.altText = null;
                 }
             },
-            onChangeMethod(value) {
-                this.termUpdateDto.ParentId = value;
-            },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
                         this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
                         this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
                         this.seoObjectSettingUpdateDto.TwitterImageId = this.twitterImage.id;
-                        axios.post('/admin/term/edit',
+                        axios.post('/admin/term-edit',
                             {
                                 TermUpdateDto: this.termUpdateDto,
                                 SeoObjectSettingUpdateDto: this.seoObjectSettingUpdateDto
@@ -502,15 +475,11 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/term/delete?term=' + this.termUpdateDto.Id)
+                        axios.post('/admin/term-delete?termId=' + this.termUpdateDto.Id)
                             .then((response) => {
                                 if (response.data.ResultStatus === 0) {
-                                    if (this.termUpdateDto.TermType === 2) {
-                                        this.$router.push({ path: '/admin/categories' });
-                                    }
-                                    else if (this.termUpdateDto.TermType === 3) {
-                                        this.$router.push({ path: '/admin/tags' });
-                                    }
+                                    this.$router.push({ path: '/admin/tags' });
+
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
@@ -537,96 +506,50 @@
                 })
             },
             getData() {
-                axios.get('/admin/term/edit?term=' + this.$route.query.edit)
+                axios.get('/admin/term-edit?termId=' + this.$route.query.edit)
                     .then((response) => {
-                        console.log(response.data);
-                        if (response.data.TermUpdateDto != null) {
-                            this.doHaveData = true;
-                            this.termUpdateDto.Name = response.data.TermUpdateDto.Name;
-                            this.termUpdateDto.Slug = response.data.TermUpdateDto.Slug;
-
-                            this.termUpdateDto.ParentId = response.data.TermUpdateDto.ParentId;
-                            this.termUpdateDto.Description = response.data.TermUpdateDto.Description;
-                            this.termUpdateDto.TermType = response.data.TermUpdateDto.TermType;
-
-                            this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
-                            this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
-                            this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
-                            this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
-                            this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
-
-
-                            this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
-                            this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
-
-                            this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
-                            this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
-
-                            this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
-
-                            if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
-                                this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
-                                this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
-                                this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
-                            }
-
-                            if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
-                                this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
-                                this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
-                                this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
-                            }
-
-                            if (response.data.TermUpdateDto.TermType === 2) {
-                                this.isParent = true;
-                                if (response.data.TermUpdateDto.Parent != null) {
-                                    this.selected = {
-                                        Id: response.data.TermUpdateDto.Parent.Id,
-                                        Name: response.data.TermUpdateDto.Parent.Name,
-                                    }
-                                }
-
-                                this.title = "Kategoriyi Düzenle";
-                                this.namePlaceholder = "Kategori Adı";
-                                this.tooltipText = "Yeni Kategori Ekle";
-                            }
-                            else if (response.data.TermUpdateDto.TermType === 3) {
-                                this.title = "Etiketi Düzenle";
-                                this.namePlaceholder = "Etiket Adı";
-                                this.tooltipText = "Yeni Etiket Ekle";
-                            }
-                        }
-                        else {
+                        if (response.data.TermUpdateDto.TermType !== 3) {
                             this.doHaveData = false;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getParentList() {
-                axios.get('/admin/term/getparentlist?termId=' + this.$route.query.edit)
-                    .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.allParentTerms = response.data.Terms;
-                        }
-                        else {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: this.title + ' listelenirken hata oluştu. ',
+                        } else {
+                            if (response.data.TermUpdateDto != null) {
+                                this.doHaveData = true;
+                                this.termUpdateDto.Name = response.data.TermUpdateDto.Name;
+                                this.termUpdateDto.Slug = response.data.TermUpdateDto.Slug;
+
+                                this.termUpdateDto.ParentId = response.data.TermUpdateDto.ParentId;
+                                this.termUpdateDto.Description = response.data.TermUpdateDto.Description;
+                                this.termUpdateDto.TermType = response.data.TermUpdateDto.TermType;
+
+                                this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
+                                this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
+                                this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
+                                this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
+                                this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
+
+
+                                this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
+                                this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
+
+                                this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
+                                this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
+
+                                this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
+
+                                if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
+                                    this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
+                                    this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
+                                    this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
                                 }
-                            })
+
+                                if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
+                                    this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
+                                    this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
+                                    this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
+                                }
+                            }
+                            else {
+                                this.doHaveData = false;
+                            }
                         }
                     })
                     .catch((error) => {
@@ -644,7 +567,6 @@
         },
         mounted() {
             this.getData();
-            this.getParentList();
         }
     }
 </script>

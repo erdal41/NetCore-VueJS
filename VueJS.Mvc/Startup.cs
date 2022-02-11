@@ -14,10 +14,6 @@ using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Mvc.Helpers.Concrete;
 using VueJS.Services.AutoMapper.Profiles;
 using VueJS.Services.Extensions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System;
 using VueJS.Mvc.AutoMapper.Profiles;
 
 namespace VueJS.Mvc
@@ -43,20 +39,6 @@ namespace VueJS.Mvc
             services.LoadMyServices(connectionString: Configuration.GetConnectionString("DefaultConnection"));
             services.AddScoped<IImageHelper, ImageHelper>();
             services.AddControllers();
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
-            {
-                option.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateAudience = true,
-                    ValidateIssuer = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = Configuration["Token:Issuer"],
-                    ValidAudience = Configuration["Token:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:SecurityKey"])),
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
 
             services.AddSpaStaticFiles(configuration =>
             {

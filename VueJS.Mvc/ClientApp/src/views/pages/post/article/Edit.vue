@@ -9,7 +9,7 @@
                        cols="12"
                        md="8">
                     <h2 class="content-header-title float-left pr-1 mb-0">
-                        {{ pageTitle }}
+                        Makale Düzenle
                     </h2>
                     <div class="breadcrumb-wrapper">
                         <b-breadcrumb>
@@ -18,35 +18,15 @@
                                               size="16"
                                               class="align-text-top" />
                             </b-breadcrumb-item>
-                            <b-breadcrumb-item v-if="isParent == true"
-                                               :to="{ name: 'pages-page-list' }">Sayfalar</b-breadcrumb-item>
-                            <b-breadcrumb-item v-else
-                                               :to="{ name: 'pages-article-list' }">Makaleler</b-breadcrumb-item>
+                            <b-breadcrumb-item :to="{ name: 'pages-article-list' }">Makaleler</b-breadcrumb-item>
                             <b-breadcrumb-item active>Düzenle</b-breadcrumb-item>
-                            <b-button v-if="postUpdateDto.PostType == '0'"
+                            <b-button v-show="$can('create', 'Article')"
                                       v-b-tooltip.hover
-                                      :title="tooltipText"
-                                      v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                                      variant="outline-primary"
-                                      size="sm"
-                                      :to="{ name:'pages-page-add'}"
-                                      class=" ml-1">Yeni Ekle</b-button>
-                            <b-button v-else-if="postUpdateDto.PostType == '1'"
-                                      v-b-tooltip.hover
-                                      :title="tooltipText"
+                                      title="Yeni Makale Ekle"
                                       v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                       variant="outline-primary"
                                       size="sm"
                                       :to="{ name:'pages-article-add'}"
-                                      class=" ml-1">Yeni Ekle</b-button>
-
-                            <b-button v-else-if="postUpdateDto.PostType == '5'"
-                                      v-b-tooltip.hover
-                                      :title="tooltipText"
-                                      v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                                      variant="outline-primary"
-                                      size="sm"
-                                      :to="{ name:'pages-basepage-add'}"
                                       class=" ml-1">Yeni Ekle</b-button>
                         </b-breadcrumb>
                     </div>
@@ -168,7 +148,8 @@
                             </b-form>
                         </validation-observer>
                     </b-card>
-                    <b-card-actions title="SEO Ayarları"
+                    <b-card-actions v-show="$can('update', 'Seo')"
+                                    title="SEO Ayarları"
                                     action-collapse
                                     collapsed>
                         <b-tabs>
@@ -385,32 +366,8 @@
                     </b-card-actions>
                 </b-col>
                 <b-col md="12"
-                       lg="4">
-                    <b-card v-show="postUpdateDto.PostType == '0'"
-                            title="Ebeveyn Sayfa">
-                        <b-form-group>
-                            <v-select v-model="postUpdateDto.ParentId"
-                                      :options="currentTopPosts"
-                                      label="Title"
-                                      :reduce="(option) => option.Id"
-                                      placeholder="— Ebeveyn Sayfa —"
-                                      @input="changeTopPosts" />
-                        </b-form-group>
-                    </b-card>
-                    <b-card v-show="postUpdateDto.PostType == '0'"
-                            title="Alt Sayfa">
-                        <b-form-group>
-                            <v-select v-model="currentSelectedSubPosts"
-                                      :options="currentSubPosts"
-                                      label="Title"
-                                      :reduce="(option) => option.Id"
-                                      placeholder="— Alt Sayfa —"
-                                      multiple
-                                      @option:selecting="selectingSubPosts"
-                                      @option:deselecting="deSelectingSubPosts" />
-                        </b-form-group>
-                    </b-card>
-                    <b-card v-show="postUpdateDto.PostType == '1'"
+                       lg="4">                  
+                    <b-card
                             title="Kategori">
                         <b-form-group>
                             <v-select v-model="currentSelectedCategory"
@@ -464,7 +421,7 @@
                             </b-card>
                         </b-collapse>
                     </b-card>
-                    <b-card v-show="postUpdateDto.PostType == '1'"
+                    <b-card 
                             title="Etiket">
                         <b-form-group>
                             <v-select v-model="currentSelectedTag"
@@ -551,16 +508,8 @@
                     </b-card-actions>
                     <b-card-actions title="Diğer Ayarlar"
                                     action-collapse
-                                    collapsed>
-                        <b-form-group v-show="postUpdateDto.PostType == '0'">
-                            <b-form-checkbox v-model="postUpdateDto.IsShowSubPosts"
-                                             name="check-button"
-                                             switch
-                                             inline>
-                                Bu gönderi, diğer sayfalarda gösterilsin mi?
-                            </b-form-checkbox>
-                        </b-form-group>
-                        <b-form-group v-show="postUpdateDto.PostType == '1'">
+                                    collapsed>                       
+                        <b-form-group>
                             <b-form-checkbox v-model="postUpdateDto.CommentStatus"
                                              name="check-button"
                                              switch
@@ -582,24 +531,13 @@
                       @click="postStatusChange">
                 Geri Yükle
             </b-button>
-            <b-button v-if="postUpdateDto.PostType == 0"
-                      variant="outline-primary"
-                      :to="{ name: 'pages-page-list', query: {status: 'trash'} }">
-                Çöp Kutusuna Git
-            </b-button>
-            <b-button v-else-if="postUpdateDto.PostType == 1"
-                      variant="outline-primary"
+            <b-button variant="outline-primary"
                       :to="{ name: 'pages-article-list', query: {status: 'trash'} }">
-                Çöp Kutusuna Git
-            </b-button>
-            <b-button v-else-if="postUpdateDto.PostType == 4"
-                      variant="outline-primary"
-                      :to="{ name: 'pages-basepage-list', query: {status: 'trash'} }">
                 Çöp Kutusuna Git
             </b-button>
         </div>
     </div>
-    <div v-else-if="doHaveData === true"
+    <div v-else-if="doHaveData === false"
          class="error-message">
         Mevcut olmayan bir ögeyi düzenlemeye çalıştınız. Belki daha önceden silinmiş olabilir mi?
     </div>
@@ -619,7 +557,7 @@
     import vSelect from 'vue-select';
     import Ripple from 'vue-ripple-directive';
     import { quillEditor } from 'vue-quill-editor';
-    import ModalMedia from '../media/ModalMedia.vue';
+    import ModalMedia from '../../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
 
@@ -681,9 +619,7 @@
                 },
                 required,
                 isSpinnerShow: true,
-                pageTitle: '',
                 saveButtonText: '',
-                tooltipText: '',
                 title: '',
                 domainName: window.location.origin,
                 parentPostName: '',
@@ -742,12 +678,6 @@
                     TermId: '',
                     TermType: ''
                 },
-                currentTopPosts: [],
-                currentSubPosts: [],
-                subPosts: [],
-                currentSelectedSubPosts: [],
-                selectedSubPosts: [],
-                deSelectedSubPosts: [],
                 terms: [],
                 categories: [],
                 currentSelectedCategory: [],
@@ -793,89 +723,6 @@
                 this.isSlugEditActive = false;
                 this.postUpdateDto.PostName = this.oldPostName;
             },
-            allTopPosts() {
-                axios.get('/admin/post/getalltopposts',
-                    {
-                        params: {
-                            postId: this.$route.query.edit
-                        }
-                    })
-                    .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.currentTopPosts = response.data.Posts;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Ebeveyn sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            allSubPosts() {
-                axios.get('/admin/post/getallsubposts',
-                    {
-                        params: {
-                            postId: this.$route.query.edit
-                        }
-                    })
-                    .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.currentSubPosts = response.data.Posts;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Ebeveyn sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            changeTopPosts(value) {
-                var result = this.currentSubPosts.some(subPost => subPost.Id == value);
-                if (result) {
-                    this.currentSubPosts = this.currentSubPosts.filter(subPost => subPost.Id != value);
-                }
-                else {
-                    this.allSubPosts();
-                }
-            },
-            selectingSubPosts(value) {
-                var selectResult = this.subPosts.some(termId => termId === value.Id);
-                if (selectResult) {
-                    this.deSelectedSubPosts = this.deSelectedSubPosts.filter(subPostId => subPostId != value.Id);
-                } else {
-                    this.selectedSubPosts.push(value.Id);
-                }
-
-                var result = this.currentTopPosts.some(topPost => topPost.Id == value.Id);
-                if (result) {
-                    this.currentTopPosts = this.currentTopPosts.filter(topPost => topPost.Id != value.Id);
-                }
-                else {
-                    this.allTopPosts();
-                }
-            },
-            deSelectingSubPosts(value) {
-                var deSelectResult = this.subPosts.some(subPostId => subPostId === value.Id);
-                if (deSelectResult) {
-                    this.deSelectedSubPosts.push(value.Id);
-                }
-                else {
-                    this.selectedSubPosts = this.selectedSubPosts.filter(subPostId => subPostId != value.Id);
-                }
-                this.allTopPosts();
-            },
             selectingTerms(value) {
                 var selectResult = this.terms.some(termId => termId === value.Id);
                 if (selectResult) {
@@ -894,7 +741,7 @@
                 }
             },
             allCategories() {
-                axios.get('/admin/term/allterms', {
+                axios.get('/admin/term-allterms', {
                     params: {
                         term_type: 'category'
                     }
@@ -917,7 +764,7 @@
                     });
             },
             allTags() {
-                axios.get('/admin/term/allterms', {
+                axios.get('/admin/term-allterms', {
                     params: {
                         term_type: 'tag'
                     }
@@ -941,12 +788,6 @@
             },
             changeParentTerm(value) {
                 this.categoryAddDto.ParentId = value;
-            },
-            changeParentPage() {
-
-            },
-            changeChildPage() {
-
             },
             addNewTerm: function (e) {
                 if (e.target.id == "newCategory") {
@@ -999,7 +840,7 @@
                 }
             },
             getSchnemaPageType() {
-                axios.get('/admin/post/getschnemapagetype')
+                axios.get('/admin/post-getschnemapagetype')
                     .then((response) => {
                         this.schnemaPageTypes = response.data;
                     })
@@ -1016,7 +857,7 @@
                     });
             },
             getSchnemaArticleType() {
-                axios.get('/admin/post/getschnemaarticletype')
+                axios.get('/admin/post-getschnemaarticletype')
                     .then((response) => {
                         this.schnemaArticleTypes = response.data;
                     })
@@ -1039,92 +880,73 @@
                 this.seoObjectSettingUpdateDto.SchemaArticleType = value;
             },
             getData() {
-                axios.get('/admin/post/edit?post=' + this.$route.query.edit)
+                axios.get('/admin/post-edit?postId=' + this.$route.query.edit)
                     .then((response) => {
-                        this.parentPostName = "";
-                        if (response.data.PostUpdateDto != null) {
-                            if (response.data.PostUpdateDto.PostStatus == 2) {
-                                this.isTrashedPost = true;
-                                this.doHaveData = true;
-                            }
-                            else {
-                                this.doHaveData = true;
-                                this.isTrashedPost = false;
-
-                                if (response.data.PostUpdateDto.Parents != null) {
-                                    for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
-                                        this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
-                                    }
+                        if (response.data.PostUpdateDto.PostType !== 1) {
+                            this.doHaveData = false;
+                        }
+                        else {
+                            this.parentPostName = "";
+                            if (response.data.PostUpdateDto != null) {
+                                if (response.data.PostUpdateDto.PostStatus == 2) {
+                                    this.isTrashedPost = true;
+                                    this.doHaveData = true;
                                 }
+                                else {
+                                    this.doHaveData = true;
+                                    this.isTrashedPost = false;
 
-                                this.postUpdateDto.PostStatus = response.data.PostUpdateDto.PostStatus;
-                                this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
-                                this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
-                                this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
-                                this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
-
-                                this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.IsShowFeaturedImage;
-                                if (response.data.PostUpdateDto.FeaturedImage != null) {
-                                    this.featuredImage.id = response.data.PostUpdateDto.FeaturedImageId;
-                                    this.featuredImage.fileName = response.data.PostUpdateDto.FeaturedImage.FileName;
-                                    this.featuredImage.altText = response.data.PostUpdateDto.FeaturedImage.AltText;
-                                }
-
-                                this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
-                                this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
-                                this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
-                                this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
-                                this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
-                                this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.IsRobotsNoFollow;
-                                this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.IsRobotsNoArchive;
-                                this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoImageIndex;
-                                this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.IsRobotsNoSnippet;
-
-                                this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.SchemaPageType;
-                                this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.SchemaArticleType;
-
-                                this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
-                                this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
-
-                                this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
-                                this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
-
-                                this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
-
-                                if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
-                                    this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
-                                    this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
-                                    this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
-                                }
-
-                                if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
-                                    this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
-                                    this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
-                                    this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
-                                }
-
-                                if (response.data.PostUpdateDto.PostType === 0) {
-                                    this.isParent = true;
-                                    this.postUpdateDto.ParentId = response.data.PostUpdateDto.ParentId;
-                                    if (response.data.PostUpdateDto.Parent != null) {
-                                        this.selected = {
-                                            Id: response.data.PostUpdateDto.Parent.Id,
-                                            Name: response.data.PostUpdateDto.Parent.Name,
+                                    if (response.data.PostUpdateDto.Parents != null) {
+                                        for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
+                                            this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
                                         }
                                     }
 
-                                    if (response.data.PostUpdateDto.Children.length > 0) {
-                                        response.data.PostUpdateDto.Children.forEach((childPost, index) => {
-                                            this.currentSelectedSubPosts.push(childPost.Id);
-                                            this.subPosts.push(childPost.Id);
-                                        });
+                                    this.postUpdateDto.PostStatus = response.data.PostUpdateDto.PostStatus;
+                                    this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
+                                    this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
+                                    this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
+                                    this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
+
+                                    this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.IsShowFeaturedImage;
+                                    if (response.data.PostUpdateDto.FeaturedImage != null) {
+                                        this.featuredImage.id = response.data.PostUpdateDto.FeaturedImageId;
+                                        this.featuredImage.fileName = response.data.PostUpdateDto.FeaturedImage.FileName;
+                                        this.featuredImage.altText = response.data.PostUpdateDto.FeaturedImage.AltText;
                                     }
 
-                                    this.pageTitle = "Sayfayı Düzenle";
-                                    this.tooltipText = "Yeni Sayfa Ekle";
-                                } else if (response.data.PostUpdateDto.PostType === 1) {
-                                    this.pageTitle = "Makaleyi Düzenle";
-                                    this.tooltipText = "Yeni Makale Ekle";
+                                    this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
+                                    this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
+                                    this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
+                                    this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.IsRobotsNoFollow;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.IsRobotsNoArchive;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoImageIndex;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.IsRobotsNoSnippet;
+
+                                    this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.SchemaPageType;
+                                    this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.SchemaArticleType;
+
+                                    this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
+                                    this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
+
+                                    this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
+                                    this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
+
+                                    this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
+
+                                    if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
+                                        this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
+                                        this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
+                                        this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
+                                    }
+
+                                    if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
+                                        this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
+                                        this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
+                                        this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
+                                    }
 
                                     this.postUpdateDto.CommentStatus = response.data.PostUpdateDto.CommentStatus;
 
@@ -1138,18 +960,18 @@
                                         });
                                         this.terms = this.currentSelectedCategory.concat(this.currentSelectedTag);
                                     }
-                                }
 
-                                if (response.data.PostUpdateDto.PostStatus == 0) {
-                                    this.saveButtonText = "Güncelle";
-                                } else if (response.data.PostUpdateDto.PostStatus == 1) {
-                                    this.saveButtonText = "Yayınla";
+                                    if (response.data.PostUpdateDto.PostStatus == 0) {
+                                        this.saveButtonText = "Güncelle";
+                                    } else if (response.data.PostUpdateDto.PostStatus == 1) {
+                                        this.saveButtonText = "Yayınla";
+                                    }
                                 }
                             }
-                        }
-                        else {
-                            this.doHaveData = false;
-                            this.isTrashedPost = false;
+                            else {
+                                this.doHaveData = false;
+                                this.isTrashedPost = false;
+                            }
                         }
                     })
                     .catch((error) => {
@@ -1182,7 +1004,7 @@
                 }
                 this.$refs.articleAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/post/edit',
+                        axios.post('/admin/post-edit',
                             {
                                 postUpdateDto: this.postUpdateDto,
                                 SeoObjectSettingUpdateDto: this.seoObjectSettingUpdateDto
@@ -1190,56 +1012,26 @@
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
 
-                                    if (response.data.PostDto.Post.PostType == 0) {
+                                    this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
+                                    if (this.deSelectedTerms.length > 0) {
 
-                                        axios.get('/admin/post/edit?post=' + this.$route.query.edit)
-                                            .then((response) => {
-                                                this.parentPostName = "";
-                                                if (response.data.PostUpdateDto != null) {
-                                                    if (response.data.PostUpdateDto.Parents != null) {
-                                                        for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
-                                                            this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
-                                                        }
-                                                    }
-                                                }
+                                        this.deSelectedTerms.forEach((termId, index) => {
+                                            axios.post('/admin/term-deletepostterm', {
+                                                PostId: response.data.PostDto.Post.Id,
+                                                TermId: termId,
                                             });
-
-                                        if (this.deSelectedSubPosts.length > 0) {
-                                            this.deSelectedSubPosts.forEach((subPostId, index) => {
-                                                axios.post('/admin/post/editsubpost?postId=' + subPostId);
-                                            });
-                                        }
-
-                                        if (this.selectedSubPosts.length > 0) {
-                                            this.selectedSubPosts.forEach((subPostId, index) => {
-                                                axios.post('/admin/post/editsubpost?postId=' + subPostId + "&subPostParentId=" + response.data.PostDto.Post.Id)
-                                            });
-                                        }
-                                        this.allTopPosts();
-                                        this.allSubPosts();
+                                        });
                                     }
-                                    else if (response.data.PostDto.Post.PostType == 1) {
-                                        this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
-                                        if (this.deSelectedTerms.length > 0) {
 
-                                            this.deSelectedTerms.forEach((termId, index) => {
-                                                axios.post('/admin/term/deletepostterm', {
-                                                    PostId: response.data.PostDto.Post.Id,
-                                                    TermId: termId,
-                                                });
+                                    if (this.selectedTerms.length > 0) {
+                                        this.selectedTerms.forEach((postTerm, index) => {
+                                            this.postTermAddDto.TermId = postTerm.Id;
+                                            this.postTermAddDto.TermType = postTerm.TermType;
+
+                                            axios.post('/admin/term-newpostterm', {
+                                                PostTermAddDto: this.postTermAddDto
                                             });
-                                        }
-
-                                        if (this.selectedTerms.length > 0) {
-                                            this.selectedTerms.forEach((postTerm, index) => {
-                                                this.postTermAddDto.TermId = postTerm.Id;
-                                                this.postTermAddDto.TermType = postTerm.TermType;
-
-                                                axios.post('/admin/term/newpostterm', {
-                                                    PostTermAddDto: this.postTermAddDto
-                                                });
-                                            });
-                                        }
+                                        });
                                     }
 
                                     this.$toast({
@@ -1289,7 +1081,7 @@
             validationFormCategory() {
                 this.$refs.categoryAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/term/new',
+                        axios.post('/admin/term-new',
                             {
                                 TermAddDto: this.categoryAddDto,
                                 SeoObjectSettingAddDto: this.termSeoSettingAddDto
@@ -1337,7 +1129,7 @@
             validationFormTag() {
                 this.$refs.tagAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/term/new',
+                        axios.post('/admin/term-new',
                             {
                                 TermAddDto: this.tagAddDto,
                                 SeoObjectSettingAddDto: this.termSeoSettingAddDto
@@ -1383,7 +1175,6 @@
                 })
             },
             postStatusChange: function (event) {
-
                 var postStatus = "";
                 if (event.target.id == "trash") {
                     postStatus = "trash";
@@ -1391,18 +1182,10 @@
                     postStatus = "draft";
                 }
 
-                axios.post('/admin/post/poststatuschange?postId=' + this.$route.query.edit + "&status=" + postStatus)
+                axios.post('/admin/post-poststatuschange?postId=' + this.$route.query.edit + "&status=" + postStatus)
                     .then((response) => {
                         if (response.data.PostDto.ResultStatus === 0) {
-
-                            if (response.data.PostDto.Post.PostType == 0) {
-                                this.$router.push({ path: '/admin/pages' });
-                            }
-                            else if (response.data.PostDto.Post.PostType == 1) {
-                                this.$router.push({ path: '/admin/articles' });
-                            } else if (response.data.PostDto.Post.PostType == 4) {
-                                this.$router.push({ path: '/admin/basepages' });
-                            }
+                            this.$router.push({ path: '/admin/articles' });
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -1438,11 +1221,7 @@
                     });
             },
         },
-        computed: {
-        },
         mounted() {
-            this.allTopPosts();
-            this.allSubPosts();
             this.allCategories();
             this.allTags();
             this.getData();

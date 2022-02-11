@@ -74,7 +74,8 @@
                     </b-form>
                 </validation-observer>
             </b-card>
-            <b-card-actions title="SEO Ayarları"
+            <b-card-actions v-show="$can('create','Seo')"
+                            title="SEO Ayarları"
                             action-collapse
                             collapsed>
                 <b-tabs>
@@ -299,7 +300,7 @@
                               :options="topPosts"
                               label="Title"
                               :reduce="(option) => option.Id"
-                              placeholder="— Ebeveyn Sayfa —"/>
+                              placeholder="— Ebeveyn Sayfa —" />
                 </b-form-group>
             </b-card-actions>
             <b-card-actions title="Resim"
@@ -490,7 +491,7 @@
         },
         methods: {
             allTopPosts() {
-                axios.get('/admin/post/getalltopposts',
+                axios.get('/admin/post-alltopposts',
                     {
                         params: {
                             postId: null
@@ -558,7 +559,7 @@
                 }
             },
             getSchemaPageType() {
-                axios.get('/admin/post/getschnemapagetype')
+                axios.get('/admin/post-getschnemapagetype')
                     .then((response) => {
                         this.schemaPageTypes = response.data;
                     })
@@ -575,7 +576,7 @@
                     });
             },
             getSchemaArticleType() {
-                axios.get('/admin/post/getschnemaarticletype')
+                axios.get('/admin/post-getschnemaarticletype')
                     .then((response) => {
                         this.schemaArticleTypes = response.data;
                     })
@@ -606,14 +607,18 @@
                 }
                 this.$refs.pageAddForm.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/post/new',
+                        axios.post('/admin/post-new',
                             {
                                 PostAddDto: this.postAddDto,
                                 SeoObjectSettingAddDto: this.pageSeoSettingAddDto
                             })
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
-                                    this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } });
+                                    if (this.$can('update', 'Otherpage')) {
+                                        this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } });
+                                    } else {
+                                        this.$router.push({ name: 'pages-page-list' });
+                                    }
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {

@@ -23,21 +23,21 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _seoService = seoService;
         }
 
-        [HttpGet("/admin/term/allterms")]
+        [HttpGet("/admin/term-allterms")]
         public async Task<JsonResult> AllTerms(SubObjectType term_type)
         {
             var result = await _termService.GetAllAsync(term_type);
             return new JsonResult(result.Data);
         }
 
-        [HttpGet("/admin/term/getparentlist")]
+        [HttpGet("/admin/term-parentlist")]
         public async Task<JsonResult> GetParentList(int? termId)
         {
             var result = await _termService.GetAllParentAsync(termId);
             return new JsonResult(result.Data);
         }
 
-        [HttpPost("/admin/term/new")]
+        [HttpPost("/admin/term-new")]
         public async Task<JsonResult> New(TermViewModel termViewModel)
         {
             var termResult = await _termService.AddAsync(termViewModel.TermAddDto);
@@ -77,14 +77,14 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(postTermViewModelJson);
         }
 
-        [HttpGet("/admin/term/edit")]
-        public async Task<JsonResult> Edit( int term)
+        [HttpGet("/admin/term-edit")]
+        public async Task<JsonResult> Edit( int termId)
         {
-            var termResult = await _termService.GetTermUpdateDtoAsync(term);
+            var termResult = await _termService.GetTermUpdateDtoAsync(termId);
             var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
             if (termResult.ResultStatus == ResultStatus.Success && seoGeneralResult.ResultStatus == ResultStatus.Success)
             {
-                var seoResult = await _seoService.GetSeoObjectSettingUpdateDtoAsync(term, termResult.Data.TermType);
+                var seoResult = await _seoService.GetSeoObjectSettingUpdateDtoAsync(termId, termResult.Data.TermType);
                 var termViewModelJson = new TermViewModel
                 {
                     TermUpdateDto = termResult.Data,
@@ -101,7 +101,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(termViewModelJsonError);
         }
 
-        [HttpPost("/admin/term/edit")]
+        [HttpPost("/admin/term-edit")]
         public async Task<JsonResult> Edit(TermViewModel termViewModel)
         {
             var termResult = await _termService.UpdateAsync(termViewModel.TermUpdateDto);
@@ -123,15 +123,15 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(termViewModelJsonError);
         }
 
-        [HttpPost("/admin/term/delete")]
-        public async Task<IActionResult> Delete( int term)
+        [HttpPost("/admin/term-delete")]
+        public async Task<IActionResult> Delete( int termId)
         {
-            var result = await _termService.DeleteAsync(term);
+            var result = await _termService.DeleteAsync(termId);
             //await FileHelper.CreateSitemapInRootDirectoryAsync();
             return new JsonResult(result);
         }
 
-        [HttpPost("/admin/term/deletepostterm")]
+        [HttpPost("/admin/term-deletepostterm")]
         public async Task<IActionResult> DeletePostTerm(PostTermViewModel postTermViewModel )
         {
             var result = await _termService.PostTermDeleteAsync(postTermViewModel.PostId, postTermViewModel.TermId);

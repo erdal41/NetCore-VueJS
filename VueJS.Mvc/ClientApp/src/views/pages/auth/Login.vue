@@ -153,14 +153,12 @@
         },
         methods: {
             getData() {
-                axios.get('/admin/auth/login')
+                axios.get('/admin/auth-login')
                     .then((response) => {
-                        console.log(response.data);
                         this.logo = response.data.GeneralSettingDto.GeneralSetting.Logo.FileName;
                         this.logoAltText = response.data.GeneralSettingDto.GeneralSetting.Logo.AltText;
                     }).catch((error) => {
-                        console.log(error);
-                        console.log(error.request);
+
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -179,24 +177,22 @@
                             email: this.userEmail,
                             password: this.password,
                         }).then((response) => {
-                            console.log("login response: ");
-                            console.log(response);
                             if (response[0] == 200) {
                                 const { userData } = response[1]
                                 useJwt.setToken(response[1].accessToken)
                                 useJwt.setRefreshToken(response[1].refreshToken)
                                 localStorage.setItem('userData', JSON.stringify(userData))
+                                var ability =  [];
 
-                                var ability =  [
-                                    {
-                                        action: 'manage',
-                                        subject: 'all',
-                                    },
-                                ];
-
+                                ability.push({ subject: 'Auth', action: 'read' })
+                                if (userData != null) {
+                                    for (let role of userData.Roles) {
+                                        ability.push({ subject: role.split(".")[0], action: role.split(".")[1] });
+                                    }
+                                }
 
                                 this.$ability.update(ability)
-                                this.$router.replace(getHomeRouteForLoggedInUser("client")).then(() => {
+                                this.$router.replace('/admin/dashboard').then(() => {
                                     this.$toast({
                                         component: ToastificationContent,
                                         position: 'top-right',

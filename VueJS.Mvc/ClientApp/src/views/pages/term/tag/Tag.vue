@@ -6,7 +6,7 @@
             <b-row class="breadcrumbs-top">
                 <b-col cols="12">
                     <h2 class="content-header-title float-left pr-1 mb-0">
-                        Kategoriler
+                        Etiketler
                     </h2>
                     <div class="breadcrumb-wrapper">
                         <b-breadcrumb>
@@ -26,12 +26,10 @@
                 </b-col>
             </b-row>
         </b-col>
-        <modal-media v-bind:show="modalShow"
-                     @changeImage="imageChange"
-                     ref="modalMedia"></modal-media>
-        <b-col md="12"
+        <b-col v-if="$can('create', 'Tag')"
+               md="12"
                lg="4">
-            <b-card title="Kategori Ekle">
+            <b-card title="Etiket Ekle">
                 <validation-observer ref="simpleRules">
                     <b-form>
                         <b-row>
@@ -46,7 +44,7 @@
                                                       v-model="termAddDto.Name"
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
-                                                      placeholder="Kategori Adı" />
+                                                      placeholder="İsim" />
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
                                 </b-form-group>
@@ -57,17 +55,6 @@
                                                   v-model="termAddDto.Slug"
                                                   type="text"
                                                   placeholder="Kısa İsim" />
-                                </b-form-group>
-
-                                <b-form-group label-for="parentTerms"
-                                              description="Mevcut kategori için üst kategoriyi buradan seçebilirsiniz.">
-                                    <v-select id="parentTerms"
-                                              v-model="selected"
-                                              :options="allParentTerms"
-                                              label="Name"
-                                              :reduce="(option) => option.Id"
-                                              placeholder="— Üst Kategori —"
-                                              @input="onChangeMethod($event)" />
                                 </b-form-group>
 
                                 <b-form-textarea id="description"
@@ -88,15 +75,13 @@
                 </validation-observer>
             </b-card>
         </b-col>
-        <b-col md="12"
-               lg="8">
-
-            <b-card title="Tüm Kategoriler"
+        <b-col :cols="$can('create', 'Tag') ? 8 : 12">
+            <b-card title="Tüm Etiketler"
                     header-tag="header"
                     no-body>
                 <template #header>
                     <h3 class="modal-title">
-                        Tüm Kategoriler
+                        Tüm Etiketler
                     </h3>
                     <div class="ml-auto">
                         <b-input-group size="sm">
@@ -119,7 +104,7 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body v-if="isHiddenMultiDeleteButton === true">
+                <b-card-body v-if="isHiddenMultiDeleteButton === true && $can('delete', 'Tag')">
                     <div class="d-flex justify-content-between flex-wrap">
                         <b-form-group class="mb-0">
                             <b-button variant="danger"
@@ -127,7 +112,7 @@
                                       @click="multiDeleteData">
                                 <feather-icon icon="Trash2Icon"
                                               class="mr-50" />
-                                <span class="align-middle">{{ checkedRowsCount }} Kategoriyi Sil</span>
+                                <span class="align-middle">{{ checkedRowsCount }} Etiketi Sil</span>
                             </b-button>
                             <b-button v-b-tooltip.hover
                                       title="Seçili kayıtları kalıcı olarak siler. Bu işlem geri alınamaz."
@@ -138,7 +123,6 @@
                                 <feather-icon icon="InfoIcon" />
                             </b-button>
                         </b-form-group>
-                        <div></div>
                     </div>
                 </b-card-body>
                 <div v-if="isSpinnerShow == true"
@@ -146,8 +130,7 @@
                     <b-spinner variant="primary" />
                 </div>
                 <div v-else>
-                    <b-table id="categories-table"
-                             :items="filteredData"
+                    <b-table :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
                              :current-page="currentPage"
@@ -155,28 +138,37 @@
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
                         <template #head(Id)="slot">
-                            <b-form-checkbox @change="selectAllRows($event)"></b-form-checkbox>
+                            <b-form-checkbox :disabled="!$can('delete', 'Tag')"
+                                             @change="selectAllRows($event)"></b-form-checkbox>
                         </template>
                         <template #cell(Id)="row">
-                            <b-form-checkbox :value="row.item.Id.toString()"
+                            <b-form-checkbox :disabled="!$can('delete', 'Tag')"
+                                             :value="row.item.Id.toString()"
                                              :id="row.item.Id.toString()"
                                              v-model="checkedRows"
                                              @change="checkChange($event)"></b-form-checkbox>
                         </template>
+
                         <template #cell(Name)="row">
-                            <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }">
+                            <b-link v-if="$can('update', 'Tag')"
+                                    :to="{ name:'pages-tag-edit', query: { edit : row.item.Id } }">
                                 <b>{{row.item.Name}}</b>
                             </b-link>
+                            <b v-else>{{row.item.Name}}</b>
                             <div class="row-actions">
                                 <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to=" {name: 'pages-category-view', params: { slug: row.item.Slug }}"
+                                    <b-link :to=" {name: 'pages-tag-view', params: { slug: row.item.Slug }}"
                                             class="text-primary small">Görüntüle</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link :to="{ name:'pages-term-edit', query: { edit : row.item.Id } }"
+                                    <small v-if="$can('update', 'Tag')"
+                                           class="text-muted"> | </small>
+                                    <b-link v-if="$can('update', 'Tag')"
+                                            :to="{ name:'pages-tag-edit', query: { edit : row.item.Id } }"
                                             class="text-success small"
                                             variant="flat-danger">Düzenle</b-link>
-                                    <small class="text-muted"> | </small>
-                                    <b-link href="javascript:;"
+                                    <small v-if="$can('delete', 'Tag')"
+                                           class="text-muted"> | </small>
+                                    <b-link v-if="$can('delete', 'Tag')"
+                                            href="javascript:;"
                                             no-prefetch
                                             class="text-danger small"
                                             @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
@@ -187,24 +179,23 @@
                 </div>
                 <div v-show="terms.length <= 0"
                      class="text-center mt-1">{{ dataNullMessage  }}</div>
-                <b-card-body class="d-flex justify-content-between flex-wrap pt-1">
+                <b-card-body>
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <!-- page length -->
+                        <b-form-group label="Kayıt Sayısı: "
+                                      label-cols="6"
+                                      label-align="left"
+                                      label-size="sm"
+                                      label-for="sortBySelect"
+                                      class="text-nowrap mb-md-0 mr-1">
+                            <b-form-select id="perPageSelect"
+                                           v-model="perPage"
+                                           size="sm"
+                                           inline
+                                           :options="pageOptions" />
+                        </b-form-group>
 
-                    <!-- page length -->
-                    <b-form-group label="Kayıt Sayısı: "
-                                  label-cols="6"
-                                  label-align="left"
-                                  label-size="sm"
-                                  label-for="sortBySelect"
-                                  class="text-nowrap mb-md-0 mr-1">
-                        <b-form-select id="perPageSelect"
-                                       v-model="perPage"
-                                       size="sm"
-                                       inline
-                                       :options="pageOptions" />
-                    </b-form-group>
-
-                    <!-- pagination -->
-                    <div>
+                        <!-- pagination -->
                         <b-pagination v-model="currentPage"
                                       :total-rows="totalRows"
                                       :per-page="perPage"
@@ -217,6 +208,7 @@
                                 <feather-icon icon="ChevronLeftIcon"
                                               size="18" />
                             </template>
+
                             <template #next-text>
                                 <feather-icon icon="ChevronRightIcon"
                                               size="18" />
@@ -233,9 +225,9 @@
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
     import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormGroup, BFormSelect, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
-    //import { codeRowDetailsSupport } from './code'
+
     import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
@@ -253,6 +245,7 @@
             BSpinner,
             BCardTitle,
             BForm,
+            BFormSelect,
             BTable,
             BButton,
             BFormCheckbox,
@@ -262,7 +255,6 @@
             BCol,
             BCardBody,
             BFormGroup,
-            BFormSelect,
             BPagination,
             BInputGroup,
             BFormInput,
@@ -281,11 +273,10 @@
             return {
                 breadcrumbs: [
                     {
-                        text: 'Kategoriler',
+                        text: 'Etiketler',
                         active: true,
                     }
                 ],
-                modalShow: false,
                 required,
                 isSpinnerShow: true,
                 perPage: 10,
@@ -296,9 +287,6 @@
                 filterOnData: [],
                 terms: [],
                 dataNullMessage: '',
-                allParentTerms: [],
-                selected: '',
-                selectedValue: null,
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
                 name: "",
@@ -309,13 +297,13 @@
                     { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "150px" } },
                     { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }],
                 checkedRows: [],
-                checkedRowsCount: 0,
+                checkedRowsCount: '',
                 termAddDto: {
                     Name: "",
                     Slug: "",
                     ParentId: null,
-                    Description: "",
-                    TermType: "category"
+                    Description: '',
+                    TermType: 'tag'
                 },
                 seoObjectSettingAddDto: {
                     SeoTitle: this.Name
@@ -334,13 +322,10 @@
             rowUnHovered() {
                 this.isHiddenRowActions = false
             },
-            onChangeMethod(value) {
-                this.termAddDto.ParentId = value;
-            },
             checkChange() {
                 if (this.checkedRows.length > 0) {
                     this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = this.checkedRowsCount = "( " + this.checkedRows.length + " )";
+                    this.checkedRowsCount = "( " + this.checkedRows.length + " )";
                 }
                 else {
                     this.isHiddenMultiDeleteButton = false;
@@ -365,12 +350,13 @@
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
-                        axios.post('/admin/term/new',
+                        axios.post('/admin/term-new',
                             {
                                 TermAddDto: this.termAddDto,
                                 SeoObjectSettingAddDto: this.seoObjectSettingAddDto
                             })
                             .then((response) => {
+                                console.log(response.data);
                                 if (response.data.TermDto.ResultStatus === 0) {
                                     this.$toast({
                                         component: ToastificationContent,
@@ -396,6 +382,7 @@
                                 }
                             })
                             .catch((error) => {
+                                console.log(error);
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
@@ -412,7 +399,7 @@
             singleDeleteData(id, name) {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " isimli terim kalıcı olarak silinecektir?",
+                    text: name + " adlı terim kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -424,7 +411,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/term/delete?term=' + id)
+                        axios.post('/admin/term-delete?termId=' + id)
                             .then((response) => {
                                 if (response.data.ResultStatus === 0) {
                                     this.$toast({
@@ -467,7 +454,7 @@
             multiDeleteData() {
                 this.$swal({
                     title: 'Toplu olarak silmek istediğinizden emin misiniz?',
-                    text: this.checkedRowsCount + " kategori kalıcı olarak silinecektir?",
+                    text: this.checkedRowsCount + " etiket kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -480,7 +467,7 @@
                 }).then(result => {
                     if (result.value) {
                         this.checkedRows.forEach((id, index) => {
-                            axios.post('/admin/term/delete?term=' + id)
+                            axios.post('/admin/term-delete?termId=' + id)
                                 .then((response) => {
                                     if (response.data.ResultStatus === 0) {
                                         this.checkedRowsCount = "";
@@ -488,35 +475,32 @@
                                         this.getAllData();
                                     }
                                 });
-                        });
-                    }
+                        });                        
+                    }                    
                 })
             },
             getAllData() {
                 this.isSpinnerShow = true;
-                axios.get('/admin/term/allterms', {
+                axios.get('/admin/term-allterms', {
                     params: {
-                        term_type: "category"
+                        term_type: 'tag'
                     }
                 })
                     .then((response) => {
                         this.totalRows = response.data.Terms.length;
                         if (response.data.ResultStatus === 0) {
                             this.terms = response.data.Terms;
-                            this.allParentTerms = response.data.Terms;
-                        }
-                        else {
-                            this.isSpinnerShow = false;
+                            this.filterOnData = response.data.Terms;
+                        } else {
                             this.terms = [];
-                            this.allParentTerms = [];
                             this.dataNullMessage = response.data.Message;
                         }
-
                         this.filterText = "";
                         this.isSpinnerShow = false;
                         this.checkedRowsCount = "";
                         this.checkedRows = [];
                         this.isHiddenMultiDeleteButton = false;
+
                     })
                     .catch((error) => {
                         this.$toast({
@@ -562,7 +546,7 @@
         padding: 0.72rem !important;
     }
 
-    [dir] #categories-table.table th:last-child, [dir] .table td:last-child {
+    [dir] .table th:last-child, [dir] .table td:last-child {
         text-align: center;
     }
 </style>

@@ -57,7 +57,7 @@
                             </b-input-group-append>
                         </b-input-group>
                         <b-form-invalid-feedback :state="newPasswordValidation">
-                            Şifreniz en az bir büyük harf, bir küçük harf, bir özel karakter ve bir rakam içermelidir.
+                            {{ passwordErrorMessage }}
                         </b-form-invalid-feedback>
                         <b-form-valid-feedback :state="newPasswordValidation">
                             İyi görünüyor.
@@ -146,6 +146,7 @@
         },
         data() {
             return {
+                passwordErrorMessage: '',
                 oldPasswordValue: '',
                 newPasswordValue: '',
                 RetypePassword: '',
@@ -179,23 +180,27 @@
 
                 if (this.passwordLength > 8) {
                     this.containsEightCharacters = true;
-                } else {
-                    this.containsEightCharacters = false;
-                }
-                this.containsNumber = /\d/.test(this.newPasswordValue);
-                this.containsLowercase = /[a-z]/.test(this.newPasswordValue);
-                this.containsUppercase = /[A-Z]/.test(this.newPasswordValue);
-                this.containsSpecialCharacter = format.test(this.newPasswordValue);
 
-                if (this.containsEightCharacters === true &&
-                    this.containsSpecialCharacter === true &&
-                    this.containsLowercase === true &&
-                    this.containsUppercase === true &&
-                    this.containsNumber === true) {
-                    this.validPassword = true;
+                    this.containsNumber = /\d/.test(this.newPasswordValue);
+                    this.containsLowercase = /[a-z]/.test(this.newPasswordValue);
+                    this.containsUppercase = /[A-Z]/.test(this.newPasswordValue);
+                    this.containsSpecialCharacter = format.test(this.newPasswordValue);
+
+                    if (this.containsEightCharacters === true &&
+                        this.containsSpecialCharacter === true &&
+                        this.containsLowercase === true &&
+                        this.containsUppercase === true &&
+                        this.containsNumber === true) {
+                        this.validPassword = true;
+                    } else {
+                        this.passwordErrorMessage = 'Şifreniz en az bir büyük harf, bir küçük harf, bir özel karakter ve bir rakam içermelidir.';
+                        this.validPassword = false;
+                    }
                 } else {
+                    this.passwordErrorMessage = 'Şifreniz minimum 8, maksimum 30 karakter olmalıdır.';
+                    this.containsEightCharacters = false;
                     this.validPassword = false;
-                }
+                }                
                 return this.validPassword;
             },
             newPasswordRetypeValidation() {
@@ -223,7 +228,7 @@
             },
             passwordChange() {
                 if (this.oldPasswordValidation === true && this.newPasswordValidation === true && this.newPasswordRetypeValidation === true) {
-                    axios.post('/admin/user/passwordchange',
+                    axios.post('/admin/user-passwordchange',
                         {
                             CurrentPassword: this.oldPasswordValue,
                             NewPassword: this.newPasswordValue,

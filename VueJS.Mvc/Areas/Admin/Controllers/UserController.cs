@@ -5,11 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using VueJS.Entities.Concrete;
 using VueJS.Entities.Dtos;
 using VueJS.Mvc.Areas.Admin.Models;
-using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System;
 using System.Threading.Tasks;
 using VueJS.Services.Concrete;
+using VueJS.Services.Abstract;
+using System.Collections.Generic;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -19,19 +20,32 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
     {
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly IUploadService _uploadService;
 
-        public UserController(SignInManager<User> signInManager, RoleManager<Role> roleManager, UserManager<User> userManager, IMapper mapper) : base(userManager, mapper)
+        public UserController(SignInManager<User> signInManager, RoleManager<Role> roleManager, IUploadService uploadService, UserManager<User> userManager, IMapper mapper) : base(userManager, mapper)
         {
+            _uploadService = uploadService;
             _signInManager = signInManager;
             _roleManager = roleManager;
         }
 
-        [HttpGet("/admin/user/allusers")]
+        [HttpGet("/admin/user-allusers")]
         public async Task<JsonResult> GetAllUsers()
         {
-            var users = await UserManager.Users.ToListAsync();
-            if (users.Count > 0)
+            var allUsers = await UserManager.Users.ToListAsync();
+            if (allUsers.Count > 0)
             {
+                List<User> users = new List<User>();
+                foreach (var user in allUsers)
+                {
+                    if (user.ProfileImageId != null)
+                    {
+                        var upload = await _uploadService.GetAsync(user.ProfileImageId.Value);
+                        user.ProfileImage = upload.Data.Upload;
+                    }
+                    users.Add(user);
+                }
+
                 var userListDto = new UserListDto
                 {
                     Users = users,
@@ -97,12 +111,19 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/user-edit")]
-        public async Task<JsonResult> Edit(int user)
+        public async Task<JsonResult> Edit(int userId)
         {
-            var userResult = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == user);
+            var userResult = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (userResult != null)
             {
+
                 var userUpdateDto = Mapper.Map<UserUpdateDto>(userResult);
+
+                if (userResult.ProfileImageId != null)
+                {
+                    var profileImage = await _uploadService.GetAsync(userResult.ProfileImageId.Value);
+                    userUpdateDto.ProfileImage = profileImage.Data.Upload;
+                }
 
                 var roles = await _roleManager.Roles.ToListAsync();
                 var userRoles = await UserManager.GetRolesAsync(userResult);
@@ -152,7 +173,29 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost("/admin/user/roleassign")]
+        [HttpGet("/admin/user-allroles")]
+        public async Task<JsonResult> AllRoles()
+        {
+            var roles = await _roleManager.Roles.ToListAsync();
+            if (roles.Count > 0)
+            {
+                var userViewModel = new UserRolesViewModel
+                {
+                    Roles = roles,
+                };
+                return Json(userViewModel);
+            }
+            else
+            {
+                var userViewModelError = new UserRolesViewModel
+                {
+                    Roles = null,
+                };
+                return Json(userViewModelError);
+            }
+        }
+
+        [HttpPost("/admin/user-roleassign")]
         public async Task<IActionResult> RoleAssign(UserRolesViewModel userRolesViewModel)
         {
 
@@ -198,7 +241,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost("/admin/user/delete")]
+        [HttpPost("/admin/user-delete")]
         public async Task<JsonResult> Delete(int userId)
         {
             var user = await UserManager.FindByIdAsync(userId.ToString());
@@ -232,7 +275,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost("/admin/user/passwordchange")]
+        [HttpPost("/admin/user-passwordchange")]
         public async Task<JsonResult> PasswordChange(UserPasswordChangeDto userPasswordChangeDto)
         {
 
