@@ -24,7 +24,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(u => u.ModifiedDate).IsRequired();
             builder.Property(u => u.Description).HasMaxLength(500);
             builder.ToTable("Uploads");
-            builder.HasOne<User>(u => u.User).WithMany(u => u.Uploads).HasForeignKey(u => u.UserId);
 
             builder.HasData(
                 new Upload

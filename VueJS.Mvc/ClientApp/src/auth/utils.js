@@ -1,5 +1,8 @@
 import useJwt from '@/auth/jwt/useJwt'
-
+import axios from 'axios'
+import { Ability } from '@casl/ability';
+import { initialAbility } from '@/libs/acl/config'
+const ability = new Ability([])
 /**
  * Return if user is logged in
  * This is completely up to you and how you want to store the token in your frontend application
@@ -10,7 +13,31 @@ export const isUserLoggedIn = () => {
     return localStorage.getItem('userData') && localStorage.getItem(useJwt.jwtConfig.storageTokenKeyName)
 }
 
+export const isLogin = () => {
+    var result = false;
+    axios.get('/admin/auth-islogin').then((response) => {
+        result = response.data;
+    });
+    return result;
+}
+
 export const getUserData = () => JSON.parse(localStorage.getItem('userData'))
+
+export function logout() {
+    consolelog('aaa')
+    // Remove userData from localStorage
+    // ? You just removed token from localStorage. If you like, you can also make API call to backend to blacklist used token
+    localStorage.removeItem(useJwt.jwtConfig.storageTokenKeyName)
+    localStorage.removeItem(useJwt.jwtConfig.storageRefreshTokenKeyName)
+
+    // Remove userData from localStorage
+    localStorage.removeItem('userData')
+
+    // Reset ability
+    ability.update(initialAbility)
+
+    axios.get('/admin/auth-logout');    
+}
 
 /**
  * This function is used for demo purpose route navigation

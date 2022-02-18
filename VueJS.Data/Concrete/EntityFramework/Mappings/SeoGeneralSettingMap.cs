@@ -48,10 +48,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(sgs => sgs.ModifiedDate).IsRequired();
             builder.ToTable("SeoGeneralSettings");
 
-            builder.HasOne<User>(sgs => sgs.User).WithOne(u => u.SeoGeneralSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.UserId);
-            builder.HasOne<Upload>(sgs => sgs.OpenGraphImage).WithOne(u => u.OpenGraphSetting);
-            builder.HasOne<Upload>(sgs => sgs.SiteMainImage).WithOne(u => u.SiteMainSetting);
-
             builder.HasData(
                 new SeoGeneralSetting
                 {

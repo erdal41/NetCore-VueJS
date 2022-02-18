@@ -34,7 +34,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.HasMany<UserLogin>().WithOne().HasForeignKey(ul => ul.UserId).IsRequired();
             builder.HasMany<UserToken>().WithOne().HasForeignKey(ut => ut.UserId).IsRequired();
             builder.HasMany<UserRole>().WithOne().HasForeignKey(ur => ur.UserId).IsRequired();
-            builder.HasOne<Upload>(u => u.ProfileImage).WithMany(u => u.Users).HasForeignKey(u => u.ProfileImageId);
 
             var adminUser = new User
             {

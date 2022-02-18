@@ -33,7 +33,7 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<GeneralSettingDto>> GetGeneralSettingAsync()
         {
-            var generalSetting = await UnitOfWork.GeneralSettings.FirstOrDefaultAsync(gs=>gs.Logo, gs => gs.MobileLogo, gs => gs.Icon);
+            var generalSetting = await UnitOfWork.GeneralSettings.FirstOrDefaultAsync(gs => gs.Logo, gs => gs.MobileLogo, gs => gs.Icon);
             if (generalSetting != null)
             {
                 Mapper.Map<GeneralSettingDto>(generalSetting);
@@ -73,6 +73,7 @@ namespace VueJS.Services.Concrete
                 Message = "Genel ayarlar başarılı bir şekilde güncellendi!"
             });
         }
+
         #endregion
     }
 }

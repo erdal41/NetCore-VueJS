@@ -113,7 +113,6 @@
         methods: {
             selectedImage() {
                 this.$emit('changeImage', this.selectedImageId, this.selectedImageFileName, this.selectedImageAltText);
-
             },
             imageClick(id, name, altText) {
                 this.selectedImageId = id;
@@ -268,7 +267,7 @@
                                     variant: 'danger',
                                     title: 'Hata Oluştu!',
                                     icon: 'AlertOctagonIcon',
-                                    text: this.title + ' listelenirken hata oluştu. ',
+                                    text: 'Dosyalar listelenirken hata oluştu. ',
                                 }
                             })
                         }
@@ -299,7 +298,6 @@
 </script>
 
 <style lang="scss">
-    @import '@core/scss/vue/libs/vue-select.scss';
 
     .image-list {
         max-width: 130px;
@@ -323,9 +321,5 @@
         top: 50%;
         left: 50%;
         transform: translateX(-50%) translateY(-50%);
-    }
-
-    [dir] .table th, [dir] .table td {
-        padding: 0.72rem !important;
     }
 </style>

@@ -14,9 +14,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(pg => pg.UploadId).IsRequired(true);
             builder.HasKey(pg => new { pg.PostId, pg.UploadId });
             builder.ToTable("Galleries");
-
-            builder.HasOne<Post>(g => g.Post).WithMany(p => p.Galleries).HasForeignKey(g => g.PostId);
-            builder.HasOne<Upload>(g => g.Upload).WithMany(p => p.Galleries).HasForeignKey(g => g.UploadId);
         }
     }
 }

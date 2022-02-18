@@ -17,8 +17,8 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(t => t.Description).HasMaxLength(500);            
             builder.ToTable("Terms");
 
-            builder.HasOne<Term>(t => t.Parent).WithMany(t => t.Children);
-
+            //builder.HasOne<Term>(t => t.Parent).WithMany(t => t.Children);
+            //builder.HasMany<Term>().WithOne(t => t.Parent).HasForeignKey(t => t.ParentId);
             builder.HasData(
                 new Term
                 {

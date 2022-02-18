@@ -5,9 +5,11 @@ using VueJS.Entities.Concrete;
 using VueJS.Mvc.Areas.Admin.Models;
 using VueJS.Services.Abstract;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UrlRedirectController : BaseController

@@ -6,6 +6,14 @@ using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System.Threading.Tasks;
 using VueJS.Mvc.Areas.Admin.Models;
 using AutoMapper;
+using System;
+using VueJS.Mvc.Areas.Admin.Helper.Abstract;
+using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
+using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -16,12 +24,42 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ISettingService _settingService;
         private readonly IMailService _mailService;
-
-        public AuthController(UserManager<User> userManager, IMapper mapper, SignInManager<User> signInManager, ISettingService settingService, IMailService mailService) : base(userManager, mapper)
+        private readonly IJwtHelper _jwtHelper;
+        private readonly IConfiguration _configuration;
+        public AuthController(
+            UserManager<User> userManager,
+            IMapper mapper,
+            SignInManager<User> signInManager,
+            ISettingService settingService,
+            IMailService mailService,
+            IJwtHelper jwtHelper,
+            IConfiguration configuration) : base(userManager, mapper)
         {
             _signInManager = signInManager;
             _settingService = settingService;
             _mailService = mailService;
+            _jwtHelper = jwtHelper;
+            _configuration = configuration;
+        }
+
+        [HttpGet("/admin/auth-islogin")]
+        public JsonResult IsLogin()
+        {
+            try
+            {
+                if (LoggedInUser != null)
+                {
+                    return Json(true);
+                }
+                else
+                {
+                    return Json(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(false);
+            }
         }
 
         [HttpGet("/admin/auth-login")]
@@ -47,11 +85,39 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
        loginViewModel.UserLoginDto.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    var roles = UserManager.GetRolesAsync(user);
-                    userLoginViewModel.Roles = roles.Result;
+                    var roles = await UserManager.GetRolesAsync(user);
+                    userLoginViewModel.Roles = roles;
+
+                    var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+
+                    foreach (var userRole in roles)
+                    {
+                        authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                    }
+
+                    var token = _jwtHelper.CreateToken(authClaims);
+                    var refreshToken = _jwtHelper.GenerateRefreshToken();
+
+                    _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
+
+                    user.RefreshToken = refreshToken;
+                    user.RefreshTokenExpiryTime = DateTime.Now.AddDays(refreshTokenValidityInDays);
+
+                    await UserManager.UpdateAsync(user);
+
                     var loginViewModelJson = new LoginViewModel
                     {
-                        UserLoginViewModel = userLoginViewModel
+                        UserLoginViewModel = userLoginViewModel,
+                        TokenModel = new TokenModel
+                        {
+                            AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                            RefreshToken = refreshToken,
+                            Expiration = token.ValidTo
+                        }
                     };
                     return Json(loginViewModelJson);
                 }
@@ -61,6 +127,74 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                 UserLoginViewModel = null,
             };
             return Json(loginViewModelJsonError);
+        }
+
+        [HttpPost("/admin/auth-refreshtoken")]
+        public async Task<IActionResult> RefreshToken([FromBody] TokenModel tokenModel)
+        {
+            if (tokenModel is null)
+            {
+                return BadRequest("Invalid client request");
+            }
+
+            string accessToken = tokenModel.AccessToken;
+            string refreshToken = tokenModel.RefreshToken;
+
+            var principal = _jwtHelper.GetPrincipalFromExpiredToken(accessToken);
+            if (principal == null)
+            {
+                return BadRequest("Invalid access token or refresh token");
+            }
+
+            string username = principal.Identity.Name;
+
+            var user = await UserManager.FindByNameAsync(username);
+
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+            {
+                return BadRequest("Invalid access token or refresh token");
+            }
+
+            var newAccessToken = _jwtHelper.CreateToken(principal.Claims.ToList());
+            var newRefreshToken = _jwtHelper.GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            await UserManager.UpdateAsync(user);
+
+            return new ObjectResult(new
+            {
+                accessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken),
+                refreshToken = newRefreshToken
+            });
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("revoke/{username}")]
+        public async Task<IActionResult> Revoke(string username)
+        {
+            var user = await UserManager.FindByNameAsync(username);
+            if (user == null) return BadRequest("Invalid user name");
+
+            user.RefreshToken = null;
+            await UserManager.UpdateAsync(user);
+
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("revoke-all")]
+        public async Task<IActionResult> RevokeAll()
+        {
+            var users = UserManager.Users.ToList();
+            foreach (var user in users)
+            {
+                user.RefreshToken = null;
+                await UserManager.UpdateAsync(user);
+            }
+
+            return NoContent();
         }
 
         [HttpGet("/admin/auth-unauthorizedaccess")]

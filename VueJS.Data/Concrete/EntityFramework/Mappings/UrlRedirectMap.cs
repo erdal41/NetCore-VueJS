@@ -17,8 +17,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(u => u.ModifiedDate).IsRequired();
             builder.Property(u => u.Description).HasMaxLength(500);
             builder.ToTable("UrlRedirects");
-
-            builder.HasOne<User>(c => c.User).WithMany(u => u.UrlRedirects).HasForeignKey(c => c.UserId);
         }
     }
 }

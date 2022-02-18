@@ -19,9 +19,7 @@ namespace VueJS.Entities.Concrete
         public string GitHubLink { get; set; }
         public string WebsiteLink { get; set; }
         public string RefreshToken { get; set; }
-        public DateTime? RefreshTokenEndDate { get; set; }
-
-        [InverseProperty("Users")]
+        public DateTime RefreshTokenExpiryTime { get; set; }
         public Upload ProfileImage { get; set; }
         public GeneralSetting GeneralSetting { get; set; }
         public SeoGeneralSetting SeoGeneralSetting { get; set; }

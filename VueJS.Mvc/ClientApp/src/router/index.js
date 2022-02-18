@@ -3,7 +3,7 @@ import VueRouter from 'vue-router'
 
 // Routes
 import { canNavigate } from '@/libs/acl/routeProtection'
-import { isUserLoggedIn, getUserData, getHomeRouteForLoggedInUser } from '@/auth/utils'
+import { isUserLoggedIn, isLogin, logout, getUserData, getHomeRouteForLoggedInUser } from '@/auth/utils'
 import apps from './routes/apps'
 import dashboard from './routes/dashboard'
 import uiElements from './routes/ui-elements/index'
@@ -34,7 +34,7 @@ const router = new VueRouter({
 
 router.beforeEach((to, _, next) => {
     const isLoggedIn = isUserLoggedIn()
-
+    const userData = getUserData()
     if (!canNavigate(to)) {
         // Redirect to login if not logged in
         if (!isLoggedIn) return next({ name: 'auth-login' })
@@ -47,9 +47,9 @@ router.beforeEach((to, _, next) => {
     if (to.meta.redirectIfLoggedIn && isLoggedIn) {
         next('/admin/dashboard')
     }
-
     return next()
 })
+
 
 // ? For splash screen
 // Remove afterEach hook if you are not using splash screen

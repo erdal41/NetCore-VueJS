@@ -21,10 +21,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(c => c.CommentStatus).IsRequired();
             builder.ToTable("Comments");
 
-            builder.HasOne<User>(c => c.User).WithMany(u => u.Comments).HasForeignKey(c => c.UserId);
-            builder.HasOne<Post>(c => c.Post).WithMany(p => p.Comments).HasForeignKey(c => c.PostId);
-            builder.HasOne<Comment>(c => c.Parent).WithMany(c => c.Children);
-
             builder.HasData(
                 new Comment
                 {

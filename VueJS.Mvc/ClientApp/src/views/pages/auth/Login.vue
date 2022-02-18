@@ -5,8 +5,8 @@
             <!-- Login v1 -->
             <b-card class="mb-0">
                 <b-link class="brand-logo">
-                    <b-img v-bind:src="require('@/assets/images/media/' + logo)"
-                           :alt="logoAltText"></b-img>
+                    <b-img v-bind:src="logo.fileName == null ? null : require('@/assets/images/media/' + logo.fileName)"
+                           :alt="logo.altText"></b-img>
                 </b-link>
 
                 <!-- form -->
@@ -137,8 +137,10 @@
                 // validation rules
                 required,
                 email,
-                logo: '',
-                logoAltText: '',
+                logo: {
+                    fileName: null,
+                    altText: null
+                },
                 userLoginDto: {
                     Email: '',
                     Password: '',
@@ -155,8 +157,8 @@
             getData() {
                 axios.get('/admin/auth-login')
                     .then((response) => {
-                        this.logo = response.data.GeneralSettingDto.GeneralSetting.Logo.FileName;
-                        this.logoAltText = response.data.GeneralSettingDto.GeneralSetting.Logo.AltText;
+                        this.logo.fileName = response.data.GeneralSettingDto.GeneralSetting.Logo.FileName;
+                        this.logo.altText = response.data.GeneralSettingDto.GeneralSetting.Logo.AltText;
                     }).catch((error) => {
 
                         this.$toast({
@@ -176,9 +178,12 @@
                         useJwt.login({
                             email: this.userEmail,
                             password: this.password,
+                            rememberMe: this.rememberMe
                         }).then((response) => {
                             if (response[0] == 200) {
                                 const { userData } = response[1]
+                                console.log('LOGİN!');
+                                console.log(userData);
                                 useJwt.setToken(response[1].accessToken)
                                 useJwt.setRefreshToken(response[1].refreshToken)
                                 localStorage.setItem('userData', JSON.stringify(userData))
@@ -217,6 +222,7 @@
                                 })
                             }
                         }).catch(error => {
+
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -236,6 +242,7 @@
                         useJwt.login({
                             email: this.userEmail,
                             password: this.password,
+                            rememberMe: this.rememberMe
                         })
                             .then(response => {
                                 console.log("LOGİN RESPONSE");

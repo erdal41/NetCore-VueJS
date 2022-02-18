@@ -16,9 +16,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.HasKey(ac => new { ac.PostId, ac.TermId });
             builder.ToTable("PostTerms");
 
-            builder.HasOne<Post>(pt => pt.Post).WithMany(p => p.PostTerms).HasForeignKey(pt => pt.PostId);
-            builder.HasOne<Term>(pt => pt.Term).WithMany(t => t.PostTerms).HasForeignKey(pt => pt.TermId);
-
             builder.HasData(
                 new PostTerm
                 {

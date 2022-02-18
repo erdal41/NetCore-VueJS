@@ -33,10 +33,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(sos => sos.ModifiedDate).IsRequired();
             builder.ToTable("SeoObjectSettings");
 
-            builder.HasOne<User>(sos => sos.User).WithMany(u => u.SeoObjectSettings).HasForeignKey(sos => sos.UserId);
-            builder.HasOne<Upload>(sos => sos.OpenGraphImage).WithMany(u => u.OpenGraphImages).HasForeignKey(sos => sos.OpenGraphImageId);
-            builder.HasOne<Upload>(sos => sos.TwitterImage).WithMany(u => u.TwitterImages).HasForeignKey(sos => sos.TwitterImageId);
-
             builder.HasData(
                 new SeoObjectSetting
                 {

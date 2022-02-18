@@ -11,6 +11,17 @@ export default [
         },
     },
 
+    // Media
+    {
+        path: '/admin/media',
+        name: 'pages-media-list',
+        component: () => import('@/views/pages/media/Media.vue'),
+        meta: {
+            resource: 'Basepage',
+            action: 'read',
+        },
+    },
+
     // Preview & View
     {
         path: '/admin/post-preview=:preview',

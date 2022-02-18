@@ -40,7 +40,8 @@
         <b-col md="12"
                lg="12">
 
-            <b-card header-tag="header"
+            <b-card id="basepage-list"
+                    header-tag="header"
                     no-body>
                 <template #header>
                     <div class="float-left">
@@ -303,7 +304,6 @@
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
-    import { integer } from '../../../../@core/utils/validations/validations'
 
     export default {
         components: {
@@ -635,7 +635,7 @@
         padding: 0.72rem !important;
     }
 
-    .card-header {
+    #basepage-list .card-header {
         padding: 15px 0px 15px 10px !important;
     }
 

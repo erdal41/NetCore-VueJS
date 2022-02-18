@@ -1,6 +1,14 @@
 ﻿export default [
 
     {
+        title: 'Medya',
+        icon: 'FolderIcon',
+        route: 'pages-media-list',
+        resource: 'Basepage',
+        action: 'read',
+    },
+
+    {
         header: 'Sayfa İşlemleri',
         resources: ['Otherpage' ? 'Otherpage' : 'Basepage' ? 'Basepage' : 'null'],
         action: 'read',

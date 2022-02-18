@@ -40,7 +40,8 @@
         <b-col md="12"
                lg="12">
 
-            <b-card header-tag="header"
+            <b-card id="page-list"
+                    header-tag="header"
                     no-body>
                 <template #header>
                     <div class="float-left">
@@ -640,7 +641,7 @@
         padding: 0.72rem !important;
     }
 
-    .card-header {
+    #page-list .card-header {
         padding: 15px 0px 15px 10px !important;
     }
 

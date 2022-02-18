@@ -23,10 +23,13 @@ export default class JwtService {
             config => {
                 // Get token from localStorage
                 const accessToken = this.getToken()
-
+                
                 // If token is present add it to request's Authorization Header
                 if (accessToken) {
                     // eslint-disable-next-line no-param-reassign
+                    console.log('asdasdasdsadsadsadasdsad--------------');
+                    console.log(accessToken);
+                    console.log(config);
                     config.headers.Authorization = `${this.jwtConfig.tokenType} ${accessToken}`
                 }
                 return config
@@ -99,26 +102,93 @@ export default class JwtService {
     jwtTokenConfig = {
         secret: 'dd5f3089-40c3-403d-af14-d0c228b05cb4',
         refreshTokenSecret: '7c4c1c50-3230-45bf-9eae-c9b2e401c767',
-        expireTime: '10m',
-        refreshTokenExpireTime: '10m',
+        expireTime: '10s',
+        refreshTokenExpireTime: '10s',
+    }
+
+    login1(request) {
+        const userLoginDto = {
+            Email: request.email,
+            Password: request.password,
+            RememberMe: request.rememberMe
+        }
+        return this.axiosIns.post('/admin/auth-login', { UserLoginDto: userLoginDto })
+            .then((response) => {
+                if (response.data.UserLoginViewModel != null) {
+                    console.log('LOGIN!!!');
+                    console.log(response.data)
+                    const userData = response.data.UserLoginViewModel;
+                    const accessToken = response.data.TokenModel.AccessToken;
+                    const refreshToken = response.data.TokenModel.RefreshToken;
+
+                    localStorage.setItem('userData', JSON.stringify(userData))
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('refreshToken', refreshToken);
+
+                    var ability = [];
+                    ability.push({ subject: 'Auth', action: 'read' })
+                    if (userData != null) {
+                        for (let role of userData.Roles) {
+                            ability.push({ subject: role.split(".")[0], action: role.split(".")[1] });
+                        }
+                    }
+
+                    this.$ability.update(ability)
+                    this.$router.replace('/admin/dashboard').then(() => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            position: 'top-right',
+                            props: {
+                                title: `Hoþgeldin ${userData.FirstName || userData.LastName}`,
+                                icon: 'CoffeeIcon',
+                                variant: 'success',
+                                text: 'Baþarýlý bir þekilde giriþ yaptýnýz.',
+                            },
+                        })
+                    })
+                } else {
+                    this.$toast({
+                        component: ToastificationContent,
+                        props: {
+                            variant: 'danger',
+                            title: 'Hata!',
+                            icon: 'AlertOctagonIcon',
+                            text: 'E-posta adresiniz veya parolanýz yanlýþ olabilir. Lütfen kontrol ediniz.',
+                        }
+                    })
+                }
+            }).catch(error => {
+                console.log(error)
+                console.log(error.request)
+                this.$toast({
+                    component: ToastificationContent,
+                    props: {
+                        variant: 'danger',
+                        title: 'Hata!',
+                        icon: 'AlertOctagonIcon',
+                        text: 'Hata oluþtu. Lütfen tekrar deneyiniz.',
+                    }
+                })
+            })
     }
 
     login(request) {
         const userLoginDto = {
             Email: request.email,
-            Password: request.password
+            Password: request.password,
+            RememberMe: request.rememberMe
         }
         return this.axiosIns.post(this.jwtConfig.loginEndpoint, { UserLoginDto: userLoginDto }).then((response) => {
             let error = "Birþeyler ters gitti.";
             if (response.data.UserLoginViewModel != null) {
                 try {
-                    const accessToken = jwt.sign({ id: response.data.UserLoginViewModel.Id }, this.jwtTokenConfig.secret, { expiresIn: this.jwtTokenConfig.expireTime })
-                    const refreshToken = jwt.sign({ id: response.data.UserLoginViewModel.Id }, this.jwtTokenConfig.refreshTokenSecret, {
-                        expiresIn: this.jwtTokenConfig.refreshTokenExpireTime,
-                    })
-                    const userData = response.data.UserLoginViewModel
+                    //const accessToken = jwt.sign({ id: response.data.UserLoginViewModel.Id }, this.jwtTokenConfig.secret, { expiresIn: this.jwtTokenConfig.expireTime })
+                    //const refreshToken = jwt.sign({ id: response.data.UserLoginViewModel.Id }, this.jwtTokenConfig.refreshTokenSecret, { expiresIn: this.jwtTokenConfig.refreshTokenExpireTime})
+                    const userData = response.data.UserLoginViewModel;
+                    const accessToken = response.data.TokenModel.AccessToken;
+                    const refreshToken = response.data.TokenModel.RefreshToken;
                     console.log("userData");
-                    console.log(response.data.User);
+                    console.log(response.data);
                     //delete request.password
                     const responsed = {
                         userData,

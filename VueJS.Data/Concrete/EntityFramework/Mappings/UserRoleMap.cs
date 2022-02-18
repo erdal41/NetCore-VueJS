@@ -196,31 +196,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     UserId = 1,
                     RoleId = 37
-                },
-                new UserRole
-                {
-                    UserId = 1,
-                    RoleId = 38
-                },
-                new UserRole
-                {
-                    UserId = 1,
-                    RoleId = 39
-                },
-                new UserRole
-                {
-                    UserId = 1,
-                    RoleId = 40
-                },
-                new UserRole
-                {
-                    UserId = 1,
-                    RoleId = 41
-                },
-                new UserRole
-                {
-                    UserId = 1,
-                    RoleId = 42
                 });
         }
     }

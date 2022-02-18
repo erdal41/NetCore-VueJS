@@ -17,11 +17,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(gs => gs.ModifiedDate).IsRequired();
             builder.ToTable("GeneralSettings");
 
-            builder.HasOne<User>(gs => gs.User).WithOne(u => u.GeneralSetting).HasForeignKey<GeneralSetting>(gs => gs.UserId);
-            builder.HasOne<Upload>(gs => gs.Logo).WithOne(u => u.Logo).HasForeignKey<GeneralSetting>(gs => gs.LogoId);
-            builder.HasOne<Upload>(gs => gs.MobileLogo).WithOne(u => u.MobileLogo).HasForeignKey<GeneralSetting>(gs => gs.MobileLogoId);
-            builder.HasOne<Upload>(gs => gs.Icon).WithOne(u => u.Icon).HasForeignKey<GeneralSetting>(gs => gs.IconId);
-
             builder.HasData(
                 new GeneralSetting
                 {

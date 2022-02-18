@@ -30,10 +30,6 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
             builder.Property(p => p.IsShowSubPosts).IsRequired();
             builder.ToTable("Posts");
 
-            builder.HasOne<User>(p => p.User).WithMany(u => u.Posts).HasForeignKey(p => p.UserId);
-            builder.HasOne<Post>(p => p.Parent).WithMany(p => p.Children);
-            builder.HasOne<Upload>(p => p.FeaturedImage).WithMany(u => u.Posts).HasForeignKey(p => p.FeaturedImageId);
-
             builder.HasData(
                 new Post
                 {

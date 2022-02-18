@@ -15,6 +15,12 @@ using VueJS.Mvc.Helpers.Concrete;
 using VueJS.Services.AutoMapper.Profiles;
 using VueJS.Services.Extensions;
 using VueJS.Mvc.AutoMapper.Profiles;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using VueJS.Mvc.Areas.Admin.Helper.Abstract;
+using VueJS.Mvc.Areas.Admin.Helper.Concrete;
+using System.Text;
 
 namespace VueJS.Mvc
 {
@@ -27,17 +33,42 @@ namespace VueJS.Mvc
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(c =>
+
+            services.AddAuthorization()
+                .AddAuthentication(options =>
             {
-                c.AddPolicy("Default", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:50598/"));
-            });
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero,
+
+                    ValidAudience = Configuration["JWT:ValidAudience"],
+                    ValidIssuer = Configuration["JWT:ValidIssuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtConfig:Secret"]))
+                };
+            });            
+
+            //services.AddCors(c =>
+            //{
+            //    c.AddPolicy("Default", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:50598/"));
+            //});
             services.AddSingleton(HtmlEncoder.Create(allowedRanges: new[] { UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement, UnicodeRanges.LatinExtendedA }));
             services.AddAutoMapper(typeof(CommentProfile), typeof(UploadProfile), typeof(UrlRedirectProfile), typeof(SettingProfile), typeof(PostProfile), typeof(TermProfile), typeof(SeoProfile), typeof(UserProfile));
             services.LoadMyServices(connectionString: Configuration.GetConnectionString("DefaultConnection"));
             services.AddScoped<IImageHelper, ImageHelper>();
+            services.AddScoped<IJwtHelper, JwtHelper>();
             services.AddControllers();
 
             services.AddSpaStaticFiles(configuration =>
@@ -51,43 +82,17 @@ namespace VueJS.Mvc
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
             });
-
-
-
-
-
-
-
-            // Make sure you call this previous to AddMvc
-            //services.ConfigureApplicationCookie(options =>
-            //{
-            //    //options.LoginPath = new PathString("/admin/auth/login");
-            //    //options.LogoutPath = new PathString("/admin/auth/logout");
-            //    options.Cookie = new CookieBuilder
-            //    {
-            //        Name = "VueJSWebApp",
-            //        HttpOnly = true,
-            //        SameSite = SameSiteMode.Strict,
-            //        SecurePolicy = CookieSecurePolicy.SameAsRequest // Always
-            //    };
-            //    options.SlidingExpiration = true;
-            //    options.ExpireTimeSpan = System.TimeSpan.FromHours(3);
-            //    //options.AccessDeniedPath = new PathString("/admin/auth/unauthorizedaccess");
-            //});
-            //services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors("Default");
+            //app.UseCors("Default");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseStatusCodePages();
             }
 
-            //app.UseMvc();
             app.UseRouting();
             app.UseSpaStaticFiles();
             app.UseAuthentication();  
