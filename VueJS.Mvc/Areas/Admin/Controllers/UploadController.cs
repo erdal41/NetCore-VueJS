@@ -36,8 +36,8 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return new JsonResult(uploads);
         }
 
-        [HttpGet("admin/upload-alluploadspartial")]
-        public async Task<IActionResult> GetAllUploadsPartial()
+        [HttpGet("/admin/upload-alluploadspartial")]
+        public async Task<ActionResult> GetAllUploadsPartial()
         {
             var result = await _uploadService.GetAllAsync();
             if (result.ResultStatus == ResultStatus.Success)
@@ -50,27 +50,59 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost("admin/upload-new")]
-        public async Task<IActionResult> New(IList<IFormFile> files)
+        [HttpPost("/admin/upload-new")]
+        public async Task<JsonResult> New(IList<IFormFile> files)
         {
+            var uploadViewModel = new UploadViewModel();
             foreach (IFormFile file in files)
             {
-                var uploadAddDto = Mapper.Map<UploadAddDto>(file);
-                var uploadResult = await ImageHelper.Upload(file);
-                uploadAddDto.FileName = uploadResult.Data.FileFullName;
-                uploadAddDto.AltText = uploadResult.Data.FileFullName;
-                uploadAddDto.ContentType = uploadResult.Data.ContentType;
-                uploadAddDto.Size = uploadResult.Data.Size;
-                uploadAddDto.Width = uploadResult.Data.Width;
-                uploadAddDto.Height = uploadResult.Data.Height;
+                var uploadResult = ImageHelper.Upload(file);
 
-                await _uploadService.AddAsync(uploadAddDto, LoggedInUser.Id);
+                if (uploadResult.ResultStatus == ResultStatus.Success)
+                {
+                    var uploadAddDto = Mapper.Map<UploadAddDto>(file);
+                    uploadAddDto.FileName = uploadResult.Data.FileFullName;
+                    uploadAddDto.AltText = uploadResult.Data.FileFullName;
+                    uploadAddDto.ContentType = uploadResult.Data.ContentType;
+                    uploadAddDto.Size = uploadResult.Data.Size;
+                    uploadAddDto.Width = uploadResult.Data.Width;
+                    uploadAddDto.Height = uploadResult.Data.Height;
+
+                    var uploadDto = await _uploadService.AddAsync(uploadAddDto, LoggedInUser.Id);
+
+                    if (uploadDto.ResultStatus == ResultStatus.Success)
+                    {
+                        var uploadDtos = new List<UploadDto>
+                        {
+                            uploadDto.Data
+                        };
+
+                        uploadViewModel = new UploadViewModel
+                        {
+                            UploadDtos = uploadDtos
+                        };
+                    }
+                    else
+                    {
+                        uploadViewModel = new UploadViewModel
+                        {
+                            UploadDtos = null
+                        };
+                    }
+                }
+                else
+                {
+                    uploadViewModel = new UploadViewModel
+                    {
+                        UploadDtos = null
+                    };
+                }
             }
-            return Json(files);
+            return Json(uploadViewModel);
         }
 
-        [HttpPost("admin/upload-postgalleryadd")]
-        public async Task<JsonResult> PostGalleryAdd(GalleryAddDto galleryAddDto)
+        [HttpPost("/admin/upload-postgalleryadd")]
+        public async Task<ActionResult> PostGalleryAdd(GalleryAddDto galleryAddDto)
         {
             var result = await _uploadService.GalleryAddAsync(galleryAddDto);
             if (result.ResultStatus == ResultStatus.Success)
@@ -91,36 +123,49 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             }
         }
 
-        [HttpGet("admin/upload-edit")]
-        public async Task<IActionResult> Edit(int uploadId)
+        [HttpGet("/admin/upload-edit")]
+        public async Task<JsonResult> Edit(int uploadId)
         {
             var result = await _uploadService.GetUploadUpdateDtoAsync(uploadId);
 
             if (result.ResultStatus == ResultStatus.Success)
             {
-                return PartialView("_UploadUpdatePartial", result.Data);
+                return Json(new UploadViewModel
+                {
+                    UploadUpdateDto = result.Data
+                });
             }
             else
             {
-                return NotFound();
+                return Json(new UploadViewModel
+                {
+                    UploadUpdateDto = null
+                });
             }
         }
 
-        [HttpPost("admin/upload-edit")]
-        public async Task<IActionResult> Edit(UploadUpdateDto uploadUpdateDto)
+        [HttpPost("/admin/upload-edit")]
+        public async Task<JsonResult> Edit(UploadUpdateDto uploadUpdateDto)
         {
             var result = await _uploadService.UpdateAsync(uploadUpdateDto, LoggedInUser.Id);
             if (result.ResultStatus == ResultStatus.Success)
             {
                 uploadUpdateDto.User = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == LoggedInUser.Id);
-                var uploadUpdateAjaxViewModel = JsonConvert.SerializeObject(await this.RenderViewToStringAsync("_UploadUpdatePartial", uploadUpdateDto));
-                return Json(uploadUpdateAjaxViewModel);
+                return Json(new UploadViewModel
+                {
+                    UploadDto = result.Data
+                });
             }
-            var uploadUpdateAjaxErrorViewModel = JsonConvert.SerializeObject(await this.RenderViewToStringAsync("_UploadUpdatePartial", uploadUpdateDto));
-            return Json(uploadUpdateAjaxErrorViewModel);
+            else
+            {
+                return Json(new UploadViewModel
+                {
+                    UploadDto = null
+                });
+            }
         }
 
-        [HttpPost("admin/upload-delete")]
+        [HttpPost("/admin/upload-delete")]
         public async Task<JsonResult> Delete(int uploadId)
         {
             var upload = await _uploadService.GetAsync(uploadId);
@@ -134,12 +179,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return Json(uploadResult);
         }
 
-        [HttpPost("admin/upload-galleryimagedelete")]
+        [HttpPost("/admin/upload-galleryimagedelete")]
         public async Task<JsonResult> GalleryImageDelete(int postId, int uploadId)
         {
             var result = await _uploadService.GalleryImageDeleteAsync(postId, uploadId);
             var uploadResult = JsonConvert.SerializeObject(result);
             return Json(uploadResult);
-        }        
+        }
     }
 }

@@ -8,6 +8,7 @@ using VueJS.Shared.Utilities.Results.Concrete;
 using VueJS.Shared.Utilities.Results.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace VueJS.Services.Concrete
 {
@@ -38,7 +39,7 @@ namespace VueJS.Services.Concrete
             {
                 return new DataResult<UploadListDto>(ResultStatus.Success, new UploadListDto
                 {
-                    Uploads = uploads,
+                    Uploads = uploads.OrderByDescending(x => x.CreatedDate).ToList(),
                     ResultStatus = ResultStatus.Success
                 });
             }
@@ -80,14 +81,19 @@ namespace VueJS.Services.Concrete
             });
         }
 
-        public async Task<IResult> UpdateAsync(UploadUpdateDto uploadUpdateDto, int userId)
+        public async Task<IDataResult<UploadDto>> UpdateAsync(UploadUpdateDto uploadUpdateDto, int userId)
         {
             var oldUpload = await UnitOfWork.Uploads.GetAsync(u => u.Id == uploadUpdateDto.Id, u => u.User);
             var upload = Mapper.Map<UploadUpdateDto, Upload>(uploadUpdateDto, oldUpload);
             upload.UserId = userId;
             var updateUpload = await UnitOfWork.Uploads.UpdateAsync(upload);
             await UnitOfWork.SaveAsync();
-            return new Result(ResultStatus.Success, Messages.Upload.Update(upload.FileName));
+            return new DataResult<UploadDto>(ResultStatus.Success, Messages.Upload.Update(upload.FileName), new UploadDto
+            {
+                Upload = updateUpload,
+                ResultStatus = ResultStatus.Success,
+                Message = Messages.Upload.Update(upload.FileName)
+            });
         }
 
         public async Task<IResult> DeleteAsync(int uploadId)

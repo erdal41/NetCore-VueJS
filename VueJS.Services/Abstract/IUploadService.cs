@@ -11,7 +11,7 @@ namespace VueJS.Services.Abstract
         Task<IDataResult<UploadUpdateDto>> GetUploadUpdateDtoAsync(int uploadId);
         Task<IDataResult<UploadDto>> AddAsync(UploadAddDto uploadAddDto, int userId);
         Task<IDataResult<GalleryDto>> GalleryAddAsync(GalleryAddDto galleryAddDto);
-        Task<IResult> UpdateAsync(UploadUpdateDto uploadUpdateDto, int userId);
+        Task<IDataResult<UploadDto>> UpdateAsync(UploadUpdateDto uploadUpdateDto, int userId);
         Task<IResult> DeleteAsync(int uploadId);
         Task<IResult> GalleryImageDeleteAsync(int postId, int uploadId);
     }

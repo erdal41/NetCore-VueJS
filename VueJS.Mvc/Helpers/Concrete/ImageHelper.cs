@@ -17,23 +17,22 @@ namespace VueJS.Mvc.Helpers.Concrete
     public class ImageHelper : IImageHelper
     {
         private readonly IWebHostEnvironment _env;
-        private readonly string _wwwroot;
-        private const string imgFolder = "assets/ap/img";
-
+        private readonly string _domainPath;
+        private const string mediaFolder = "ClientApp/src/assets/images/media";
         public ImageHelper(IWebHostEnvironment env)
         {
             _env = env;
-            _wwwroot = _env.WebRootPath;
+            _domainPath = _env.ContentRootPath;
         }
 
-        public async Task<IDataResult<FileUploadDto>> Upload(IFormFile uploadFile)
+        public IDataResult<FileUploadDto> Upload(IFormFile uploadFile)
         {
-            string dosyaYolu = $"{_wwwroot}/{imgFolder}";
+            string dosyaYolu = $"{_domainPath}/{mediaFolder}";
             string contentType = uploadFile.ContentType;
 
             if (!Directory.Exists(dosyaYolu))
             {
-                Directory.CreateDirectory($"{_wwwroot}/{imgFolder}");
+                Directory.CreateDirectory($"{_domainPath}/{mediaFolder}");
             }
 
             /* Resimin yüklenme sırasındaki ilk adı oldFileName adlı değişkene atanır. */
@@ -50,12 +49,12 @@ namespace VueJS.Mvc.Helpers.Concrete
 
             string newFileNameAndExtension = UrlExtensions.FriendlySEOUrl(newFileNameNotExtension) + "-" + timeFormat + fileExtension;
 
-            var path = Path.Combine($"{_wwwroot}/{imgFolder}", newFileNameAndExtension);
+            var path = Path.Combine(dosyaYolu, newFileNameAndExtension);
 
             /* Sistemimiz için oluşturulan yeni dosya yoluna resim kopyalanır. */
-            await using (var stream = new FileStream(path, FileMode.Create))
+            using (var stream = new FileStream(path, FileMode.Create))
             {
-                await uploadFile.CopyToAsync(stream);
+                uploadFile.CopyTo(stream);
             }
 
             int width = 0, height = 0;
@@ -90,7 +89,8 @@ namespace VueJS.Mvc.Helpers.Concrete
 
         public IDataResult<FileDeleteDto> Delete(string uploadFileName)
         {
-            var fileToDelete = Path.Combine($"{_wwwroot}/{imgFolder}/", uploadFileName);
+            string dosyaYolu = $"{_domainPath}/{mediaFolder}";
+            var fileToDelete = Path.Combine(dosyaYolu, uploadFileName);
           
             if (File.Exists(fileToDelete))
             {
@@ -114,7 +114,8 @@ namespace VueJS.Mvc.Helpers.Concrete
 
         public IDataResult<FileDeleteDto> MultiDelete(string uploadFileName)
         {
-            var fileToDelete = Path.Combine($"{_wwwroot}/{imgFolder}/", uploadFileName);
+            string dosyaYolu = $"{_domainPath}/{mediaFolder}";
+            var fileToDelete = Path.Combine(dosyaYolu, uploadFileName);
             if (File.Exists(fileToDelete))
             {
                 var fileInfo = new FileInfo(fileToDelete);

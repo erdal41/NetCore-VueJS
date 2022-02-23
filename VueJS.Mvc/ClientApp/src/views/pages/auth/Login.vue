@@ -184,10 +184,14 @@
                                 const { userData } = response[1]
                                 console.log('LOGİN!');
                                 console.log(userData);
-                                useJwt.setToken(response[1].accessToken)
+                                //useJwt.setToken(response[1].accessToken)
+                                localStorage.setItem('accessToken', response[1].accessToken)
                                 useJwt.setRefreshToken(response[1].refreshToken)
                                 localStorage.setItem('userData', JSON.stringify(userData))
                                 var ability =  [];
+
+                                console.log('Roles');
+                                console.log(userData.Roles);
 
                                 ability.push({ subject: 'Auth', action: 'read' })
                                 if (userData != null) {

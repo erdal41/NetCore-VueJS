@@ -25,7 +25,7 @@
             },
             {
                 title: 'Yeni Ekle',
-                route: { name: 'apps-invoice-preview', params: { id: 4987 } },
+                route: { name: 'pages-basepage-add' },
                 resource: 'Basepage',
                 action: 'create',
             },

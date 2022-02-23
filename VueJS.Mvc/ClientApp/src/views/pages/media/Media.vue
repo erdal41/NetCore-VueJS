@@ -1,5 +1,6 @@
 ﻿<template>
     <b-row>
+        <modal-upload-edit :upload-id="uploadId"></modal-upload-edit>
         <b-col class="content-header-left mb-2"
                cols="12"
                md="6">
@@ -34,10 +35,11 @@
                 <b-form-file hidden="hidden"
                              plain
                              multiple
-                             accept="image/jpeg, image/png, image/gif" />
+                             accept="image/jpeg, image/png, image/gif"
+                             @change.prevent="addFiles" />
             </label>
-            <label 
-                   @click="asd">asdsa</label>
+            <b-button 
+                   @click.prevent="isShowModal = true">asdsa</b-button>
         </b-col>
         <b-col cols="12">
             <b-card header-tag="header"
@@ -56,12 +58,12 @@
                         <b-button v-show="$can('create', 'Basepage')"
                                   variant="primary"
                                   size="sm"
-                                  :disabled="selectedImages.length <= 0">Kalıcı Olarak Sil</b-button>
+                                  :disabled="selectedImages.length <= 0"> {{ selectedImagesCount }} Kalıcı Olarak Sil</b-button>
                         <b-button v-show="$can('create', 'Basepage')"
                                   variant="outline-primary"
                                   class=" ml-1"
                                   size="sm"
-                                  @click.prevent="multiSelect = false; selectedImages = []">Vazgeç</b-button>
+                                  @click.prevent="multiSelect = false; selectedImages = []; selectedImagesCount = ''">Vazgeç</b-button>
                     </div>
                     <div v-if="multiSelect === false"
                          class="ml-auto">
@@ -81,7 +83,7 @@
                                   variant="fade-secondary"
                                   class="btn-icon mr-1"
                                   size="sm"
-                                  @click="getAllData()">
+                                  @click="getAllData">
                             <feather-icon icon="RotateCcwIcon" />
                         </b-button>
                     </div>
@@ -92,27 +94,32 @@
                         <b-spinner variant="primary" />
                     </div>
                     <div v-else>
-                        <b-list-group horizontal="md">
+                        <b-list-group id="grid-images"
+                                      horizontal="md">
                             <b-list-group-item v-for="upload in uploads" :key="upload.Id"
-                                               class="image-list"
-                                               :class="multiSelect === true && selectedImages.includes(upload.Id) ? 'checked-image' : ''"
-                                               @click="imageClick(upload.Id)">
-                                <b-form-checkbox v-if="multiSelect && selectedImages.includes(upload.Id)"
-                                                 v-model="selectedImages"
-                                                 name="checkbox"
-                                                 :value="upload.Id"
-                                                 class="custom-control-primary check-image">
-                                </b-form-checkbox>
-                                <b-img rounded
-                                       :key="upload.Id"
-                                       :src="upload.FileName == null ? '' : require('@/assets/images/media/' + upload.FileName)"
-                                       :alt="upload.AltText"
-                                       class="d-inline-block select-image"
-                                       :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
-                                <b-progress                                             animated
-                                            value="50"
-                                            variant="primary"
-                                            class="img-progress progress-bar-primary" />
+                                               @click="imageClick(upload.Id)"
+                                               v-b-modal="multiSelect == false ? 'upload-modal' : ''">
+                                <div class="media-file"
+                                     :class="multiSelect === true && selectedImages.includes(upload.Id) ? 'checked-image' : ''">
+                                    <b-form-checkbox v-if="multiSelect && selectedImages.includes(upload.Id)"
+                                                     v-model="selectedImages"
+                                                     name="checkbox"
+                                                     :value="upload.Id"
+                                                     class="custom-control-primary check-image">
+                                    </b-form-checkbox>
+                                    <b-img rounded
+                                           :key="upload.Id"
+                                           :src="upload.FileName == null ? null : require('@/assets/images/media/' + upload.FileName)"
+                                           :alt="upload.AltText"
+                                           class="d-inline-block select-image"
+                                           :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
+                                    <b-progress v-if="newFiles.includes(upload.Id) && isImageProgress"
+                                                animated
+                                                :value="progressPercent"
+                                                variant="primary"
+                                                class="img-progress progress-bar-primary" />
+                                </div>
+
                             </b-list-group-item>
                         </b-list-group>
                     </div>
@@ -134,13 +141,14 @@
     import {
         BBreadcrumb, BBreadcrumbItem, BSpinner, BFormFile, BListGroup, BListGroupItem, BProgress, BImg, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
-    //import { codeRowDetailsSupport } from './code'
+    import ModalUploadEdit from './ModalUploadEdit.vue';
     import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import Ripple from 'vue-ripple-directive'
 
     export default {
         components: {
+            ModalUploadEdit,
             BBreadcrumb,
             BBreadcrumbItem,
             BSpinner,
@@ -174,11 +182,16 @@
                         active: true,
                     }
                 ],
-                isShowProgress: false,
+                isShowModal: false,
+                uploadId: 0,
+                isImageProgress: false,
                 isSpinnerShow: true,
+                progressPercent: 0,
                 filterText: '',
                 filterOnData: [],
                 uploads: [],
+                shortedData: [],
+                newFiles: [],
                 dataNullMessage: '',
                 selected: '',
                 selectedValue: null,
@@ -188,6 +201,7 @@
                 checkedRows: [],
                 checkedRowsCount: 0,
                 selectedImages: [],
+                selectedImagesCount: '',
                 multiSelect: false,
                 termAddDto: {
                     Name: "",
@@ -199,11 +213,66 @@
             }
         },
         methods: {
+            addFiles: function (event, dta) {
+                console.log('adat');
+                console.log(dta);
+                if (event.target.files.length > 0) {
+                    let formData = new FormData();
+                    event.target.files.forEach(file => {
+                        formData.append('files', file);
+                    });
+
+                    axios.post('/admin/upload-new', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        },
+                        onUploadProgress: (uploadEvent) => {
+                            this.progressPercent = uploadEvent.loaded / uploadEvent.total * 100
+                        }
+                    }).then((response) => {
+                        console.log(event.target.files)
+                        console.log(event)
+                        console.log('eeee')
+                        console.log(response.data)
+                        if (response.data.UploadDtos != null) {
+                            response.data.UploadDtos.forEach(uploadDto => {
+                                this.newFiles.push(uploadDto.Upload.Id);
+                                this.uploads.unshift({
+                                    Id: uploadDto.Upload.Id,
+                                    FileName: null,
+                                    AltText: null,
+                                });
+                                this.isImageProgress = false;
+                                if (this.progressPercent === 100) {
+                                    this.isImageProgress = false;
+                                    //this.uploads.unshift(uploadDto.Upload);
+                                    this.uploads.forEach(upload => {
+                                        if (upload.Id === uploadDto.Upload.Id) {
+                                            upload.FileName = uploadDto.Upload.FileName
+                                        }
+                                    });
+                                }
+                            });
+
+
+                        }
+                    }).catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
+                    });
+
+                }
+            },
             asd() {
-                this.uploads.push({
+                this.isImageProgress = true;
+                this.uploads.unshift({
                     FileName: null,
                     AltText: null,
                 });
+                this.uploadId = 1;
+                console.log('ss');
+                let element = this.$refs.modal.$el
+                $(element).modal('show')
             },
             imageClick(id) {
                 if (this.multiSelect === true) {
@@ -213,8 +282,18 @@
                     } else {
                         this.selectedImages.push(id);
                     }
-                    console.log(this.selectedImages)
-                }                
+
+                    if (this.selectedImages.length > 0) {
+                        this.selectedImagesCount = `( ${this.selectedImages.length} )`;
+                    }
+                    else {
+                        this.selectedImagesCount = '';
+                    }
+                }
+                else {
+                    this.isShowModal = true;
+                    this.uploadId = id;
+                }
             },
             checkChange() {
                 if (this.checkedRows.length > 0) {
@@ -378,6 +457,8 @@
                         }
                     })
                     .catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -388,7 +469,7 @@
                             }
                         })
                     });
-            },            
+            },
             onFiltered(filteredItems) {
                 // Trigger pagination to update the number of buttons/pages due to filtering
                 this.totalRows = filteredItems.length
@@ -409,9 +490,18 @@
 </script>
 
 <style lang="scss">
-    .list-group-item {
+    #grid-images.list-group {
+        flex-wrap: wrap;
+        align-content: space-between;
+    }
+
+    #grid-images .list-group-item {
         border: 0 !important;
-        margin-left: 15px;
+        padding: 0 13.8px 13.8px 0 !important; 
+    }
+
+    #grid-images .list-group-item:hover {
+        background-color: transparent !important;
     }
 
     .img-progress {
@@ -419,16 +509,12 @@
         top: 25%;
     }
 
-    .list-group-horizontal-md > .list-group-item:first-child {
-        margin-left: 0 !important;
-    }
-
-    .image-list {
-        max-width: 120px;
-        width: 120px;
-        max-height: 120px;
-        height: 120px;
-        padding: 5px;
+    .media-file {
+        max-width: 110px;
+        width: 110px;
+        max-height: 110px;
+        height: 110px;
+        padding: 3px;
         cursor: pointer;
         -webkit-box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
         -moz-box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
@@ -436,7 +522,7 @@
         border-radius: 5px !important;
     }
 
-    .image-list:hover {
+    .media-file:hover {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         -moz-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
@@ -445,7 +531,7 @@
     .check-image {
         position: absolute !important;
         top: -10px;
-        right: -16px;
+        right: 0;
     }
 
     .select-image {
