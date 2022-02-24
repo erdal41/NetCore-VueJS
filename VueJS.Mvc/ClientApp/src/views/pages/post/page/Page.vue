@@ -263,7 +263,7 @@
                                       label-cols="6"
                                       label-align="left"
                                       label-size="sm"
-                                      label-for="sortBySelect"
+                                      label-for="perPageSelect"
                                       class="text-nowrap mb-md-0 mr-1">
                             <b-form-select id="perPageSelect"
                                            v-model="perPage"
@@ -309,7 +309,6 @@
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
-    import { integer } from '../../../../@core/utils/validations/validations'
 
     export default {
         components: {

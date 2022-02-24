@@ -97,7 +97,7 @@
                         <b-list-group id="grid-images"
                                       horizontal="md">
                             <b-list-group-item v-for="upload in uploads" :key="upload.Id"
-                                               @click="imageClick(upload.Id)"
+                                               @click="imageClick($event, upload.Id)"
                                                v-b-modal="multiSelect == false ? 'upload-modal' : ''">
                                 <div class="media-file"
                                      :class="multiSelect === true && selectedImages.includes(upload.Id) ? 'checked-image' : ''">
@@ -107,11 +107,11 @@
                                                      :value="upload.Id"
                                                      class="custom-control-primary check-image">
                                     </b-form-checkbox>
-                                    <b-img rounded
+                                    <b-img 
                                            :key="upload.Id"
                                            :src="upload.FileName == null ? null : require('@/assets/images/media/' + upload.FileName)"
                                            :alt="upload.AltText"
-                                           class="d-inline-block select-image"
+                                           class="select-image"
                                            :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
                                     <b-progress v-if="newFiles.includes(upload.Id) && isImageProgress"
                                                 animated
@@ -274,7 +274,8 @@
                 let element = this.$refs.modal.$el
                 $(element).modal('show')
             },
-            imageClick(id) {
+            imageClick: function (event, id) {
+                console.log(event.target.find);
                 if (this.multiSelect === true) {
                     var isSelectImage = this.selectedImages.some(uploadId => uploadId === id);
                     if (isSelectImage) {
