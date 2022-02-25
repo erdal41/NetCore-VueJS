@@ -1,6 +1,7 @@
 ﻿<template>
     <b-row>
-        <modal-upload-edit :upload-id="uploadId"></modal-upload-edit>
+        <modal-upload-edit :upload-id="uploadId"
+                           @mediaGetAllData="mediaListDeleteData"></modal-upload-edit>
         <b-col class="content-header-left mb-2"
                cols="12"
                md="6">
@@ -58,7 +59,8 @@
                         <b-button v-show="$can('create', 'Basepage')"
                                   variant="primary"
                                   size="sm"
-                                  :disabled="selectedImages.length <= 0"> {{ selectedImagesCount }} Kalıcı Olarak Sil</b-button>
+                                  :disabled="selectedImages.length <= 0"
+                                  @click="multiDeleteData"> {{ selectedImagesCount }} Kalıcı Olarak Sil</b-button>
                         <b-button v-show="$can('create', 'Basepage')"
                                   variant="outline-primary"
                                   class=" ml-1"
@@ -113,7 +115,7 @@
                                            :alt="upload.AltText"
                                            class="select-image"
                                            :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
-                                    <b-progress v-if="newFiles.includes(upload.Id) && isImageProgress"
+                                    <b-progress v-if="uploads.some(up => up.Id != upload.Id) && isImageProgress"
                                                 animated
                                                 :value="progressPercent"
                                                 variant="primary"
@@ -213,36 +215,34 @@
             }
         },
         methods: {
-            addFiles: function (event, dta) {
-                console.log('adat');
-                console.log(dta);
+            addFiles: function (event) {
                 if (event.target.files.length > 0) {
                     let formData = new FormData();
                     event.target.files.forEach(file => {
                         formData.append('files', file);
                     });
-
                     axios.post('/admin/upload-new', formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data'
                         },
                         onUploadProgress: (uploadEvent) => {
-                            this.progressPercent = uploadEvent.loaded / uploadEvent.total * 100
+                            this.isImageProgress = true;
+                            this.progressPercent = uploadEvent.loaded / uploadEvent.total * 100;                            
                         }
                     }).then((response) => {
+                        this.uploads.unshift({
+                            Id: -1,
+                            FileName: null,
+                            AltText: null,
+                        });
                         console.log(event.target.files)
                         console.log(event)
                         console.log('eeee')
                         console.log(response.data)
                         if (response.data.UploadDtos != null) {
-                            response.data.UploadDtos.forEach(uploadDto => {
+                            response.data.UploadDtos.forEach(uploadDto => {                                
                                 this.newFiles.push(uploadDto.Upload.Id);
-                                this.uploads.unshift({
-                                    Id: uploadDto.Upload.Id,
-                                    FileName: null,
-                                    AltText: null,
-                                });
-                                this.isImageProgress = false;
+                                
                                 if (this.progressPercent === 100) {
                                     this.isImageProgress = false;
                                     //this.uploads.unshift(uploadDto.Upload);
@@ -275,7 +275,6 @@
                 $(element).modal('show')
             },
             imageClick: function (event, id) {
-                console.log(event.target.find);
                 if (this.multiSelect === true) {
                     var isSelectImage = this.selectedImages.some(uploadId => uploadId === id);
                     if (isSelectImage) {
@@ -295,144 +294,6 @@
                     this.isShowModal = true;
                     this.uploadId = id;
                 }
-            },
-            checkChange() {
-                if (this.checkedRows.length > 0) {
-                    this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = this.checkedRows.length;
-                }
-                else {
-                    this.isHiddenMultiDeleteButton = false;
-                }
-            },
-            selectAllRows(value) {
-                if (value === true) {
-                    var idList = [];
-                    this.terms.forEach(function (term) {
-                        idList.push(term.Id);
-                    });
-                    this.checkedRows = idList;
-                }
-                else {
-                    this.checkedRows = [];
-                    this.isHidden = false;
-                }
-                this.checkChange();
-            },
-            singleDeleteData(id, name) {
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " adlı terim kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post('/admin/term/delete?term=' + id)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
-            multiDeleteData() {
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: this.checkedRowsCount + " etiket kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post(`/admin/term/multidelete?terms=` + this.checkedRows)
-                            .then((response) => {
-                                console.log(response.data)
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                console.log(error)
-                                console.log(error.response)
-                                console.log(error.request)
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-                console.log(this.checkedRows);
             },
             getAllData() {
                 this.isSpinnerShow = true;
@@ -470,6 +331,39 @@
                             }
                         })
                     });
+            },
+            mediaListDeleteData(id, isDeleted) {
+                if (isDeleted === true) {
+                    this.uploads = this.uploads.filter(upload => upload.Id != id);
+                }
+            },
+            multiDeleteData() {
+                this.$swal({
+                    title: 'Toplu olarak silmek istediğinizden emin misiniz?',
+                    text: this.selectedImagesCount + " adet dosya kalıcı olarak silinecektir?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet',
+                    cancelButtonText: 'Hayır',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-outline-danger ml-1',
+                    },
+                    buttonsStyling: false,
+                }).then(result => {
+                    if (result.value) {
+                        this.selectedImages.forEach((id, index) => {
+                            axios.post('/admin/upload-delete?uploadId=' + id)
+                                .then((response) => {
+                                    if (response.data.ResultStatus === 0) {
+                                        this.selectedImagesCount = "";
+                                        this.multiSelect = false;
+                                        this.getAllData();
+                                    }
+                                });
+                        });
+                    }
+                })
             },
             onFiltered(filteredItems) {
                 // Trigger pagination to update the number of buttons/pages due to filtering

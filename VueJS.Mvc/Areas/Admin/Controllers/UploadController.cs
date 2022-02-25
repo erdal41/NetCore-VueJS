@@ -53,6 +53,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/upload-new")]
         public async Task<JsonResult> New(IList<IFormFile> files)
         {
+            var uploadDtos = new List<UploadDto>();
             var uploadViewModel = new UploadViewModel();
             foreach (IFormFile file in files)
             {
@@ -72,10 +73,8 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
 
                     if (uploadDto.ResultStatus == ResultStatus.Success)
                     {
-                        var uploadDtos = new List<UploadDto>
-                        {
-                            uploadDto.Data
-                        };
+                        uploadDtos.Add(uploadDto.Data);
+                        
 
                         uploadViewModel = new UploadViewModel
                         {
@@ -170,13 +169,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         {
             var upload = await _uploadService.GetAsync(uploadId);
             var result = await _uploadService.DeleteAsync(uploadId);
-            var uploadResult = JsonConvert.SerializeObject(result);
             if (result.ResultStatus == ResultStatus.Success)
             {
                 ImageHelper.Delete(upload.Data.Upload.FileName);
-                return Json(uploadResult);
+                return Json(result);
             }
-            return Json(uploadResult);
+            return Json(result);
         }
 
         [HttpPost("/admin/upload-galleryimagedelete")]

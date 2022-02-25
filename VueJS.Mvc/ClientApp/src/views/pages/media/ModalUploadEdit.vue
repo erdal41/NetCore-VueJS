@@ -1,12 +1,11 @@
 ﻿<template>
     <div>
         <b-modal id="upload-modal"
-                 cancel-variant="outline-secondary"
-                 ok-title="Güncelle"
-                 cancel-title="İptal"
+                 ref="upload-modal"
                  title="Medya Düzenle"
                  :no-close-on-backdrop="true"
-                 @show="getData">
+                 @show="getData"
+                 @hidden="mediaPageGetAllData">
             <template #modal-header>
                 <div class="content-header-left"
                      cols="12"
@@ -20,11 +19,15 @@
                      cols="12">
                     <b-button-group size="sm">
                         <b-button variant="flat-secondary"
-                                  class="btn-icon rounded-circle">
+                                  class="btn-icon rounded-circle"
+                                  :disabled="isDisabledPreviousButton"
+                                  @click="prevNextButtonClick('Pre')">
                             <feather-icon icon="ChevronLeftIcon" />
                         </b-button>
                         <b-button variant="flat-secondary"
-                                  class="btn-icon rounded-circle">
+                                  class="btn-icon rounded-circle"
+                                  :disabled="isDisabledNextButton"
+                                  @click="prevNextButtonClick('Next')">
                             <feather-icon icon="ChevronRightIcon" />
                         </b-button>
                         <b-button variant="flat-secondary"
@@ -34,6 +37,17 @@
                         </b-button>
                     </b-button-group>
                 </div>
+            </template>
+            <template #modal-footer>
+                <b-button variant="flat-danger"
+                          size="sm"
+                          @click="deleteData">
+                    Kalıcı Olarak Sil
+                </b-button>
+                <b-button variant="primary"
+                          size="sm">
+                    Güncelle
+                </b-button>
             </template>
             <div class="media-details container-fluid h-100 p-0">
                 <b-row class="h-100">
@@ -101,6 +115,7 @@
                     </b-col>
                 </b-row>
             </div>
+
         </b-modal>
     </div>
 </template>
@@ -153,10 +168,56 @@
                 createdDate: '',
                 sizeConvert: '',
                 altText: '',
+                uploadIds: [],
+                uploadIndex: null,
+                isDisabledPreviousButton: false,
+                isDisabledNextButton: false,
+                isDeleted: false,
             }
         },
         methods: {
+            mediaPageGetAllData() {
+                this.$emit('mediaGetAllData', this.uploadUpdateDto.Id, this.isDeleted);
+            },
+            getAllData() {
+                this.uploadIds = [];
+                axios.get('/admin/upload-alluploads')
+                    .then((response) => {
+                        console.log(response.data)
+                        if (response.data.ResultStatus === 0) {
+                            response.data.Data.Uploads.forEach(upload => {
+                                this.uploadIds.push(upload.Id);
+                            });
+                        }
+                        else {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Hata Oluştu!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: 'Dosyalar listelenirken hata oluştu. ',
+                                }
+                            })
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
             getData() {
+                this.getAllData();
+                this.isDeleted = false;
                 axios.get('/admin/upload-edit', {
                     params: {
                         uploadId: this.uploadId
@@ -176,14 +237,12 @@
                     this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.UserId;
                     this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Width;
                     this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Size;
-                    console.log(location.origin);
                     var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.FileName)
                     this.altText = location.origin + imgPath;
                     this.createdDate = moment(new Date(response.data.UploadUpdateDto.CreatedDate)).format('DD.MM.YYYY');
 
 
                     var size = response.data.UploadUpdateDto.Size;
-                    console.log(size)
                     if (size >= 1024) {
                         this.sizeConvert = (size / 1024).toFixed(0) + " KB";
                     } else if (size >= 1048576) {
@@ -195,16 +254,19 @@
                     else {
                         this.sizeConvert = size + " Bayt";
                     }
-                    console.log(this.sizeConvert)
+
+                    this.uploadUpdateDto.Id = this.uploadId;
+                    this.uploadIndex = this.uploadIds.indexOf(this.uploadUpdateDto.Id);
+                    this.isDisabledPreviousButton = this.uploadIndex == 0 ? true : false;
+                    this.isDisabledNextButton = this.uploadIndex == this.uploadIds.length - 1 ? true : false;
                 })
             },
-            rightGetData(id) {
+            getPrevNextData(id) {
                 axios.get('/admin/upload-edit', {
                     params: {
-                        uploadId: this.uploadId
+                        uploadId: id
                     }
                 }).then((response) => {
-                    console.log(response.data);
                     this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.AltText;
                     this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.ContentType;
                     this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.CreatedDate;
@@ -218,14 +280,12 @@
                     this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.UserId;
                     this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Width;
                     this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Size;
-                    console.log(location.origin);
                     var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.FileName)
                     this.altText = location.origin + imgPath;
                     this.createdDate = moment(new Date(response.data.UploadUpdateDto.CreatedDate)).format('DD.MM.YYYY');
 
 
                     var size = response.data.UploadUpdateDto.Size;
-                    console.log(size)
                     if (size >= 1024) {
                         this.sizeConvert = (size / 1024).toFixed(0) + " KB";
                     } else if (size >= 1048576) {
@@ -237,8 +297,30 @@
                     else {
                         this.sizeConvert = size + " Bayt";
                     }
-                    console.log(this.sizeConvert)
                 })
+            },
+            prevNextButtonClick: function (type) {
+                this.uploadIndex = this.uploadIds.indexOf(this.uploadUpdateDto.Id);
+
+                if (type === 'Pre') {
+                    if (this.uploadIndex != 0) {
+                        this.uploadIndex--;
+                        this.isDisabledNextButton = false;
+                        this.uploadUpdateDto.Id = this.uploadIds[this.uploadIndex]
+                        this.getPrevNextData(this.uploadUpdateDto.Id);
+                    }
+                }
+                else if (type === 'Next') {
+                    if (this.uploadIndex !== this.uploadIds.length - 1) {
+                        this.uploadIndex++;
+                        this.isDisabledPreviousButton = false;
+                        this.uploadUpdateDto.Id = this.uploadIds[this.uploadIndex];
+                        this.getPrevNextData(this.uploadUpdateDto.Id);
+                    }
+
+                }
+                this.isDisabledPreviousButton = this.uploadIndex == 0 ? true : false;
+                this.isDisabledNextButton = this.uploadIndex == this.uploadIds.length - 1 ? true : false;
             },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
@@ -310,6 +392,81 @@
                     }
                 })
             },
+            deleteData() {
+                this.$swal({
+                    title: 'Silmek istediğinize emin misiniz?',
+                    text: this.uploadUpdateDto.FileName + " adlı dosya kalıcı olarak silinecektir?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet',
+                    cancelButtonText: 'Hayır',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-outline-danger ml-1',
+                    },
+                    buttonsStyling: false,
+                }).then(result => {
+                    if (result.value) {
+                        console.log(this.uploadUpdateDto.Id);
+                        axios.post('/admin/upload-delete?uploadId=' + this.uploadUpdateDto.Id)
+                            .then((response) => {
+                                this.getAllData();
+                                this.isDeleted = true;
+                                console.log(response.data)
+                                if (response.data.ResultStatus === 0) {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'success',
+                                            title: 'Başarılı İşlem!',
+                                            icon: 'CheckIcon',
+                                            text: response.data.Message
+                                        }
+                                    });
+                                    this.$refs['upload-modal'].hide()
+                                }
+                                else {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'danger',
+                                            title: 'Başarısız İşlem!',
+                                            icon: 'AlertOctagonIcon',
+                                            text: response.data.Message
+                                        },
+                                    })
+                                }
+                            })
+                            .catch((error) => {
+                                this.$toast({
+                                    component: ToastificationContent,
+                                    props: {
+                                        variant: 'danger',
+                                        title: 'Hata Oluştu!',
+                                        icon: 'AlertOctagonIcon',
+                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                    },
+                                })
+                            });
+                    }
+                })
+            },
+            handleKeydown(e) {
+                switch (e.keyCode) {
+                    case 37:
+                        this.prevNextButtonClick('Pre');
+                        break;
+                    case 39:
+                        this.prevNextButtonClick('Next');
+                        break;
+                }
+            }
+        },
+        beforeMount() {
+            window.addEventListener('keydown', this.handleKeydown, null);
+        },
+        beforeDestroy() {
+            window.removeEventListener('keydown', this.handleKeydown);
         },
         mounted() {
         }

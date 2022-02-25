@@ -58,14 +58,14 @@ namespace VueJS.Mvc.Helpers.Concrete
             }
 
             int width = 0, height = 0;
-            //if (uploadFile.ContentType.Contains("image") && !uploadFile.ContentType.Contains("svg+xml"))
-            //{
-            //    using (var image = Image.FromStream(uploadFile.OpenReadStream()))
-            //    {
-            //        width = image.Width;
-            //        height = image.Height;
-            //    }
-            //}
+            if (uploadFile.ContentType.Contains("image") && !uploadFile.ContentType.Contains("svg+xml"))
+            {
+                using (var image = Image.FromStream(uploadFile.OpenReadStream()))
+                {
+                    width = image.Width;
+                    height = image.Height;
+                }
+            }
 
             /* Resim tipine göre kullanıcı için bir mesaj oluşturulur. */
             string nameMessage = $"{newFileNameAndExtension} adlı medya dosyası başarıyla yüklenmiştir.";
