@@ -17,7 +17,8 @@
                         <b-input-group-prepend is-text>
                             <feather-icon icon="SearchIcon" />
                         </b-input-group-prepend>
-                        <b-form-input placeholder="Ara..." />
+                        <b-form-input placeholder="Ara..."
+                                      v-model="filterText" />
                     </b-input-group>
                 </div>
                 <div class="ml-auto">
@@ -38,7 +39,7 @@
             </template>
             <template>
                 <b-list-group horizontal="md">
-                    <b-list-group-item v-for="upload in uploads" :key="upload.Id"
+                    <b-list-group-item v-for="upload in filteredData" :key="upload.Id"
                                        class="image-list"
                                        @click="imageClick(upload.Id, upload.FileName, upload.AltText)">
                         <b-form-radio v-model="selectedImageId"
@@ -98,6 +99,7 @@
                 totalRows: 1,
                 currentPage: 1,
                 filter: null,
+                filterText: '',
                 filterOn: [],
                 uploads: [],
                 multiSelect: false,
@@ -105,7 +107,7 @@
                 selectedImageFileName: '',
                 selectedImageAltText: '',
                 isHiddenMultiDeleteButton: false,
-                isHiddenRowActions: false,             
+                isHiddenRowActions: false,
                 checkedRows: [],
                 checkedRowsCount: 0
             }
@@ -284,11 +286,19 @@
                         })
                     });
             },
-            onFiltered(filteredItems) {
-                // Trigger pagination to update the number of buttons/pages due to filtering
-                this.totalRows = filteredItems.length
-                this.currentPage = 1
+            filterByName: function (data) {
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+
+                return (data.FileName.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
+        },
+        computed: {
+            filteredData: function () {
+                return this.uploads
+                    .filter(this.filterByName);
+            }
         },
         mounted() {
             this.getAllData();

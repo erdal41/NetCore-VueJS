@@ -57,37 +57,16 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var uploadViewModel = new UploadViewModel();
             foreach (IFormFile file in files)
             {
-                var uploadResult = ImageHelper.Upload(file);
+                var uploadResult = await ImageHelper.Upload(file, LoggedInUser.Id);
 
                 if (uploadResult.ResultStatus == ResultStatus.Success)
                 {
-                    var uploadAddDto = Mapper.Map<UploadAddDto>(file);
-                    uploadAddDto.FileName = uploadResult.Data.FileFullName;
-                    uploadAddDto.AltText = uploadResult.Data.FileFullName;
-                    uploadAddDto.ContentType = uploadResult.Data.ContentType;
-                    uploadAddDto.Size = uploadResult.Data.Size;
-                    uploadAddDto.Width = uploadResult.Data.Width;
-                    uploadAddDto.Height = uploadResult.Data.Height;
+                    uploadDtos.Add(uploadResult.Data);
 
-                    var uploadDto = await _uploadService.AddAsync(uploadAddDto, LoggedInUser.Id);
-
-                    if (uploadDto.ResultStatus == ResultStatus.Success)
+                    uploadViewModel = new UploadViewModel
                     {
-                        uploadDtos.Add(uploadDto.Data);
-                        
-
-                        uploadViewModel = new UploadViewModel
-                        {
-                            UploadDtos = uploadDtos
-                        };
-                    }
-                    else
-                    {
-                        uploadViewModel = new UploadViewModel
-                        {
-                            UploadDtos = null
-                        };
-                    }
+                        UploadDtos = uploadDtos
+                    };
                 }
                 else
                 {

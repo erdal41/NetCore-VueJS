@@ -610,7 +610,6 @@
                     });
             },
             filterByName: function (data) {
-                // no search, don't filter :
                 if (this.filterText.length === 0) {
                     return true;
                 }

@@ -90,38 +90,38 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body>
+                <b-card-body class="p-0">
                     <div v-if="isSpinnerShow == true"
                          class="text-center mt-2 mb-2">
                         <b-spinner variant="primary" />
                     </div>
-                    <div v-else>
-                        <b-list-group id="grid-images"
+                    <div v-else 
+                         class="gallery-container">
+                        <b-list-group id="gallery"
                                       horizontal="md">
-                            <b-list-group-item v-for="upload in uploads" :key="upload.Id"
+                            <b-list-group-item v-for="upload in filteredData" :key="upload.Id"
                                                @click="imageClick($event, upload.Id)"
                                                v-b-modal="multiSelect == false ? 'upload-modal' : ''">
                                 <div class="media-file"
                                      :class="multiSelect === true && selectedImages.includes(upload.Id) ? 'checked-image' : ''">
-                                    <b-form-checkbox v-if="multiSelect && selectedImages.includes(upload.Id)"
+                                        <b-form-checkbox v-if="multiSelect && selectedImages.includes(upload.Id)"
                                                      v-model="selectedImages"
                                                      name="checkbox"
                                                      :value="upload.Id"
                                                      class="custom-control-primary check-image">
-                                    </b-form-checkbox>
-                                    <b-img 
+                                        </b-form-checkbox>
+                                        <b-img-lazy 
                                            :key="upload.Id"
                                            :src="upload.FileName == null ? null : require('@/assets/images/media/' + upload.FileName)"
                                            :alt="upload.AltText"
                                            class="select-image"
                                            :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
-                                    <b-progress v-if="uploads.some(up => up.Id != upload.Id) && isImageProgress"
+                                        <b-progress v-if="uploads.includes(upload.Id) && isImageProgress"
                                                 animated
                                                 :value="progressPercent"
                                                 variant="primary"
                                                 class="img-progress progress-bar-primary" />
-                                </div>
-
+                                    </div>
                             </b-list-group-item>
                         </b-list-group>
                     </div>
@@ -141,7 +141,7 @@
 
 <script>
     import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BFormFile, BListGroup, BListGroupItem, BProgress, BImg, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BSpinner, BFormFile, BListGroup, BListGroupItem, BProgress, BImgLazy, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
     } from 'bootstrap-vue'
     import ModalUploadEdit from './ModalUploadEdit.vue';
     import axios from 'axios'
@@ -158,7 +158,7 @@
             BListGroup,
             BListGroupItem,
             BProgress,
-            BImg,
+            BImgLazy,
             BCardTitle,
             BButton,
             BFormCheckbox,
@@ -229,12 +229,7 @@
                             this.isImageProgress = true;
                             this.progressPercent = uploadEvent.loaded / uploadEvent.total * 100;                            
                         }
-                    }).then((response) => {
-                        this.uploads.unshift({
-                            Id: -1,
-                            FileName: null,
-                            AltText: null,
-                        });
+                    }).then((response) => {                        
                         console.log(event.target.files)
                         console.log(event)
                         console.log('eeee')
@@ -242,15 +237,23 @@
                         if (response.data.UploadDtos != null) {
                             response.data.UploadDtos.forEach(uploadDto => {                                
                                 this.newFiles.push(uploadDto.Upload.Id);
-                                
+                                this.uploads.unshift({
+                                    Id: uploadDto.Upload.Id,
+                                    FileName: null,
+                                    AltText: null,
+                                });
                                 if (this.progressPercent === 100) {
                                     this.isImageProgress = false;
                                     //this.uploads.unshift(uploadDto.Upload);
-                                    this.uploads.forEach(upload => {
-                                        if (upload.Id === uploadDto.Upload.Id) {
-                                            upload.FileName = uploadDto.Upload.FileName
-                                        }
-                                    });
+                                    
+                                    setTimeout(() => {
+                                        this.uploads.forEach(upload => {
+
+                                            if (upload.Id === uploadDto.Upload.Id) {
+                                                upload.FileName = uploadDto.Upload.FileName
+                                            }
+                                        });
+                                    }, 5000);
                                 }
                             });
 
@@ -365,15 +368,17 @@
                     }
                 })
             },
-            onFiltered(filteredItems) {
-                // Trigger pagination to update the number of buttons/pages due to filtering
-                this.totalRows = filteredItems.length
-                this.currentPage = 1
+            filterByName: function (data) {
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+
+                return (data.FileName.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
         computed: {
             filteredData: function () {
-                return this.terms
+                return this.uploads
                     .filter(this.filterByName);
             }
         },
@@ -385,14 +390,45 @@
 </script>
 
 <style lang="scss">
-    #grid-images.list-group {
+
+    .gallery-container {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        padding: 20px;
+    }
+
+    #gallery.list-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+        grid-gap: 30px;
+    }
+
+    #gallery .list-group-item {
+        border: 0 !important;
+        padding: 0 !important;
+    }
+
+    #gallery .list-group-item:hover {
+        background-color: transparent !important;
+    }
+
+    
+
+    .select-image {
+        width: 100%;
+    }
+
+
+    /*   #grid-images.list-group {
         flex-wrap: wrap;
         align-content: space-between;
+        padding: 0 0 0 20px;
     }
 
     #grid-images .list-group-item {
         border: 0 !important;
-        padding: 0 13.8px 13.8px 0 !important; 
+        padding: 0 20px 20px 0 !important;
     }
 
     #grid-images .list-group-item:hover {
@@ -404,19 +440,10 @@
         top: 25%;
     }
 
-    .media-file {
-        max-width: 110px;
-        width: 110px;
-        max-height: 110px;
-        height: 110px;
-        padding: 3px;
-        cursor: pointer;
-        -webkit-box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
-        -moz-box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
-        box-shadow: inset 0px 0px 2px 0px rgba(0,0,0,0.75);
-        border-radius: 5px !important;
-    }
-
+    .center-image {
+        width: 100%;
+        height: 100%;
+    }*/
     .media-file:hover {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         -moz-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
@@ -428,15 +455,13 @@
         top: -10px;
         right: 0;
     }
-
-    .select-image {
-        max-width: 100%;
+    /*    .select-image {
         max-height: 100%;
         position: relative;
         top: 50%;
         left: 50%;
         transform: translateX(-50%) translateY(-50%);
-    }
+    }*/
 
     .checked-image {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
@@ -452,5 +477,30 @@
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         border-radius: 4px;
     }
+    /*@media screen and (min-width: 1350px) {
+        .media-file {
+            overflow: hidden;
+            max-width: 124px;
+            width: 124px;
+            max-height: 124px;
+            height: 124px;
+            cursor: pointer;
+            box-shadow: 0px 0px 5px -2px rgb(0 0 0 / 75%);
+            border-radius: 5px !important;
+        }
+    }
+
+    @media screen and (max-width: 1350px) {
+        .media-file {
+            overflow: hidden;
+            max-width: 124.7px;
+            width: 124.7px;
+            max-height: 124.7px;
+            height: 124.7px;
+            cursor: pointer;
+            box-shadow: 0px 0px 5px -2px rgb(0 0 0 / 75%);
+            border-radius: 5px !important;
+        }
+    }*/
 
     </style>
