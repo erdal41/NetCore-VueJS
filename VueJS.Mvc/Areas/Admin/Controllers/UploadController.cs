@@ -123,12 +123,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost("/admin/upload-edit")]
-        public async Task<JsonResult> Edit(UploadUpdateDto uploadUpdateDto)
+        public async Task<JsonResult> Edit(UploadViewModel uploadViewModel)
         {
-            var result = await _uploadService.UpdateAsync(uploadUpdateDto, LoggedInUser.Id);
+            var result = await _uploadService.UpdateAsync(uploadViewModel.UploadUpdateDto, LoggedInUser.Id);
             if (result.ResultStatus == ResultStatus.Success)
             {
-                uploadUpdateDto.User = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == LoggedInUser.Id);
+                uploadViewModel.UploadUpdateDto.User = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == LoggedInUser.Id);
                 return Json(new UploadViewModel
                 {
                     UploadDto = result.Data

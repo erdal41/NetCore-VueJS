@@ -45,28 +45,27 @@
                     Kalıcı Olarak Sil
                 </b-button>
                 <b-button variant="primary"
-                          size="sm">
+                          size="sm"
+                          @click="updateData">
                     Güncelle
                 </b-button>
             </template>
             <div class="media-details container-fluid h-100 p-0">
-                <b-row class="h-100">
-                    <b-col cols="8">
-                        <div class="image-view">
-                            <b-img :src="uploadUpdateDto.FileName == null ? '' : require('@/assets/images/media/' + uploadUpdateDto.FileName)" fluid></b-img>
-                        </div>
-                    </b-col>
-                    <b-col cols="4"
-                           class="image-info">
-                        <div style="font-size:11px;">
-                            <span><strong>Yüklenen Tarih: </strong>{{createdDate}}</span><br />
-                            <span><strong>Yükleyen: </strong>{{ uploadUpdateDto.User.UserName}}</span><br />
-                            <span><strong>Dosya Adı: </strong>{{ uploadUpdateDto.FileName}}</span><br />
-                            <span><strong>Dosya Türü: </strong>{{ uploadUpdateDto.ContentType}}</span><br />
-                            <span><strong>Dosya Boyutu: </strong>{{sizeConvert}}</span><br />
-                            <span><strong>Ölçüler: </strong>{{ uploadUpdateDto.Width }}x{{ uploadUpdateDto.Height }}px</span>
-                        </div>
-                        <hr />
+                <div class="media-view">
+                    <div class="image-view">
+                        <b-img :src="uploadUpdateDto.FileName == null ? '' : require('@/assets/images/media/' + uploadUpdateDto.FileName)" fluid></b-img>
+                    </div>
+                </div>
+                <div class="media-info">
+                    <div class="details">
+                        <span><strong>Yüklenen Tarih: </strong>{{createdDate}}</span><br />
+                        <span><strong>Yükleyen: </strong>{{ uploadUpdateDto.User.UserName}}</span><br />
+                        <span><strong>Dosya Adı: </strong>{{ uploadUpdateDto.FileName}}</span><br />
+                        <span><strong>Dosya Türü: </strong>{{ uploadUpdateDto.ContentType}}</span><br />
+                        <span><strong>Dosya Boyutu: </strong>{{sizeConvert}}</span><br />
+                        <span><strong>Ölçüler: </strong>{{ uploadUpdateDto.Width }}x{{ uploadUpdateDto.Height }}px</span>
+                    </div>
+                    <div class="settings">
                         <b-form-group label-cols="4"
                                       label-size="sm"
                                       label="Alternatif Metin"
@@ -112,8 +111,8 @@
                                           size="sm"
                                           readonly></b-form-input>
                         </b-form-group>
-                    </b-col>
-                </b-row>
+                    </div>
+                </div>
             </div>
 
         </b-modal>
@@ -145,6 +144,10 @@
             uploadId: {
                 type: Number,
                 required: true,
+            },
+            filteredData: {
+                type: Array,
+                default: () => [],
             },
         },
         data() {
@@ -181,39 +184,10 @@
             },
             getAllData() {
                 this.uploadIds = [];
-                axios.get('/admin/upload-alluploads')
-                    .then((response) => {
-                        console.log(response.data)
-                        if (response.data.ResultStatus === 0) {
-                            response.data.Data.Uploads.forEach(upload => {
-                                this.uploadIds.push(upload.Id);
-                            });
-                        }
-                        else {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: 'Dosyalar listelenirken hata oluştu. ',
-                                }
-                            })
-                        }
-                    })
-                    .catch((error) => {
-                        console.log(error)
-                        console.log(error.request)
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
+                this.filteredData.forEach(upload => {
+                    this.uploadIds.push(upload.Id);
+                });
+                console.log(this.filteredData)
             },
             getData() {
                 this.getAllData();
@@ -322,75 +296,50 @@
                 this.isDisabledPreviousButton = this.uploadIndex == 0 ? true : false;
                 this.isDisabledNextButton = this.uploadIndex == this.uploadIds.length - 1 ? true : false;
             },
-            validationForm() {
-                this.$refs.simpleRules.validate().then(success => {
-                    if (success) {
-                        if (!this.urlRedirectUpdateDto.OldUrl.includes('https://') && !this.urlRedirectUpdateDto.OldUrl.includes('http://')) {
+            updateData() {
+                console.log(this.uploadUpdateDto);
+                axios.post('/admin/upload-edit',
+                    {
+                        UploadUpdateDto: this.uploadUpdateDto
+                    })
+                    .then((response) => {
+                        console.log(response.data);
+                        if (response.data.UploadDto.ResultStatus === 0) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
-                                    variant: 'warning',
-                                    title: 'Uyarı!',
-                                    icon: 'AlertTriangleIcon',
-                                    text: 'Eski url, "https://" veya "http://" parametresi ile beraber tam linki içermerlidir. Örnek: https://www.orneksite.com/ornek-sayfa'
+                                    variant: 'success',
+                                    title: 'Başarılı İşlem!',
+                                    icon: 'CheckIcon',
+                                    text: this.uploadUpdateDto.FileName + " adlı dosya güncellendi."
                                 }
                             });
-                        } else if (!this.urlRedirectUpdateDto.NewUrl.includes('https://') && !this.urlRedirectUpdateDto.NewUrl.includes('http://')) {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'warning',
-                                    title: 'Uyarı!',
-                                    icon: 'AlertTriangleIcon',
-                                    text: 'Yeni url, "https://" veya "http://" parametresi ile beraber tam linki içermerlidir. Örnek: https://www.orneksite.com/ornek-sayfa'
-                                }
-                            });
-                        } else {
-                            axios.post('/admin/urlredirect-edit',
-                                {
-                                    UrlRedirectUpdateDto: this.urlRedirectUpdateDto
-                                })
-                                .then((response) => {
-                                    console.log(response.data);
-                                    if (response.data.UrlRedirectDto.ResultStatus === 0) {
-                                        this.$toast({
-                                            component: ToastificationContent,
-                                            props: {
-                                                variant: 'success',
-                                                title: 'Başarılı İşlem!',
-                                                icon: 'CheckIcon',
-                                                text: this.urlRedirectUpdateDto.OldUrl + " linki " + this.urlRedirectUpdateDto.NewUrl + " linkine yönlendirildi."
-                                            }
-                                        });
-                                    }
-                                    else {
-                                        this.$toast({
-                                            component: ToastificationContent,
-                                            props: {
-                                                variant: 'danger',
-                                                title: 'Başarısız İşlem!',
-                                                icon: 'AlertOctagonIcon',
-                                                text: response.data.UrlRedirectDto.Message
-                                            },
-                                        });
-                                    }
-                                })
-                                .catch((error) => {
-                                    console.log(error);
-                                    console.log(error.request);
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Hata Oluştu!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                        },
-                                    })
-                                });
                         }
-                    }
-                })
+                        else {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Başarısız İşlem!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: response.data.UploadDto.Message
+                                },
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        console.log(error.request);
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                            },
+                        })
+                    });
             },
             deleteData() {
                 this.$swal({
@@ -474,7 +423,121 @@
 </script>
 
 <style>
+
     #upload-modal .modal-dialog {
+        max-width: 100%;
+        margin: 0;
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        right: 30px;
+        bottom: 30px;
+        z-index: 160000;
+    }
+
+        #upload-modal .modal-dialog .modal-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: auto;
+            min-height: 300px;
+            box-shadow: 0 5px 15px rgb(0 0 0 / 70%);
+            background: #fff;
+        }
+
+            #upload-modal .modal-dialog .modal-content .modal-header {
+                padding: 0 0 0 10px;
+            }
+
+            #upload-modal .modal-dialog .modal-content .modal-body {
+                border-bottom: none;
+                left: 0;
+                top: 30px;
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 61px;
+                height: auto;
+                width: auto;
+                margin: 0;
+                overflow: auto;
+                background: #fff;
+                border-top: 1px solid #dcdcde;
+            }
+
+                #upload-modal .modal-dialog .modal-content .modal-body .media-details {
+                    position: absolute;
+                    overflow: auto;
+                    top: 0;
+                    bottom: 0;
+                    right: 0;
+                    left: 0;
+                    box-shadow: inset 0 4px 4px -4px rgb(0 0 0 / 10%);
+                }
+
+                    #upload-modal .modal-dialog .modal-content .modal-body .media-details .media-view {
+                        float: left;
+                        width: 65%;
+                        height: 100%;
+                    }
+
+                        #upload-modal .modal-dialog .modal-content .modal-body .media-details .media-view .image-view {
+                            box-sizing: border-box;
+                            padding: 16px;
+                            height: 100%;
+                        }
+
+                            #upload-modal .modal-dialog .modal-content .modal-body .media-details .media-view .image-view img {
+                                display: block;
+                                margin: 0 auto 16px;
+                                max-width: 100%;
+                                max-height: 90%;
+                                max-height: calc(100% - 42px);
+                                background-image: linear-gradient(45deg,#c3c4c7 25%,transparent 25%,transparent 75%,#c3c4c7 75%,#c3c4c7),linear-gradient(45deg,#c3c4c7 25%,transparent 25%,transparent 75%,#c3c4c7 75%,#c3c4c7);
+                                background-position: 0 0,10px 10px;
+                                background-size: 20px 20px;
+                            }
+
+                    #upload-modal .modal-dialog .modal-content .modal-body .media-details .media-info {
+                        overflow: auto;
+                        box-sizing: border-box;
+                        margin-bottom: 0;
+                        padding: 12px 16px 0;
+                        width: 35%;
+                        height: 100%;
+                        box-shadow: inset 0 4px 4px -4px rgb(0 0 0 / 10%);
+                        border-bottom: 0;
+                        border-left: 1px solid #dcdcde;
+                        background: #f6f7f7;
+                    }
+
+                        #upload-modal .modal-dialog .modal-content .modal-body .media-details .media-info .details {
+                            position: relative;
+                            overflow: hidden;
+                            float: none;
+                            margin-bottom: 15px;
+                            padding-bottom: 15px;
+                            border-bottom: 1px solid #dcdcde;
+                            font-size: 11px;
+                            max-width: 100%;
+                        }
+
+                        #upload-modal .modal-dialog .modal-content .modal-body .media-details .media-info .settings {
+                        }
+
+                        #upload-modal .modal-dialog .modal-content .modal-body .media-details .media-info .actions {
+                            margin-bottom: 16px;
+                        }
+
+
+            #upload-modal .modal-dialog .modal-content .modal-footer {
+                position: absolute;
+                bottom: 0;
+                right: 0;
+            }
+    /* #upload-modal .modal-dialog {
         max-width: 100%;
         height: 100vh;
         margin: 0;
@@ -482,9 +545,7 @@
         display: flex;
     }
 
-    #upload-modal .modal-header {
-        padding: 0 0 0 10px;
-    }
+
 
     #upload-modal .modal-body {
         border-top: 1px solid #dcdcde;
@@ -509,5 +570,5 @@
 
         .image-view img {
             max-height: 743px !important;
-        }
+        }*/
 </style>

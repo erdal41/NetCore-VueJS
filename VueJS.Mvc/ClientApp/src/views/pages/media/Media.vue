@@ -1,6 +1,7 @@
 ﻿<template>
     <b-row>
         <modal-upload-edit :upload-id="uploadId"
+                           :filtered-data="filteredData"
                            @mediaGetAllData="mediaListDeleteData"></modal-upload-edit>
         <b-col class="content-header-left mb-2"
                cols="12"
@@ -69,12 +70,23 @@
                     </div>
                     <div v-if="multiSelect === false"
                          class="ml-auto">
-                        <b-input-group size="sm">
+                        <b-input-group size="sm"
+                                       class="input-group-merge"
+                                       v-on:mouseover="isShowSearchTextClearButton = true"
+                                       v-on:mouseleave="isShowSearchTextClearButton = false">
                             <b-input-group-prepend is-text>
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
                                           v-model="filterText" />
+                            <b-input-group-append is-text>
+                                <feather-icon v-show="isShowSearchTextClearButton"
+                                              icon="XIcon"
+                                              v-b-tooltip.hover
+                                              title="Temizle"
+                                              class="cursor-pointer"
+                                              @click="filterText = ''"/>
+                            </b-input-group-append>
                         </b-input-group>
                     </div>
                     <div v-if="multiSelect === false"
@@ -95,35 +107,36 @@
                          class="text-center mt-2 mb-2">
                         <b-spinner variant="primary" />
                     </div>
-                    <div v-else 
-                         class="gallery-container">
-                        <b-list-group id="gallery"
-                                      horizontal="md">
-                            <b-list-group-item v-for="upload in filteredData" :key="upload.Id"
+                    <div v-else>
+                        <ul class="gallery">
+                            <li v-for="upload in filteredData" :key="upload.Id"
+                                class="gallery-item"
                                                @click="imageClick($event, upload.Id)"
                                                v-b-modal="multiSelect == false ? 'upload-modal' : ''">
-                                <div class="media-file"
+                                <div class="media"
                                      :class="multiSelect === true && selectedImages.includes(upload.Id) ? 'checked-image' : ''">
-                                        <b-form-checkbox v-if="multiSelect && selectedImages.includes(upload.Id)"
+                                    <b-form-checkbox v-if="multiSelect && selectedImages.includes(upload.Id)"
                                                      v-model="selectedImages"
                                                      name="checkbox"
                                                      :value="upload.Id"
                                                      class="custom-control-primary check-image">
-                                        </b-form-checkbox>
-                                        <b-img-lazy 
-                                           :key="upload.Id"
-                                           :src="upload.FileName == null ? null : require('@/assets/images/media/' + upload.FileName)"
-                                           :alt="upload.AltText"
-                                           class="select-image"
-                                           :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
-                                        <b-progress v-if="uploads.includes(upload.Id) && isImageProgress"
-                                                animated
-                                                :value="progressPercent"
-                                                variant="primary"
-                                                class="img-progress progress-bar-primary" />
+                                    </b-form-checkbox>
+                                    <div class="thumbnail">
+                                        <div class="centered">
+                                            <b-img-lazy :key="upload.Id"
+                                                        :src="upload.FileName == null ? null : require('@/assets/images/media/' + upload.FileName)"
+                                                        :alt="upload.AltText"
+                                                        :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
+                                            <b-progress v-if="uploads.includes(upload.Id) && isImageProgress"
+                                                        animated
+                                                        :value="progressPercent"
+                                                        variant="primary"
+                                                        class="img-progress progress-bar-primary" />
+                                        </div>
                                     </div>
-                            </b-list-group-item>
-                        </b-list-group>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                 </b-card-body>
 
@@ -141,7 +154,7 @@
 
 <script>
     import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BFormFile, BListGroup, BListGroupItem, BProgress, BImgLazy, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BSpinner, BFormFile, BListGroup, BListGroupItem, BProgress, BImgLazy, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
     } from 'bootstrap-vue'
     import ModalUploadEdit from './ModalUploadEdit.vue';
     import axios from 'axios'
@@ -169,6 +182,7 @@
             BInputGroup,
             BFormInput,
             BInputGroupPrepend,
+            BInputGroupAppend,
             ToastificationContent,
             BLink
         },
@@ -189,6 +203,7 @@
                 isImageProgress: false,
                 isSpinnerShow: true,
                 progressPercent: 0,
+                isShowSearchTextClearButton: false,
                 filterText: '',
                 filterOnData: [],
                 uploads: [],
@@ -391,77 +406,86 @@
 
 <style lang="scss">
 
-    .gallery-container {
-        width: 100%;
-        min-height: 100vh;
-        display: flex;
-        padding: 20px;
-    }
-
-    #gallery.list-group {
+    .gallery {
+        padding: 2px;
+        right: 0;
+        margin-right: 0;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
-        grid-gap: 30px;
+        grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
     }
 
-    #gallery .list-group-item {
-        border: 0 !important;
-        padding: 0 !important;
+    .gallery-item {
+        padding: 8px;      
+        list-style: none;        
     }
 
-    #gallery .list-group-item:hover {
-        background-color: transparent !important;
-    }
-
-    
-
-    .select-image {
-        width: 100%;
-    }
-
-
-    /*   #grid-images.list-group {
-        flex-wrap: wrap;
-        align-content: space-between;
-        padding: 0 0 0 20px;
-    }
-
-    #grid-images .list-group-item {
-        border: 0 !important;
-        padding: 0 20px 20px 0 !important;
-    }
-
-    #grid-images .list-group-item:hover {
-        background-color: transparent !important;
-    }
-
-    .img-progress {
+    .media {
         position: relative;
-        top: 25%;
+        box-shadow: inset 0 0 15px rgb(0 0 0 / 10%), inset 0 0 0 1px rgb(0 0 0 / 5%);
+        background: #f0f0f1;
+        cursor: pointer;
     }
 
-    .center-image {
-        width: 100%;
-        height: 100%;
-    }*/
-    .media-file:hover {
+    .media:before {
+        content: "";
+        display: block;
+        padding-top: 100%;
+    }
+
+    .thumbnail {
+        overflow: hidden;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        opacity: 1;
+        transition: opacity .1s;
+    }
+
+    .thumbnail:hover {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         -moz-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
     }
 
+    .thumbnail:after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+        overflow: hidden;
+    }
+
+    .thumbnail .centered {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: translate(50%,50%);
+    }
+
+    .thumbnail img {
+        transform: translate(-50%,-50%);
+        max-height: 100%;
+    }
+
+
+    .img-progress {
+        position: relative;
+        top: 25%;
+    }    
+
     .check-image {
         position: absolute !important;
-        top: -10px;
-        right: 0;
+        top: -11px;
+        right: -16px;
     }
-    /*    .select-image {
-        max-height: 100%;
-        position: relative;
-        top: 50%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-50%);
-    }*/
 
     .checked-image {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
@@ -469,38 +493,11 @@
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
     }
 
-
-
     .checked-image .custom-control-label::after {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         -moz-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         border-radius: 4px;
-    }
-    /*@media screen and (min-width: 1350px) {
-        .media-file {
-            overflow: hidden;
-            max-width: 124px;
-            width: 124px;
-            max-height: 124px;
-            height: 124px;
-            cursor: pointer;
-            box-shadow: 0px 0px 5px -2px rgb(0 0 0 / 75%);
-            border-radius: 5px !important;
-        }
-    }
-
-    @media screen and (max-width: 1350px) {
-        .media-file {
-            overflow: hidden;
-            max-width: 124.7px;
-            width: 124.7px;
-            max-height: 124.7px;
-            height: 124.7px;
-            cursor: pointer;
-            box-shadow: 0px 0px 5px -2px rgb(0 0 0 / 75%);
-            border-radius: 5px !important;
-        }
-    }*/
+    }   
 
     </style>
