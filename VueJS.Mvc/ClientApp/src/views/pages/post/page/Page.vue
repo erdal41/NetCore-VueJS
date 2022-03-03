@@ -576,17 +576,17 @@
                 this.isSpinnerShow = true;
                 axios.get('/admin/post-allposts', {
                     params: {
-                        post_type: 'page',
-                        post_status: this.$route.query.status
+                        postType: 'page',
+                        postStatus: this.$route.query.status
                     }
                 })
                     .then((response) => {
                         if (response.data.PostListDto.ResultStatus === 0) {
-                            this.posts = response.data.PostListDto.Posts;
+                            this.posts = response.data.PostListDto.Data.Posts;
                             this.publishPostsCount = response.data.PublishPostsCount;
                             this.draftPostsCount = response.data.DraftPostsCount;
                             this.trashPostsCount = response.data.TrashPostsCount;
-                            this.totalRows = response.data.PostListDto.Posts.length;
+                            this.totalRows = response.data.PostListDto.Data.Posts.length;
                         } else {
 
                             this.posts = [];

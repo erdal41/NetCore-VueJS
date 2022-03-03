@@ -500,7 +500,7 @@
                     .then((response) => {
                         console.log(response.data);
                         if (response.data.ResultStatus === 0) {
-                            this.topPosts = response.data.Posts;
+                            this.topPosts = response.data.Data.Posts;
                         }
                     })
                     .catch((error) => {
@@ -613,9 +613,10 @@
                                 SeoObjectSettingAddDto: this.pageSeoSettingAddDto
                             })
                             .then((response) => {
+                                console.log(response.data)
                                 if (response.data.PostDto.ResultStatus === 0) {
                                     if (this.$can('update', 'Otherpage')) {
-                                        this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } });
+                                        this.$router.push({ name: 'pages-page-edit', query: { edit: response.data.PostDto.Data.Post.Id } });
                                     } else {
                                         this.$router.push({ name: 'pages-page-list'});
                                     }

@@ -24,118 +24,72 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/term-allterms")]
-        public async Task<JsonResult> AllTerms(SubObjectType term_type)
+        public async Task<JsonResult> AllTerms(SubObjectType termType)
         {
-            var result = await _termService.GetAllAsync(term_type);
-            return new JsonResult(result.Data);
+            return Json(await _termService.GetAllAsync(termType));
         }
 
         [HttpGet("/admin/term-parentlist")]
         public async Task<JsonResult> GetParentList(int? termId)
         {
-            var result = await _termService.GetAllParentAsync(termId);
-            return new JsonResult(result.Data);
+            return Json(await _termService.GetAllParentAsync(termId));
         }
 
         [HttpPost("/admin/term-new")]
         public async Task<JsonResult> New(TermViewModel termViewModel)
         {
-            var termResult = await _termService.AddAsync(termViewModel.TermAddDto);
             if (string.IsNullOrEmpty(termViewModel.SeoObjectSettingAddDto.SeoTitle))
             {
                 termViewModel.SeoObjectSettingAddDto.SeoTitle = termViewModel.TermAddDto.Name;
             }
-            if (termResult.Data.ResultStatus == ResultStatus.Success)
+            //await FileHelper.CreateSitemapInRootDirectoryAsync();
+
+            var result = await _termService.AddAsync(termViewModel.TermAddDto);
+            return Json(new TermViewModel
             {
-                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termViewModel.TermAddDto.TermType, termResult.Data.Term.Id, termViewModel.SeoObjectSettingAddDto, LoggedInUser.Id);
-                //await FileHelper.CreateSitemapInRootDirectoryAsync();
-                var termViewModelJson = new TermViewModel
-                {
-                    TermDto = termResult.Data,
-                    SeoObjectSettingDto = seoResult.Data
-                };
-                return new JsonResult(termViewModelJson);
-            }
-            else
-            {
-                var termViewModelJsonError = new TermViewModel
-                {
-                    TermDto = termResult.Data
-                };
-                return new JsonResult(termViewModelJsonError);
-            }
+                TermDto = await _termService.AddAsync(termViewModel.TermAddDto),
+                SeoObjectSettingDto = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termViewModel.TermAddDto.TermType, result.Data.Term.Id, termViewModel.SeoObjectSettingAddDto, LoggedInUser.Id)
+            });
         }
 
         [HttpPost("/admin/term/newpostterm")]
         public async Task<JsonResult> NewPostTerm(PostTermViewModel postTermViewModel)
         {
-            var result = await _termService.PostTermAddAsync(postTermViewModel.PostTermAddDto);
-            var postTermViewModelJson = new PostTermViewModel
-            {
-                PostTermDto = result.Data,
-            };
-            return new JsonResult(postTermViewModelJson);
+            return Json(new PostTermViewModel { PostTermDto = await _termService.PostTermAddAsync(postTermViewModel.PostTermAddDto) });
         }
 
         [HttpGet("/admin/term-edit")]
-        public async Task<JsonResult> Edit( int termId)
+        public async Task<JsonResult> Edit(int termId)
         {
             var termResult = await _termService.GetTermUpdateDtoAsync(termId);
             var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
-            if (termResult.ResultStatus == ResultStatus.Success && seoGeneralResult.ResultStatus == ResultStatus.Success)
+            return Json(new TermViewModel
             {
-                var seoResult = await _seoService.GetSeoObjectSettingUpdateDtoAsync(termId, termResult.Data.TermType);
-                var termViewModelJson = new TermViewModel
-                {
-                    TermUpdateDto = termResult.Data,
-                    IsActiveCategorySeoSetting = seoGeneralResult.Data.IsActiveCategorySeoSetting,
-                    IsActiveTagSeoSetting = seoGeneralResult.Data.IsActiveTagSeoSetting,
-                    SeoObjectSettingUpdateDto = seoResult.Data
-                };
-                return new JsonResult(termViewModelJson);
-            }
-            var termViewModelJsonError = new TermViewModel
-            {
-                TermUpdateDto = termResult.Data
-            };
-            return new JsonResult(termViewModelJsonError);
+                TermUpdateDto = termResult,
+                IsActiveCategorySeoSetting = seoGeneralResult.Data.IsActiveCategorySeoSetting,
+                IsActiveTagSeoSetting = seoGeneralResult.Data.IsActiveTagSeoSetting,
+                SeoObjectSettingUpdateDto = await _seoService.GetSeoObjectSettingUpdateDtoAsync(termId, termResult.Data.TermType)
+            });
         }
 
         [HttpPost("/admin/term-edit")]
         public async Task<JsonResult> Edit(TermViewModel termViewModel)
         {
-            var termResult = await _termService.UpdateAsync(termViewModel.TermUpdateDto);
-
-            if (termResult.ResultStatus == ResultStatus.Success)
-            {
-                await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Id, termViewModel.TermUpdateDto.TermType, termViewModel.SeoObjectSettingUpdateDto, LoggedInUser.Id);
-
-                var termViewModelJson = new TermViewModel
-                {
-                    TermDto = termResult.Data,
-                };
-                return new JsonResult(termViewModelJson);
-            }
-            var termViewModelJsonError = new TermViewModel
-            {
-                TermDto = termResult.Data
-            };
-            return new JsonResult(termViewModelJsonError);
+            await _seoService.SeoObjectSettingUpdateAsync(termViewModel.TermUpdateDto.Data.Id, termViewModel.TermUpdateDto.Data.TermType, termViewModel.SeoObjectSettingUpdateDto.Data, LoggedInUser.Id);
+            return Json(new TermViewModel { TermDto = await _termService.UpdateAsync(termViewModel.TermUpdateDto.Data) });
         }
 
         [HttpPost("/admin/term-delete")]
-        public async Task<IActionResult> Delete( int termId)
+        public async Task<IActionResult> Delete(int termId)
         {
-            var result = await _termService.DeleteAsync(termId);
+            return Json(await _termService.DeleteAsync(termId));
             //await FileHelper.CreateSitemapInRootDirectoryAsync();
-            return new JsonResult(result);
         }
 
         [HttpPost("/admin/term-deletepostterm")]
-        public async Task<IActionResult> DeletePostTerm(PostTermViewModel postTermViewModel )
+        public async Task<IActionResult> DeletePostTerm(PostTermViewModel postTermViewModel)
         {
-            var result = await _termService.PostTermDeleteAsync(postTermViewModel.PostId, postTermViewModel.TermId);
-            return new JsonResult(result);
+            return Json(await _termService.PostTermDeleteAsync(postTermViewModel.PostId, postTermViewModel.TermId));
         }
     }
 }

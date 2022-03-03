@@ -24,8 +24,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpGet("/admin/urlredirect-allurlredirects")]
         public async Task<JsonResult> AllUrlRedirects()
         {
-            var result = await _urlRedirectService.GetAllAsync();
-            return Json(result.Data);
+            return Json(await _urlRedirectService.GetAllAsync());
         }
 
         [HttpPost("/admin/urlredirect-new")]
@@ -42,8 +41,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpGet("/admin/urlredirect-edit")]
         public async Task<JsonResult> Edit(int urlRedirectId)
         {
-            var result = await _urlRedirectService.GetUrlRedirectUpdateDtoAsync(urlRedirectId);
-            return Json(result.Data);
+            return Json(await _urlRedirectService.GetUrlRedirectUpdateDtoAsync(urlRedirectId));
         }
 
         [HttpPost("/admin/urlredirect-edit")]
@@ -60,8 +58,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/urlredirect-delete")]
         public async Task<JsonResult> Delete(int urlRedirectId)
         {
-            var result = await _urlRedirectService.DeleteAsync(urlRedirectId);
-            return Json(result);
+            return Json(await _urlRedirectService.DeleteAsync(urlRedirectId));
         }
     }
 }

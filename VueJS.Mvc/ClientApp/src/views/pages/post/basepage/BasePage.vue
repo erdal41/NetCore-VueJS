@@ -58,28 +58,28 @@
                                 title="Yayında ve taslak olan sayfalar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list'}"
+                                :to="{ name:'pages-basepage-list'}"
                                 class="text-primary small mr-1">Tümü ( {{ publishPostsCount + draftPostsCount  }} )</b-link>
                         <b-link v-show="publishPostsCount > 0"
                                 v-b-tooltip.hover
                                 title="Yayında olan sayfalar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list', query: { status : 'publish' } }"
+                                :to="{ name:'pages-basepage-list', query: { status : 'publish' } }"
                                 class="text-primary small mr-1">Yayında ( {{ publishPostsCount }} )</b-link>
                         <b-link v-show="draftPostsCount > 0"
                                 v-b-tooltip.hover
                                 title="Taslak olan sayfalar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list', query: { status : 'draft' } }"
+                                :to="{ name:'pages-basepage-list', query: { status : 'draft' } }"
                                 class="text-warning small mr-1">Taslak ( {{ draftPostsCount }} )</b-link>
                         <b-link v-show="trashPostsCount > 0"
                                 v-b-tooltip.hover
                                 title="Çöp kutusunda olan sayfalar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list', query: { status : 'trash' } }"
+                                :to="{ name:'pages-basepage-list', query: { status : 'trash' } }"
                                 class="text-danger small mr-1">Çöp ( {{ trashPostsCount }} )</b-link>
                         <b-button v-b-tooltip.hover
                                   title="Tabloyu Yenile"
@@ -524,12 +524,7 @@
                     postStatus = "publish";
                 } else if (event.target.id == "multi-draft") {
                     postStatus = "draft";
-                } else if (event.target.id == "multi-untrash") {
-                    postStatus = "draft";
-                } else {
-                    postStatus = "trash";
-                }
-
+                } 
 
                 this.checkedRows.forEach((id, index) => {
                     axios.post('/admin/post-poststatuschange?postId=' + id + "&status=" + postStatus)
@@ -571,17 +566,20 @@
                 this.isSpinnerShow = true;
                 axios.get('/admin/post-allposts', {
                     params: {
-                        post_type: 'basepage',
-                        post_status: this.$route.query.status
+                        postType: 'basepage',
+                        postStatus: this.$route.query.status
                     }
                 })
                     .then((response) => {
+                        console.log(response.data.PostListDto)
+                        console.log(response.data.PostListDto.ResultStatus)
+                        console.log(response.data.PostListDto.Data.Posts)
                         if (response.data.PostListDto.ResultStatus === 0) {
-                            this.posts = response.data.PostListDto.Posts;
+                            this.posts = response.data.PostListDto.Data.Posts;
                             this.publishPostsCount = response.data.PublishPostsCount;
                             this.draftPostsCount = response.data.DraftPostsCount;
                             this.trashPostsCount = response.data.TrashPostsCount;
-                            this.totalRows = response.data.PostListDto.Posts.length;
+                            this.totalRows = response.data.PostListDto.Data.Posts.length;
                         } else {
 
                             this.posts = [];

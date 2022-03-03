@@ -30,91 +30,63 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/post-allposts")]
-        public async Task<JsonResult> AllPosts(SubObjectType post_type, PostStatus? post_status)
+        public async Task<JsonResult> AllPosts(SubObjectType postType, PostStatus? postStatus)
         {
-            var result = await _postService.GetAllAsync(post_type, post_status);
-            var publishPostsCount = await _postService.PublishStatusCountAsync(post_type, PostStatus.publish);
-            var draftPostsCount = await _postService.PublishStatusCountAsync(post_type, PostStatus.draft);
-            var trashPostsCount = await _postService.PublishStatusCountAsync(post_type, PostStatus.trash);
-            if (result.ResultStatus == ResultStatus.Success)
+            var result = await _postService.GetAllAsync(postType, postStatus);
+            var publishPosts = await _postService.GetAllAsync(postType, PostStatus.publish);
+            var draftPosts = await _postService.GetAllAsync(postType, PostStatus.draft);
+            var trashPosts = await _postService.GetAllAsync(postType, PostStatus.trash);
+
+            return Json(new PostViewModel
             {
-                var postViewModel = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return new JsonResult(postViewModel);
-            }
-            else
-            {
-                var postViewModel = new PostViewModel
-                {
-                    PostListDto = result.Data,
-                    PublishPostsCount = publishPostsCount,
-                    DraftPostsCount = draftPostsCount,
-                    TrashPostsCount = trashPostsCount
-                };
-                return new JsonResult(postViewModel);
-            }
+                PostListDto = result,
+                PublishPostsCount = publishPosts.Data.Posts.Count,
+                DraftPostsCount = draftPosts.Data.Posts.Count,
+                TrashPostsCount = trashPosts.Data.Posts.Count
+            });
         }
 
         [HttpGet("/admin/post-getschnemapagetype")]
         public JsonResult GetSchnemaPageType()
         {
-            var schnemaPageType = Enum.GetValues(typeof(SchemaPageType))
+            return Json(Enum.GetValues(typeof(SchemaPageType))
                 .Cast<SchemaPageType>()
                 .Select(spt => new SchnemaTypeViewModel
                 {
                     Id = (int)spt,
                     Name = spt.GetDisplayName()
-                });
-            return new JsonResult(schnemaPageType);
+                }));
         }
 
         [HttpGet("/admin/post-getschnemaarticletype")]
         public JsonResult GetSchnemaArticleType()
         {
-            var schnemaArticleType = Enum.GetValues(typeof(SchemaArticleType))
+            return Json(Enum.GetValues(typeof(SchemaArticleType))
                 .Cast<SchemaArticleType>()
                 .Select(spt => new SchnemaTypeViewModel
                 {
                     Id = (int)spt,
                     Name = spt.GetDisplayName()
-                });
-            return new JsonResult(schnemaArticleType);
+                }));
         }
 
         [HttpPost("/admin/post-new")]
         public async Task<IActionResult> New(PostViewModel postViewModel)
         {
-            var postResult = await _postService.AddAsync(postViewModel.PostAddDto, LoggedInUser.Id, postViewModel.PostAddDto.PostType);
             if (string.IsNullOrEmpty(postViewModel.SeoObjectSettingAddDto.SeoTitle))
             {
                 postViewModel.SeoObjectSettingAddDto.SeoTitle = postViewModel.PostAddDto.Title;
             }
-            if (postResult.ResultStatus == ResultStatus.Success)
-            {
-                //_cacheService.Clear();
-                var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.post, postViewModel.PostAddDto.PostType, postResult.Data.Post.Id, postViewModel.SeoObjectSettingAddDto, LoggedInUser.Id);
-                //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-                var postAddViewModelJson = new PostViewModel
-                {
-                    PostDto = postResult.Data,
-                    SeoObjectSettingDto = seoResult.Data
 
-                };
-                return Json(postAddViewModelJson);
-            }
-            else
+            var postResult = await _postService.AddAsync(postViewModel.PostAddDto, LoggedInUser.Id, postViewModel.PostAddDto.PostType);
+            //_cacheService.Clear();
+            var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.post, postViewModel.PostAddDto.PostType, postResult.Data.Post.Id, postViewModel.SeoObjectSettingAddDto, LoggedInUser.Id);
+            //await _fileHelper.CreateSitemapInRootDirectoryAsync();
+            return Json(new PostViewModel
             {
-                var postAddViewModelJsonError = new PostViewModel
-                {
-                    PostDto = postResult.Data
-                };
-                return Json(postAddViewModelJsonError);
-            }
+                PostDto = postResult,
+                SeoObjectSettingDto = seoResult
+            });
         }
 
         [HttpGet("/admin/post-edit")]
@@ -122,113 +94,79 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         {
             var postResult = await _postService.GetPostUpdateDtoAsync(postId);
             var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
-            if (postResult.ResultStatus == ResultStatus.Success && seoGeneralResult.ResultStatus == ResultStatus.Success)
+            var seoResult = postResult.ResultStatus == ResultStatus.Success ? await _seoService.GetSeoObjectSettingUpdateDtoAsync(postId, postResult.Data.PostType) : null;
+            return Json(new PostViewModel
             {
-                var seoResult = await _seoService.GetSeoObjectSettingUpdateDtoAsync(postId, postResult.Data.PostType);
-                var postViewModelJson = new PostViewModel
-                {
-                    PostUpdateDto = postResult.Data,
-                    IsActivePageSeoSetting = seoGeneralResult.Data.IsActivePageSeoSetting,
-                    IsActiveArticleSeoSetting = seoGeneralResult.Data.IsActiveArticleSeoSetting,
-                    SeoObjectSettingUpdateDto = seoResult.Data
-                };
-                return new JsonResult(postViewModelJson);
-            }
-            var postViewModelJsonError = new PostViewModel
-            {
-                PostUpdateDto = postResult.Data
-            };
-            return new JsonResult(postViewModelJsonError);
+                PostUpdateDto = postResult,
+                IsActivePageSeoSetting = seoGeneralResult.Data.IsActivePageSeoSetting,
+                IsActiveArticleSeoSetting = seoGeneralResult.Data.IsActiveArticleSeoSetting,
+                SeoObjectSettingUpdateDto = seoResult
+            });
         }
 
         [HttpPost("/admin/post-edit")]
         public async Task<IActionResult> Edit(PostViewModel postViewModel)
         {
-            var postResult = await _postService.UpdateAsync(postViewModel.PostUpdateDto, LoggedInUser.Id);
-            if (postResult.ResultStatus == ResultStatus.Success)
-            {
-                //_cacheService.Clear();
-                //await _fileHelper.CreateSitemapInRootDirectoryAsync();
-                await _seoService.SeoObjectSettingUpdateAsync(postViewModel.PostUpdateDto.Id, postViewModel.PostUpdateDto.PostType, postViewModel.SeoObjectSettingUpdateDto, LoggedInUser.Id);
-
-                var postViewModelJson = new PostViewModel
-                {
-                    PostDto = postResult.Data
-                };
-                return new JsonResult(postViewModelJson);
-            }
-            var postViewModelJsonError = new PostViewModel
-            {
-                PostDto = postResult.Data
-            };
-            return new JsonResult(postViewModelJsonError);
+            var result = await _postService.UpdateAsync(postViewModel.PostUpdateDto.Data, LoggedInUser.Id);
+            //_cacheService.Clear();
+            //await _fileHelper.CreateSitemapInRootDirectoryAsync();
+            await _seoService.SeoObjectSettingUpdateAsync(postViewModel.PostUpdateDto.Data.Id, postViewModel.PostUpdateDto.Data.PostType, postViewModel.SeoObjectSettingUpdateDto.Data, LoggedInUser.Id);
+            return Json(new PostViewModel { PostDto = result });
         }
 
         [HttpGet("/admin/post-alltopposts")]
         public async Task<JsonResult> GetAllTopPosts(int? postId)
         {
-            var result = await _postService.GetAllAnotherPostsAsync(SubObjectType.page, postId);
-            return new JsonResult(result.Data);
+            return Json(await _postService.GetAllTopPostsAsync(SubObjectType.page, postId));
         }
 
         [HttpGet("/admin/post-allsubposts")]
         public async Task<JsonResult> GetAllSubPosts(int? postId)
         {
-            var result = await _postService.GetAllSubPostsAsync(SubObjectType.page, postId);
-            return new JsonResult(result.Data);
+            return Json(await _postService.GetAllSubPostsAsync(SubObjectType.page, postId));
         }
 
         [HttpGet("/admin/post-allsubpostsDetail")]
         public async Task<JsonResult> GetAllSubPostsDetail(int postId)
         {
-            var result = await _postService.GetAllSubPostDetailsAsync(postId);
-            return new JsonResult(result.Data);
+            return Json(await _postService.GetAllSubPostDetailsAsync(postId));
         }
 
         [HttpGet("/admin/post-subpostDetail")]
         public async Task<JsonResult> GetSubPostDetail(int postId)
         {
-            var result = await _postService.GetAllSubPostDetailsAsync(postId);
-            return new JsonResult(result);
+            return Json(await _postService.GetAllSubPostDetailsAsync(postId));
         }
 
         [HttpPost("/admin/post-addgalleryimage")]
         public async Task<IActionResult> AddGalleryImage(int postId, List<int> galleryIds)
         {
-            var result = await _postService.GalleryImageAddAsync(postId, galleryIds);
-            return new JsonResult(result.Data);
+            return Json(await _postService.GalleryImageAddAsync(postId, galleryIds));
         }
 
         [HttpPost("/admin/post-edittoppost")]
         public async Task<IActionResult> EditTopPost(int postId, int parentId)
         {
-            var result = await _postService.TopPostUpdateAsync(postId, parentId);
-            return new JsonResult(result.Data);
+            return Json(await _postService.TopPostUpdateAsync(postId, parentId));
         }
 
         [HttpPost("/admin/post-editsubpost")]
         public async Task<IActionResult> EditSubPost(int postId, int? subPostParentId)
         {
-            var result = await _postService.SubPostUpdateAsync(postId, subPostParentId);
-            return new JsonResult(result);
+            return Json(await _postService.SubPostUpdateAsync(postId, subPostParentId));
         }
 
         [HttpPost("/admin/post-editsubpostdetail")]
         public async Task<IActionResult> EditSubPostDetail(int postId, string description, int? featuredImageId)
         {
-            var result = await _postService.SubPostDetailUpdateAsync(postId, description, featuredImageId);
-            return new JsonResult(result.Data);
+            return Json(await _postService.SubPostDetailUpdateAsync(postId, description, featuredImageId));
         }
 
         [HttpPost("/admin/post-poststatuschange")]
         public async Task<JsonResult> PostStatusChange(int postId, PostStatus status)
         {
             var result = await _postService.PostStatusChangeAsync(postId, status, LoggedInUser.Id);
-            var postViewModel = new PostViewModel
-            {
-                PostDto = result.Data,
-            };
-            return Json(postViewModel);
+            return Json(new PostViewModel { PostDto = result });
         }
 
         [HttpPost("/admin/post-delete")]
@@ -236,11 +174,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         {
             var result = await _postService.DeleteAsync(postId);
             //_cacheService.Clear();
-            var postViewModel = new PostViewModel
-            {
-                PostDto = result.Data,
-            };
-            return Json(postViewModel);
+            return Json(new PostViewModel { PostDto = result });
         }
     }
 }

@@ -27,80 +27,45 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<SeoGeneralSettingDto>> GetHeadSeoSettingAsync()
         {
             var seoSetting = await UnitOfWork.SeoGeneralSettings.FirstOrDefaultAsync(sgs => sgs.OpenGraphImage, sgs => sgs.User);
-            if (seoSetting != null)
-            {
-                var seoSettingDto = Mapper.Map<SeoGeneralSettingDto>(seoSetting);
-                return new DataResult<SeoGeneralSettingDto>(ResultStatus.Success, new SeoGeneralSettingDto
-                {
-                    SeoGeneralSetting = seoSetting
-                });
-            }
-            return new DataResult<SeoGeneralSettingDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            if (seoSetting == null) return new DataResult<SeoGeneralSettingDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            var seoSettingDto = Mapper.Map<SeoGeneralSettingDto>(seoSetting);
+            return new DataResult<SeoGeneralSettingDto>(ResultStatus.Success, new SeoGeneralSettingDto { SeoGeneralSetting = seoSetting });
         }
 
         public async Task<IDataResult<GeneralSettingDto>> GetRobotsTxtAsync()
         {
             var generalSetting = await UnitOfWork.GeneralSettings.FirstOrDefaultAsync();
-            if (generalSetting != null)
-            {
-                Mapper.Map<GeneralSettingDto>(generalSetting);
-                return new DataResult<GeneralSettingDto>(ResultStatus.Success, new GeneralSettingDto
-                {
-                    GeneralSetting = generalSetting
-                });
-            }
-            return new DataResult<GeneralSettingDto>(ResultStatus.Error, "Genel ayarlar yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            if (generalSetting == null) return new DataResult<GeneralSettingDto>(ResultStatus.Error, "Genel ayarlar yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            Mapper.Map<GeneralSettingDto>(generalSetting);
+            return new DataResult<GeneralSettingDto>(ResultStatus.Success, new GeneralSettingDto { GeneralSetting = generalSetting });
         }
-
 
         #region GENERAL
 
         public async Task<IDataResult<SeoGeneralSettingDto>> GetSeoGeneralSettingDtoAsync()
         {
             var seoGeneralSetting = await UnitOfWork.SeoGeneralSettings.FirstOrDefaultAsync(sgs => sgs.OpenGraphImage, sgs => sgs.SiteMainImage);
-            if (seoGeneralSetting != null)
-            {
-                return new DataResult<SeoGeneralSettingDto>(ResultStatus.Success, new SeoGeneralSettingDto
-                {
-                    SeoGeneralSetting = seoGeneralSetting
-                });
-            }
-            else
-            {
-                return new DataResult<SeoGeneralSettingDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", new SeoGeneralSettingDto
-                {
-                    SeoGeneralSetting = seoGeneralSetting
-                });
-            }
+            if (seoGeneralSetting == null) return new DataResult<SeoGeneralSettingDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            return new DataResult<SeoGeneralSettingDto>(ResultStatus.Success, new SeoGeneralSettingDto { SeoGeneralSetting = seoGeneralSetting });
         }
 
         public async Task<IDataResult<SeoGeneralSettingUpdateDto>> GetSeoGeneralSettingUpdateDtoAsync()
         {
             var seoSetting = await UnitOfWork.SeoGeneralSettings.FirstOrDefaultAsync(sgs => sgs.OpenGraphImage, sgs => sgs.SiteMainImage);
-            if (seoSetting != null)
-            {
-                var seoSettingUpdateDto = Mapper.Map<SeoGeneralSettingUpdateDto>(seoSetting);
-                return new DataResult<SeoGeneralSettingUpdateDto>(ResultStatus.Success, seoSettingUpdateDto);
-            }
-            else
-            {
-                return new DataResult<SeoGeneralSettingUpdateDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
-            }
+            if (seoSetting == null) return new DataResult<SeoGeneralSettingUpdateDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            var seoSettingUpdateDto = Mapper.Map<SeoGeneralSettingUpdateDto>(seoSetting);
+            return new DataResult<SeoGeneralSettingUpdateDto>(ResultStatus.Success, seoSettingUpdateDto);
         }
 
         public async Task<IDataResult<SeoGeneralSettingDto>> SeoGeneralSettingUpdateAsync(SeoGeneralSettingUpdateDto generalSettingUpdateDto, int userId)
         {
             var oldSeoSetting = await UnitOfWork.SeoGeneralSettings.GetAsync(gs => gs.Id == generalSettingUpdateDto.Id);
+            if (oldSeoSetting == null) return new DataResult<SeoGeneralSettingDto>(ResultStatus.Error, "Seo ayarları güncellenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
             var seoSetting = Mapper.Map<SeoGeneralSettingUpdateDto, SeoGeneralSetting>(generalSettingUpdateDto, oldSeoSetting);
             seoSetting.UserId = userId;
             var updatedSeoSetting = await UnitOfWork.SeoGeneralSettings.UpdateAsync(seoSetting);
             await UnitOfWork.SaveAsync();
-            return new DataResult<SeoGeneralSettingDto>(ResultStatus.Success, "Seo ayarları başarılı bir şekilde güncellendi!", new SeoGeneralSettingDto
-            {
-                SeoGeneralSetting = updatedSeoSetting,
-                ResultStatus = ResultStatus.Success,
-                Message = "Seo ayarları başarılı bir şekilde güncellendi!"
-            });
+            return new DataResult<SeoGeneralSettingDto>(ResultStatus.Success, "Seo ayarları başarılı bir şekilde güncellendi!", new SeoGeneralSettingDto { SeoGeneralSetting = updatedSeoSetting });
         }
 
         #endregion
@@ -110,55 +75,30 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<SeoObjectSettingDto>> GetSeoObjectSettingDtoAsync(int objectId, SubObjectType subSeoObjectType)
         {
             var seoObjectSetting = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.SubObjectType == subSeoObjectType, s => s.OpenGraphImage, s => s.TwitterImage, s => s.User);
-
-            if (seoObjectSetting != null)
-            {
-                return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, new SeoObjectSettingDto
-                {
-                    SeoObjectSetting = seoObjectSetting
-                });
-            }
-            else
-            {
-                return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, new SeoObjectSettingDto
-                {
-                    SeoObjectSetting = seoObjectSetting
-                });
-            }
+            if (seoObjectSetting == null) return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, new SeoObjectSettingDto { SeoObjectSetting = seoObjectSetting });
         }
 
         public async Task<IDataResult<SeoObjectSettingUpdateDto>> GetSeoObjectSettingUpdateDtoAsync(int objectId, SubObjectType subSeoObjectType)
         {
             var seoObject = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.SubObjectType == subSeoObjectType, s => s.OpenGraphImage, s => s.TwitterImage, s => s.User);
-
-            if (seoObject != null)
-            {
-                var seoObjectSettingUpdateDto = Mapper.Map<SeoObjectSettingUpdateDto>(seoObject);
-                return new DataResult<SeoObjectSettingUpdateDto>(ResultStatus.Success, seoObjectSettingUpdateDto);
-            }
-            else
-            {
-                return new DataResult<SeoObjectSettingUpdateDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
-            }
+            if (seoObject == null) return new DataResult<SeoObjectSettingUpdateDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
+            var seoObjectSettingUpdateDto = Mapper.Map<SeoObjectSettingUpdateDto>(seoObject);
+            return new DataResult<SeoObjectSettingUpdateDto>(ResultStatus.Success, seoObjectSettingUpdateDto);
         }
 
         public async Task<IResult> SeoObjectSettingUpdateAsync(int objectId, SubObjectType subSeoObjectType, SeoObjectSettingUpdateDto seoObjectSettingUpdateDto, int userId)
         {
             var oldSeoObjectSetting = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.SubObjectType == subSeoObjectType);
-            if (oldSeoObjectSetting != null)
-            {
-                var seoObjectSetting = Mapper.Map<SeoObjectSettingUpdateDto, SeoObjectSetting>(seoObjectSettingUpdateDto, oldSeoObjectSetting);
-                seoObjectSetting.SubObjectType = subSeoObjectType;
-                seoObjectSetting.UserId = userId;
-                seoObjectSetting.ModifiedDate = DateTime.Now;
-                var updatedSeoSetting = await UnitOfWork.SeoObjectSettings.UpdateAsync(seoObjectSetting);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<SeoObjectSetting>(ResultStatus.Success, seoObjectSetting);
-            }
-            else
-            {
-                return new DataResult<SeoObjectSetting>(ResultStatus.Success, null);
-            }
+            if (oldSeoObjectSetting == null) return new Result(ResultStatus.Error, "Seo ayarları güncellenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.");
+
+            var seoObjectSetting = Mapper.Map<SeoObjectSettingUpdateDto, SeoObjectSetting>(seoObjectSettingUpdateDto, oldSeoObjectSetting);
+            seoObjectSetting.SubObjectType = subSeoObjectType;
+            seoObjectSetting.UserId = userId;
+            seoObjectSetting.ModifiedDate = DateTime.Now;
+            var updatedSeoSetting = await UnitOfWork.SeoObjectSettings.UpdateAsync(seoObjectSetting);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<SeoObjectSetting>(ResultStatus.Success, seoObjectSetting);
         }
 
         public async Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingAddAsync(ObjectType seoObjectType, SubObjectType subSeoObjectType, int objectId, SeoObjectSettingAddDto seoObjectSettingAddDto, int userId)
@@ -270,24 +210,11 @@ namespace VueJS.Services.Concrete
                     break;
             }
 
-            if (seoObject != null)
-            {
-                await UnitOfWork.SeoObjectSettings.AddAsync(seoObject);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, null, new SeoObjectSettingDto
-                {
-                    SeoObjectSetting = seoObject,
-                    ResultStatus = ResultStatus.Success,
-                });
-            }
-            else
-            {
-                return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, null, new SeoObjectSettingDto
-                {
-                    SeoObjectSetting = seoObject,
-                    ResultStatus = ResultStatus.Error,
-                });
-            }
+            if (seoObject == null) return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, null, new SeoObjectSettingDto { SeoObjectSetting = seoObject });
+
+            await UnitOfWork.SeoObjectSettings.AddAsync(seoObject);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, null, new SeoObjectSettingDto { SeoObjectSetting = seoObject });
         }
 
         #endregion

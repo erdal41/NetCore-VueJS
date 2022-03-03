@@ -5,8 +5,6 @@ namespace VueJS.Shared.Entities.Abstract
 {
     public abstract class DtoBase
     {
-        public virtual ResultStatus ResultStatus { get; set; }
-        public virtual string Message { get; set; }
         public virtual int CurrentPage { get; set; } = 1;
         public virtual int PageSize { get; set; } = 5;
         public virtual int TotalCount { get; set; }

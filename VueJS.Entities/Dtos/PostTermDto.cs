@@ -3,7 +3,7 @@ using VueJS.Shared.Entities.Abstract;
 
 namespace VueJS.Entities.Dtos
 {
-    public class PostTermDto : DtoResultBase
+    public class PostTermDto
     {
         public PostTerm PostTerm { get; set; }
     }

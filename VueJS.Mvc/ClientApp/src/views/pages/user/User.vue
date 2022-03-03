@@ -144,7 +144,7 @@
                     </b-table>
                 </div>
                 <div v-else-if="isSpinnerShow == false && users.length <= 0"
-                     class="text-center mt-1">Hiç bir kullaimgnıcı bulunamadı.</div>
+                     class="text-center mt-1">Hiç bir kullanıcı bulunamadı.</div>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
@@ -389,7 +389,7 @@
                 axios.get('/admin/user-allusers')
                     .then((response) => {
                         console.log(response.data)
-                        if (response.data.ResultStatus === 0) {
+                        if (response.data.Users !== null) {
                             this.users = response.data.Users;
                         } else {
                             this.users = [];

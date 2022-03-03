@@ -86,21 +86,11 @@ namespace VueJS.Mvc.Helpers.Concrete
                 var uploadDto = await _uploadService.AddAsync(uploadAddDto, userId);
 
                 string nameMessage = $"{newFileNameAndExtension} adlı medya dosyası başarıyla yüklenmiştir.";
-                return new DataResult<UploadDto>(ResultStatus.Success, nameMessage, new UploadDto
-                {
-                    ResultStatus = ResultStatus.Success,
-                    Message = nameMessage,
-                    Upload = uploadDto.Data.Upload
-                });
+                return new DataResult<UploadDto>(ResultStatus.Success, nameMessage, new UploadDto { Upload = uploadDto.Data.Upload });
             }
             else
             {
-                return new DataResult<UploadDto>(ResultStatus.Error, "Dosya eklenirken hata oluştu.", new UploadDto
-                {
-                    ResultStatus = ResultStatus.Error,
-                    Message = "Dosya eklenirken hata oluştu.",
-                    Upload = null
-                });
+                return new DataResult<UploadDto>(ResultStatus.Error, "Dosya eklenirken hata oluştu.", new UploadDto { Upload = null });
             }
         }
 

@@ -45,22 +45,11 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                     }
                     users.Add(user);
                 }
-
-                var userListDto = new UserListDto
-                {
-                    Users = users,
-                    ResultStatus = ResultStatus.Success
-                };
-                return Json(userListDto);
+                return Json(new UserListDto { Users = users });
             }
             else
             {
-                var userListDtoError = new UserListDto
-                {
-                    Users = null,
-                    ResultStatus = ResultStatus.Error
-                };
-                return Json(userListDtoError);
+                return Json(new UserListDto { Users = null });
             }
         }
 
@@ -71,16 +60,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var result = await UserManager.CreateAsync(user, userViewModel.UserAddDto.Password);
             if (result.Succeeded)
             {
-                var userViewModelJson = new UserViewModel
-                {
-                    UserDto = new UserDto
-                    {
-                        User = user,
-                        ResultStatus = ResultStatus.Success,
-                        Message = user.UserName + " adlı kullanıcı eklendi."
-                    }
-                };
-                return Json(userViewModelJson);
+                return Json(new UserViewModel { UserDto = new UserDto { User = user } });
             }
             else
             {
@@ -96,17 +76,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                         errorMessages += "* Bu e-posta adresi zaten kayıtlı.\n";
                     }
                 }
-
-                var userViewModelJsonError = new UserViewModel
-                {
-                    UserDto = new UserDto
-                    {
-                        User = null,
-                        ResultStatus = ResultStatus.Error,
-                        Message = errorMessages
-                    }
-                };
-                return Json(userViewModelJsonError);
+                return Json(new UserViewModel { UserDto = new UserDto { User = null } });
             }
         }
 
@@ -114,39 +84,27 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         public async Task<JsonResult> Edit(int userId)
         {
             var userResult = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (userResult != null)
+            if (userResult == null) return Json(new UserViewModel { UserUpdateDto = null });
+
+            var userUpdateDto = Mapper.Map<UserUpdateDto>(userResult);
+            if (userResult.ProfileImageId != null)
             {
+                var profileImage = await _uploadService.GetAsync(userResult.ProfileImageId.Value);
+                userUpdateDto.ProfileImage = profileImage.Data.Upload;
+            }
 
-                var userUpdateDto = Mapper.Map<UserUpdateDto>(userResult);
+            var roles = await _roleManager.Roles.ToListAsync();
+            var userRoles = await UserManager.GetRolesAsync(userResult);
 
-                if (userResult.ProfileImageId != null)
+            return Json(new UserViewModel
+            {
+                UserUpdateDto = userUpdateDto,
+                UserRolesViewModel = new UserRolesViewModel
                 {
-                    var profileImage = await _uploadService.GetAsync(userResult.ProfileImageId.Value);
-                    userUpdateDto.ProfileImage = profileImage.Data.Upload;
+                    Roles = roles,
+                    UserRoles = userRoles
                 }
-
-                var roles = await _roleManager.Roles.ToListAsync();
-                var userRoles = await UserManager.GetRolesAsync(userResult);
-
-                var userViewModel = new UserViewModel
-                {
-                    UserUpdateDto = userUpdateDto,
-                    UserRolesViewModel = new UserRolesViewModel
-                    {
-                        Roles = roles,
-                        UserRoles = userRoles
-                    }
-                };
-                return Json(userViewModel);
-            }
-            else
-            {
-                var userViewModelError = new UserViewModel
-                {
-                    UserUpdateDto = null
-                };
-                return Json(userViewModelError);
-            }
+            });
         }
 
         [HttpPost("/admin/user-edit")]
@@ -155,90 +113,37 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var oldUser = await UserManager.FindByIdAsync(userViewModel.UserUpdateDto.Id.ToString());
             var updatedUser = Mapper.Map(userViewModel.UserUpdateDto, oldUser);
             var result = await UserManager.UpdateAsync(updatedUser);
-            if (result.Succeeded)
-            {
-                var userViewModelJson = new UserViewModel
-                {
-                    User = updatedUser
-                };
-                return Json(userViewModelJson);
-            }
-            else
-            {
-                var userViewModelJsonError = new UserViewModel
-                {
-                    User = null
-                };
-                return Json(userViewModelJsonError);
-            }
+            if (!result.Succeeded) return Json(new UserViewModel { User = null });
+            return Json(new UserViewModel { User = updatedUser });
         }
 
         [HttpGet("/admin/user-allroles")]
         public async Task<JsonResult> AllRoles()
         {
             var roles = await _roleManager.Roles.ToListAsync();
-            if (roles.Count > 0)
-            {
-                var userViewModel = new UserRolesViewModel
-                {
-                    Roles = roles,
-                };
-                return Json(userViewModel);
-            }
-            else
-            {
-                var userViewModelError = new UserRolesViewModel
-                {
-                    Roles = null,
-                };
-                return Json(userViewModelError);
-            }
+            if (roles.Count < 1) return Json(new UserRolesViewModel { Roles = null });
+            return Json(new UserRolesViewModel { Roles = roles });
         }
 
         [HttpPost("/admin/user-roleassign")]
         public async Task<IActionResult> RoleAssign(UserRolesViewModel userRolesViewModel)
         {
-
             var user = await UserManager.Users.SingleOrDefaultAsync(u => u.Id == userRolesViewModel.UserId);
-            if (user != null)
+            if (user == null) return Json(new UserRolesViewModel { UserDto = new UserDto { User = null } });
+
+            var roles = await _roleManager.Roles.ToListAsync();
+            foreach (var role in roles)
             {
-                var roles = await _roleManager.Roles.ToListAsync();
-                foreach (var role in roles)
-                {
-                    await UserManager.RemoveFromRoleAsync(user, role.Name);
-                }
-
-                foreach (var role in userRolesViewModel.UserRoles)
-                {
-                    await UserManager.AddToRoleAsync(user, role);
-
-                }
-                await UserManager.UpdateSecurityStampAsync(user);
-
-                var userRolesViewModelJson = new UserRolesViewModel
-                {
-                    UserDto = new UserDto
-                    {
-                        User = user,
-                        Message = $"{user.UserName} kullanıcısına ait rol atama işlemi başarıyla tamamlandı.",
-                        ResultStatus = ResultStatus.Success
-                    },
-                };
-                return Json(userRolesViewModelJson);
+                await UserManager.RemoveFromRoleAsync(user, role.Name);
             }
-            else
+
+            foreach (var role in userRolesViewModel.UserRoles)
             {
-                var userRolesViewModelJsonError = new UserRolesViewModel
-                {
-                    UserDto = new UserDto
-                    {
-                        User = null,
-                        Message = $"{user.UserName} kullanıcısına ait rol atama işlemi başarısız oldu.",
-                        ResultStatus = ResultStatus.Error
-                    },
-                };
-                return Json(userRolesViewModelJsonError);
+                await UserManager.AddToRoleAsync(user, role);
+
             }
+            await UserManager.UpdateSecurityStampAsync(user);
+            return Json(new UserRolesViewModel { UserDto = new UserDto { User = user } });
         }
 
         [HttpPost("/admin/user-delete")]
@@ -248,87 +153,39 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var result = await UserManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                var userDto = new UserDto
-                {
-                    ResultStatus = ResultStatus.Success,
-                    Message = $"{user.UserName} adlı kullanıcı silindi.",
-                    User = user
-                };
-                return Json(userDto);
+                return Json(new UserDto { User = user });
             }
             else
             {
                 string errorMessages = String.Empty;
                 foreach (var error in result.Errors)
                 {
-                    errorMessages = $"*{error.Description}\n";
+                    errorMessages += $"* {error.Description}\n";
                 }
 
-                var userDtoError = new UserDto
+                return Json(new UserDto
                 {
-                    ResultStatus = ResultStatus.Error,
-                    Message =
-                        $"{user.UserName} adlı kullanıcı silinirken bazı hatalar oluştu.\n{errorMessages}",
-                    User = user
-                };
-                return Json(userDtoError);
+                    User = null,
+                    ErrorMessages = errorMessages
+                });
             }
         }
 
         [HttpPost("/admin/user-passwordchange")]
         public async Task<JsonResult> PasswordChange(UserPasswordChangeDto userPasswordChangeDto)
         {
-
             var user = await UserManager.GetUserAsync(HttpContext.User);
             var isVerified = await UserManager.CheckPasswordAsync(user, userPasswordChangeDto.CurrentPassword);
-            if (isVerified)
-            {
-                var result = await UserManager.ChangePasswordAsync(user, userPasswordChangeDto.CurrentPassword,
-                    userPasswordChangeDto.NewPassword);
-                if (result.Succeeded)
-                {
-                    await UserManager.UpdateSecurityStampAsync(user);
-                    await _signInManager.SignOutAsync();
-                    await _signInManager.PasswordSignInAsync(user, userPasswordChangeDto.NewPassword, true, false);
+            if (!isVerified) return Json(new UserViewModel { UserDto = new UserDto { User = null } });
 
-                    var userViewModelJson = new UserViewModel
-                    {
-                        UserDto = new UserDto
-                        {
-                            User = user,
-                            Message = $"{user.UserName} kullanıcısının şifre güncelleme işlemi başarıyla tamamlandı.",
-                            ResultStatus = ResultStatus.Success
-                        },
-                    };
-                    return Json(userViewModelJson);
-                }
-                else
-                {
-                    var userViewModelJsonError = new UserViewModel
-                    {
-                        UserDto = new UserDto
-                        {
-                            User = null,
-                            Message = "Şifre güncelleme işlemi başarısız oldu. Lütfen bilgilerinizi kontrol ediniz.",
-                            ResultStatus = ResultStatus.Error
-                        },
-                    };
-                    return Json(userViewModelJsonError);
-                }
-            }
-            else
-            {
-                var userViewModelJsonError = new UserViewModel
-                {
-                    UserDto = new UserDto
-                    {
-                        User = null,
-                        Message = "Eski şifreniz yanlış. Lütfen kontrol ediniz.",
-                        ResultStatus = ResultStatus.Error
-                    },
-                };
-                return Json(userViewModelJsonError);
-            }
+            var result = await UserManager.ChangePasswordAsync(user, userPasswordChangeDto.CurrentPassword,
+                userPasswordChangeDto.NewPassword);
+            if (!result.Succeeded) return Json(new UserViewModel { UserDto = new UserDto { User = null } });
+
+            await UserManager.UpdateSecurityStampAsync(user);
+            await _signInManager.SignOutAsync();
+            await _signInManager.PasswordSignInAsync(user, userPasswordChangeDto.NewPassword, true, false);
+            return Json(new UserViewModel { UserDto = new UserDto { User = user } });
         }
 
         [HttpPost("/password-reset")]
@@ -340,11 +197,21 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             if (result.Succeeded)
             {
                 await UserManager.UpdateSecurityStampAsync(user);
-                return Json(result);
+                return Json(new UserDto { User = user });
             }
             else
             {
-                return Json(result);
+                string errorMessages = String.Empty;
+                foreach (var error in result.Errors)
+                {
+                    errorMessages += $"* {error.Description}\n";
+                }
+
+                return Json(new UserDto
+                {
+                    User = null,
+                    ErrorMessages = errorMessages
+                });
             }
         }
     }

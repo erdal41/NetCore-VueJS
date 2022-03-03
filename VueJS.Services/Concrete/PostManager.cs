@@ -19,69 +19,51 @@ namespace VueJS.Services.Concrete
 {
     public class PostManager : ManagerBase, IPostService
     {
-        #region AP
         public PostManager(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
         {
         }
 
-        public async Task<IDataResult<PostDto>> GetAsync(int postId)
-        {
-            var page = await UnitOfWork.Posts.GetAsync(p => p.Id == postId && p.PostType == SubObjectType.page, p => p.Parent, p => p.Children, p => p.Galleries, p => p.User);
-            if (page != null)
-            {
-                return new DataResult<PostDto>(ResultStatus.Success, new PostDto
-                {
-                    ResultStatus = ResultStatus.Success,
-                    Post = page
-                });
-            }
+        #region AP
 
-            var article = await UnitOfWork.Posts.GetAsync(a => a.Id == postId && a.PostType == SubObjectType.article, a => a.PostTerms, a => a.Comments, a => a.User);
-            if (article != null)
+        public async Task<IDataResult<PostDto>> GetAsync(int postId, SubObjectType postType)
+        {
+            var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId && p.PostType == postType, p => p.Parent, p => p.Children, p => p.Galleries, p => p.User);
+            if (post == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(false), null);
+
+            if (postType == SubObjectType.article)
             {
-                article.PostTerms = await UnitOfWork.PostTerms.GetAllAsync(p => p.PostId == postId);
-                return new DataResult<PostDto>(ResultStatus.Success, new PostDto
-                {
-                    ResultStatus = ResultStatus.Success,
-                    Post = article
-                });
+                post.PostTerms = await UnitOfWork.PostTerms.GetAllAsync(p => p.PostId == postId);
             }
-            return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), null);
+            return new DataResult<PostDto>(ResultStatus.Success, new PostDto { Post = post });
         }
 
         public async Task<IDataResult<PostDto>> GetAsync(string postName)
         {
             var postResult = await UnitOfWork.Posts.GetAsync(a => a.PostName == postName);
 
-            if (postResult != null)
-            {
-                Post post = null;
-                if (postResult.PostType == SubObjectType.article)
-                {
-                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.PostName == postName, p => p
-               .Include(p => p.PostTerms)
-               .Include(p => p.FeaturedImage)
-               .Include(p => p.Comments.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.Children.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.User)
-               .Include(p => p.Comments.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.Children.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.Children.Where(c => c.CommentStatus == CommentStatus.approved))
-               .Include(p => p.Comments.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.User)
-               .Include(p => p.User));
-                }
-                else if (postResult.PostType == SubObjectType.page || postResult.PostType == SubObjectType.basepage)
-                {
-                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.PostName == postName, p => p
-               .Include(p => p.FeaturedImage)
-               .Include(p => p.Parent).ThenInclude(p => p.User)
-               .Include(p => p.Children).ThenInclude(p => p.User)
-               .Include(p => p.User));
-                }
+            if (postResult == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(false), null);
 
-                return new DataResult<PostDto>(ResultStatus.Success, new PostDto
-                {
-                    ResultStatus = ResultStatus.Success,
-                    Post = post
-                });
+            Post post = null;
+            if (postResult.PostType == SubObjectType.article)
+            {
+                post = await UnitOfWork.Posts.GetIncludeAsync(p => p.PostName == postName, p => p
+           .Include(p => p.PostTerms)
+           .Include(p => p.FeaturedImage)
+           .Include(p => p.Comments.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.Children.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.User)
+           .Include(p => p.Comments.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.Children.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.Children.Where(c => c.CommentStatus == CommentStatus.approved))
+           .Include(p => p.Comments.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.User)
+           .Include(p => p.User));
             }
-            return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), null);
+            else if (postResult.PostType == SubObjectType.page || postResult.PostType == SubObjectType.basepage)
+            {
+                post = await UnitOfWork.Posts.GetIncludeAsync(p => p.PostName == postName, p => p
+           .Include(p => p.FeaturedImage)
+           .Include(p => p.Parent).ThenInclude(p => p.User)
+           .Include(p => p.Children).ThenInclude(p => p.User)
+           .Include(p => p.User));
+            }
+
+            return new DataResult<PostDto>(ResultStatus.Success, new PostDto { Post = post });
         }
 
         public async Task<IDataResult<PostUpdateDto>> GetBasePageUpdateDtoAsync(string postName)
@@ -115,11 +97,7 @@ namespace VueJS.Services.Concrete
                 .Include(x => x.User)) :
                 null;
 
-                return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto
-                {
-                    Posts = posts,
-                    ResultStatus = ResultStatus.Success
-                });
+                return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
             }
             else
             {
@@ -143,11 +121,7 @@ namespace VueJS.Services.Concrete
                 .Include(x => x.User))
                 : null;
 
-                return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto
-                {
-                    Posts = posts,
-                    ResultStatus = ResultStatus.Success
-                });
+                return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
             }
         }
 
@@ -159,14 +133,11 @@ namespace VueJS.Services.Concrete
                 ? await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p.FeaturedImage, p => p.PostTerms, p => p.Comments, p => p.User)
                 : null;
 
-            return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto
-            {
-                ResultStatus = ResultStatus.Success,
-                Posts = posts
-            });
+            if (posts.Count == 0) return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(true), null);
+            return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllAnotherPostsAsync(SubObjectType postType, int? postId)
+        public async Task<IDataResult<PostListDto>> GetAllTopPostsAsync(SubObjectType postType, int? postId)
         {
             if (postType == SubObjectType.page)
             {
@@ -179,36 +150,27 @@ namespace VueJS.Services.Concrete
                 else
                 {
                     var currentPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postId.Value, p => p.Children);
-                    if (currentPost.Children != null)
+                    if (currentPost != null && currentPost.Children != null)
                     {
                         List<int> childIds = new List<int>();
                         foreach (var child in currentPost.Children)
                         {
                             childIds.Add(child.Id);
                         }
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == SubObjectType.page && c.Id != postId.Value && !childIds.Contains(c.Id));
+                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value && !childIds.Contains(c.Id));
                     }
                     else
                     {
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == SubObjectType.page && c.Id != postId.Value);
+                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value);
                     }
                 }
 
                 if (posts != null)
                 {
-                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto
-                    {
-                        Posts = posts,
-                        ResultStatus = ResultStatus.Success
-                    });
+                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
                 }
             }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: true), new PostListDto
-            {
-                Posts = null,
-                ResultStatus = ResultStatus.Error,
-                Message = Messages.Product.NotFound(isPlural: true)
-            });
+            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(true), null);
         }
 
         public async Task<IDataResult<PostListDto>> GetAllSubPostsAsync(SubObjectType postType, int? postId)
@@ -224,7 +186,7 @@ namespace VueJS.Services.Concrete
                 else
                 {
                     var currentPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postId.Value, p => p.Parent);
-                    if (currentPost.Parent != null)
+                    if (currentPost != null && currentPost.Parent != null)
                     {
                         Post parent = currentPost.Parent;
                         currentPost.Parents = new List<Post>();
@@ -239,30 +201,20 @@ namespace VueJS.Services.Concrete
                         {
                             parentIds.Add(par.Id);
                         }
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == SubObjectType.page && c.Id != postId.Value && !parentIds.Contains(c.Id));
+                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value && !parentIds.Contains(c.Id));
                     }
                     else
                     {
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == SubObjectType.page && c.Id != postId.Value);
+                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value);
                     }
                 }
 
                 if (posts != null)
                 {
-                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto
-                    {
-                        Posts = posts,
-                        ResultStatus = ResultStatus.Success
-                    });
+                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
                 }
             }
-
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: true), new PostListDto
-            {
-                Posts = null,
-                ResultStatus = ResultStatus.Error,
-                Message = Messages.Product.NotFound(isPlural: true)
-            });
+            return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(true), null);
         }
 
         public Task<IDataResult<PostListDto>> GetAllByPagingAsync(string categoryGuid, string tagGuid, int currentPage = 1, int pageSize = 5, bool isAscending = false)
@@ -289,12 +241,8 @@ namespace VueJS.Services.Concrete
         {
             var posts = await UnitOfWork.Posts.GetAllIncludeAsync(p => p.ParentId == postId, p => p
                         .Include(x => x.FeaturedImage));
-
-            return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto
-            {
-                Posts = posts,
-                ResultStatus = ResultStatus.Success
-            });
+            if (posts.Count < 1) return new DataResult<PostListDto>(ResultStatus.Error, Messages.Post.NotFound(true), null);
+            return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
         }
 
         public Task<IDataResult<PostDto>> GetByIdAsync(int postId, bool includeCategories, bool includeTags, bool includeComments, bool includeGalleries, bool includeUser)
@@ -305,46 +253,41 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<PostUpdateDto>> GetPostUpdateDtoAsync(int postId)
         {
             var postResult = await UnitOfWork.Posts.GetAsync(p => p.Id == postId);
-            if (postResult != null)
-            {
-                Post post = null;
-                switch (postResult.PostType)
-                {
-                    case SubObjectType.page:
-                        post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.page, p => p
-                                .Include(x => x.Parent)
-                                .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
-                                .Include(x => x.FeaturedImage)
-                                .Include(x => x.Galleries).ThenInclude(x => x.Upload)
-                                .Include(x => x.User));
+            if (postResult == null) return new DataResult<PostUpdateDto>(ResultStatus.Error, Messages.Post.NotFound(false), null);
 
-                        Post parent = post.Parent;
-                        post.Parents = new List<Post>();
-                        while (parent != null)
-                        {
-                            post.Parents.Add(parent);
-                            parent = await UnitOfWork.Posts.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                        }
-                        break;
-                    case SubObjectType.article:
-                        post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.article, p => p
-                                .Include(x => x.PostTerms).ThenInclude(x => x.Term)
-                                .Include(x => x.FeaturedImage)
-                                .Include(x => x.User));
-                        break;
-                    case SubObjectType.basepage:
-                        post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.basepage, p => p
-                                .Include(x => x.FeaturedImage)
-                                .Include(x => x.User));
-                        break;
-                }
-                var postUpdateDto = Mapper.Map<PostUpdateDto>(post);
-                return new DataResult<PostUpdateDto>(ResultStatus.Success, postUpdateDto);
-            }
-            else
+            Post post = null;
+            switch (postResult.PostType)
             {
-                return new DataResult<PostUpdateDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), null);
+                case SubObjectType.page:
+                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.page, p => p
+                            .Include(x => x.Parent)
+                            .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                            .Include(x => x.FeaturedImage)
+                            .Include(x => x.Galleries).ThenInclude(x => x.Upload)
+                            .Include(x => x.User));
+
+                    Post parent = post.Parent;
+                    post.Parents = new List<Post>();
+                    while (parent != null)
+                    {
+                        post.Parents.Add(parent);
+                        parent = await UnitOfWork.Posts.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
+                    }
+                    break;
+                case SubObjectType.article:
+                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.article, p => p
+                            .Include(x => x.PostTerms).ThenInclude(x => x.Term)
+                            .Include(x => x.FeaturedImage)
+                            .Include(x => x.User));
+                    break;
+                case SubObjectType.basepage:
+                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.basepage, p => p
+                            .Include(x => x.FeaturedImage)
+                            .Include(x => x.User));
+                    break;
             }
+            var postUpdateDto = Mapper.Map<PostUpdateDto>(post);
+            return new DataResult<PostUpdateDto>(ResultStatus.Success, postUpdateDto);
         }
 
         public Task<IDataResult<PostListDto>> GetSubPostUpdateDtoAsync(int postId)
@@ -356,243 +299,93 @@ namespace VueJS.Services.Concrete
         {
             string postName = UrlExtensions.FriendlySEOUrl(postAddDto.Title);
             var postNameCheck = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == postName);
+            if (postNameCheck.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.TitleCheck(), null);
 
-            if (postNameCheck.Count == 0)
-            {
-                if (postType == SubObjectType.page)
-                {
-                    var page = Mapper.Map<Post>(postAddDto);
-                    page.PostStatus = PostStatus.publish;
-                    page.CreatedDate = DateTime.Now;
-                    page.ModifiedDate = DateTime.Now;
-                    page.UserId = userId;
-                    page.PostName = postName;
-                    page.PostType = SubObjectType.page;
-                    page.CommentCount = 0;
-
-                    await UnitOfWork.Posts.AddAsync(page);
-                    await UnitOfWork.SaveAsync();
-                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Add(page.Title), new PostDto
-                    {
-                        Post = page,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.Post.Add(page.Title)
-                    });
-                }
-                else if (postType == SubObjectType.article)
-                {
-                    var post = Mapper.Map<Post>(postAddDto);
-                    post.UserId = userId;
-                    post.PostName = postName;
-                    post.PostType = SubObjectType.article;
-                    post.CommentCount = 0;
-                    await UnitOfWork.Posts.AddAsync(post);
-                    await UnitOfWork.SaveAsync();
-                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Add(post.Title), new PostDto
-                    {
-                        Post = post,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.Post.Add(post.Title)
-                    });
-                }
-                else if (postType == SubObjectType.basepage)
-                {
-                    var post = Mapper.Map<Post>(postAddDto);
-                    post.UserId = userId;
-                    post.PostName = postName;
-                    post.PostType = SubObjectType.basepage;
-                    post.CommentCount = 0;
-                    await UnitOfWork.Posts.AddAsync(post);
-                    await UnitOfWork.SaveAsync();
-                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Add(post.Title), new PostDto
-                    {
-                        Post = post,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.Post.Add(post.Title)
-                    });
-                }
-            }
-            return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.TitleCheck(), new PostDto
-            {
-                Post = null,
-                ResultStatus = ResultStatus.Error,
-                Message = Messages.Post.UrlCheck()
-            });
+            var post = Mapper.Map<Post>(postAddDto);
+            post.PostStatus = PostStatus.publish;
+            post.CreatedDate = DateTime.Now;
+            post.ModifiedDate = DateTime.Now;
+            post.UserId = userId;
+            post.PostName = postName;
+            post.PostType = postType;
+            post.CommentCount = 0;
+            await UnitOfWork.Posts.AddAsync(post);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Add(post.Title), new PostDto { Post = post });
         }
 
         public async Task<IDataResult<PostDto>> UpdateAsync(PostUpdateDto postUpdateDto, int userId)
         {
             var oldPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postUpdateDto.Id);
+            if (oldPost == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(false), null);
 
-            if (oldPost != null)
-            {
-                var posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == oldPost.PostName || p.PostName == postUpdateDto.PostName);
-                if (posts.Count == 1 || posts.Count == 0)
-                {
-                    var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
+            var posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == oldPost.PostName || p.PostName == postUpdateDto.PostName);
+            if (posts.Count != 1 || posts.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.UrlCheck(), null);
 
-
-                    post.UserId = userId;
-                    post.ModifiedDate = DateTime.Now;
-                    await UnitOfWork.Posts.UpdateAsync(post);
-                    await UnitOfWork.SaveAsync();
-                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Update(post.Title), new PostDto
-                    {
-                        Post = post,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.Post.Update(post.Title)
-                    });
-                }
-                else
-                {
-                    return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.UrlCheck(), new PostDto
-                    {
-                        Post = oldPost,
-                        ResultStatus = ResultStatus.Error,
-                        Message = Messages.Post.UrlCheck()
-                    });
-                }
-            }
-            else
-            {
-                return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(false), new PostDto
-                {
-                    Post = null,
-                    ResultStatus = ResultStatus.Error,
-                    Message = Messages.Post.NotFound(false)
-                });
-            }
+            var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
+            post.UserId = userId;
+            post.ModifiedDate = DateTime.Now;
+            await UnitOfWork.Posts.UpdateAsync(post);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Update(post.Title), new PostDto { Post = post });
         }
 
         public async Task<IResult> BasePageUpdateAsync(PostUpdateDto postUpdateDto, int userId)
         {
             var postNameCheck = await UnitOfWork.Posts.GetAllAsync(a => (a.PostName == postUpdateDto.PostName && a.Id == postUpdateDto.Id) || (a.PostName != postUpdateDto.PostName && a.Id == postUpdateDto.Id));
 
-            if (postNameCheck.Count == 1)
-            {
-                Post oldPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postUpdateDto.Id, p => p.FeaturedImage, p => p.User);
-                var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
+            if (postNameCheck.Count != 1) return new Result(ResultStatus.Error, Messages.Post.UrlCheck());
 
-                post.UserId = userId;
-                post.ModifiedDate = DateTime.Now;
-                await UnitOfWork.Posts.UpdateAsync(post);
-                await UnitOfWork.SaveAsync();
-                return new Result(ResultStatus.Success, "Güncellendi");
-            }
-            else
-            {
-                return new Result(ResultStatus.Error, Messages.Post.UrlCheck());
-            }
+            Post oldPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postUpdateDto.Id, p => p.FeaturedImage, p => p.User);
+            var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
+
+            post.UserId = userId;
+            post.ModifiedDate = DateTime.Now;
+            await UnitOfWork.Posts.UpdateAsync(post);
+            await UnitOfWork.SaveAsync();
+            return new Result(ResultStatus.Success, "Güncellendi");
         }
 
         public async Task<IDataResult<PostDto>> PostStatusChangeAsync(int postId, PostStatus postStatus, int userId)
         {
             var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId);
-            if (post.PostType != SubObjectType.basepage)
-            {
-                post.PostStatus = postStatus;
-                post.UserId = userId;
-                post.ModifiedDate = DateTime.Now;
-                await UnitOfWork.Posts.UpdateAsync(post);
-                await UnitOfWork.SaveAsync();
+            if (post == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(false), null);
+            if (post.PostType == SubObjectType.basepage && postStatus == PostStatus.trash) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.BasePage(), null);
 
-                if (postStatus == PostStatus.publish)
-                {
-                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Publish(post.Title), new PostDto
-                    {
-                        Post = post,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.Post.Publish(post.Title)
-                    });
-                }
-                else if (postStatus == PostStatus.draft)
-                {
-                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.UnTrash(post.Title), new PostDto
-                    {
-                        Post = post,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.Post.UnTrash(post.Title)
-                    });
-                }
-                else
-                {
-                    return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Trash(post.Title), new PostDto
-                    {
-                        Post = post,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.Post.Trash(post.Title)
-                    });
-                }
-            }
-            else
-            {
-                return new DataResult<PostDto>(ResultStatus.Warning, Messages.Post.BasePage(), new PostDto
-                {
-                    Post = post,
-                    ResultStatus = ResultStatus.Warning,
-                    Message = Messages.Post.BasePage()
-                });
-            }
+            post.PostStatus = postStatus;
+            post.UserId = userId;
+            post.ModifiedDate = DateTime.Now;
+            await UnitOfWork.Posts.UpdateAsync(post);
+            await UnitOfWork.SaveAsync();
+
+            return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.PostStatusChange(postStatus, post.Title), new PostDto { Post = post });
         }
 
         public async Task<IDataResult<PostDto>> DeleteAsync(int postId)
         {
-            var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId);
-            if (post.PostType != SubObjectType.basepage)
+            var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId && p.PostStatus == PostStatus.trash);
+            if (post == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(false), null);
+            if (post.PostType == SubObjectType.basepage) return new DataResult<PostDto>(ResultStatus.Warning, Messages.Post.BasePage(), null);
+
+            if (post.Galleries != null)
             {
-                if (post.Galleries != null)
+                var galleries = post.Galleries.Where(pg => pg.PostId == postId).ToList();
+                foreach (var gallery in galleries)
                 {
-                    var galleries = post.Galleries.Where(pg => pg.PostId == postId).ToList();
-                    foreach (var gallery in galleries)
-                    {
-                        await UnitOfWork.Galleries.DeleteAsync(gallery);
-                    }
+                    await UnitOfWork.Galleries.DeleteAsync(gallery);
                 }
-
-                await UnitOfWork.Posts.DeleteAsync(post);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Delete(post.Title), new PostDto
-                {
-                    Post = post,
-                    ResultStatus = ResultStatus.Success,
-                    Message = Messages.Post.Delete(post.Title)
-                });
             }
-            else
-            {
-                return new DataResult<PostDto>(ResultStatus.Warning, Messages.Post.BasePage(), new PostDto
-                {
-                    Post = post,
-                    ResultStatus = ResultStatus.Warning,
-                    Message = Messages.Post.BasePage()
-                });
-            }
-        }
 
-        public async Task<int> PublishStatusCountAsync(SubObjectType postType, PostStatus? postStatus)
-        {
-            var posts = postType == SubObjectType.page
-                ? await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p.Parent, p => p.Children, p => p.FeaturedImage, p => p.Galleries, p => p.User)
-                : postType == SubObjectType.article
-                ? await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p.FeaturedImage, p => p.PostTerms, p => p.Comments, p => p.User)
-                : postType == SubObjectType.basepage
-                ? await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p.FeaturedImage, p => p.User)
-                : null;
-
-            return posts.Count;
+            await UnitOfWork.Posts.DeleteAsync(post);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<PostDto>(ResultStatus.Success, Messages.Post.Delete(post.Title), new PostDto { Post = post });
         }
 
         public async Task<IDataResult<int>> CountByNonDeletedAsync()
         {
             var postCount = await UnitOfWork.Posts.CountAsync(null);
-            if (postCount > -1)
-            {
-                return new DataResult<int>(ResultStatus.Success, postCount);
-            }
-            else
-            {
-                return new DataResult<int>(ResultStatus.Error, $"Beklenmeyen bir hata ile karşılaşıldı.", -1);
-            }
+            if (postCount < 0) return new DataResult<int>(ResultStatus.Error, $"Beklenmeyen bir hata ile karşılaşıldı.", -1);
+            return new DataResult<int>(ResultStatus.Success, postCount);
         }
 
         public Task<IDataResult<PostDto>> GalleryImageAddAsync(int postId, List<int> galleryIds)
@@ -614,68 +407,42 @@ namespace VueJS.Services.Concrete
         {
             var subPost = await UnitOfWork.Posts.GetAsync(x => x.Id == postId);
 
-            if (subPost != null)
-            {
-                subPost.Description = description;
-                subPost.FeaturedImageId = featuredImageId;
-                await UnitOfWork.Posts.UpdateAsync(subPost);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostDto>(ResultStatus.Success, "Alt sayfa güncellendi.", new PostDto
-                {
-                    Post = subPost,
-                    ResultStatus = ResultStatus.Success,
-                    Message = "Alt sayfa güncellendi."
-                });
-            }
-            return new DataResult<PostDto>(ResultStatus.Error, "Hata oluştu. Sayfayı yenileyip tekrar deneyiniz.", new PostDto
-            {
-                Post = subPost,
-                ResultStatus = ResultStatus.Error,
-                Message = "Hata oluştu. Sayfayı yenileyip tekrar deneyiniz."
-            });
+            if (subPost == null) return new DataResult<PostDto>(ResultStatus.Error, "Hata oluştu. Sayfayı yenileyip tekrar deneyiniz.", null);
+
+            subPost.Description = description;
+            subPost.FeaturedImageId = featuredImageId;
+            await UnitOfWork.Posts.UpdateAsync(subPost);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<PostDto>(ResultStatus.Success, "Alt sayfa güncellendi.", new PostDto { Post = subPost });
         }
 
         public async Task<IDataResult<PostDto>> TopPostUpdateAsync(int postId, int parentId)
         {
             var post = await UnitOfWork.Posts.GetAsync(x => x.Id == postId);
+            if (post == null) return new DataResult<PostDto>(ResultStatus.Error, null);
 
-            if (post != null)
-            {
-                post.ParentId = parentId == 0 ? 0 : parentId;
-                await UnitOfWork.Posts.UpdateAsync(post);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<PostDto>(ResultStatus.Success, new PostDto
-                {
-                    Post = post,
-                    ResultStatus = ResultStatus.Success,
-                    Message = "Ebeveyn sayfa güncellendi"
-                });
-            }
-            return new DataResult<PostDto>(ResultStatus.Error, null);
+            post.ParentId = parentId == 0 ? 0 : parentId;
+            await UnitOfWork.Posts.UpdateAsync(post);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<PostDto>(ResultStatus.Success, "Ebeveyn sayfa güncellendi", new PostDto { Post = post });
         }
 
         public async Task<IResult> SubPostUpdateAsync(int subPostId, int? subPostParentId)
         {
             var subPost = await UnitOfWork.Posts.GetAsync(x => x.Id == subPostId);
+            if (subPost == null) return new Result(ResultStatus.Error, "Alt sayfa güncellenemedi");
 
-            if (subPost != null)
+            if (subPostParentId == null)
             {
-                if (subPostParentId == null)
-                {
-                    subPost.ParentId = null;
-                }
-                else
-                {
-                    subPost.ParentId = subPostParentId.Value;
-                }
-                await UnitOfWork.Posts.UpdateAsync(subPost);
-                await UnitOfWork.SaveAsync();
-                return new Result(ResultStatus.Success, "Alt sayfa güncellendi");
+                subPost.ParentId = null;
             }
             else
             {
-                return new Result(ResultStatus.Error, "Alt sayfa güncellenemedi");
+                subPost.ParentId = subPostParentId.Value;
             }
+            await UnitOfWork.Posts.UpdateAsync(subPost);
+            await UnitOfWork.SaveAsync();
+            return new Result(ResultStatus.Success, "Alt sayfa güncellendi");
         }
 
         #endregion
@@ -728,7 +495,6 @@ namespace VueJS.Services.Concrete
                 });
             }
         }
-
 
         #endregion
     }

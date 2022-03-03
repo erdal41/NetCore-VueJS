@@ -4,13 +4,11 @@ namespace VueJS.Entities.ComplexTypes
 {
     public enum CommentStatus
     {
-        [Display(Name = "Benim")]
-        mine = 0,
         [Display(Name = "Bekleyen")]
-        moderated = 1,
+        moderated = 0,
         [Display(Name = "Onaylanmış")]
-        approved = 2,
+        approved = 1,
         [Display(Name = "Çöp")]
-        trash = 3,
+        trash = 2,
     }
 }

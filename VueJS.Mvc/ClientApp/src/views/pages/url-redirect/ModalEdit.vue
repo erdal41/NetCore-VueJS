@@ -91,7 +91,7 @@
             return {
                 required,
                 urlRedirectUpdateDto: {
-                    Id: this.urlredirectId,
+                    Id: '',
                     OldUrl: "",
                     NewUrl: "",
                     Description: '',
@@ -107,6 +107,7 @@
                     }
                 }).then((response) => {
                     console.log(response.data);
+                    this.urlRedirectUpdateDto.Id = response.data.Id;
                     this.urlRedirectUpdateDto.OldUrl = response.data.OldUrl;
                     this.urlRedirectUpdateDto.NewUrl = response.data.NewUrl;
                     this.urlRedirectUpdateDto.Description = response.data.Description;

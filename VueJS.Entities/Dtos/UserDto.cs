@@ -6,5 +6,6 @@ namespace VueJS.Entities.Dtos
     public class UserDto : DtoBase
     {
         public User User { get; set; }
+        public string ErrorMessages { get; set; }
     }
 }

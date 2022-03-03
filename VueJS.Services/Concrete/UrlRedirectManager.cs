@@ -20,157 +20,66 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<UrlRedirectDto>> GetAsync(int urlRedirectId)
         {
             var urlRedirect = await UnitOfWork.UrlRedirects.GetAsync(u => u.Id == urlRedirectId);
-            if (urlRedirect != null)
-            {
-                return new DataResult<UrlRedirectDto>(ResultStatus.Success, new UrlRedirectDto
-                {
-                    UrlRedirect = urlRedirect,
-                    ResultStatus = ResultStatus.Success
-                });
-            }
-            return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: false), new UrlRedirectDto
-            {
-                UrlRedirect = null,
-                ResultStatus = ResultStatus.Error,
-                Message = Messages.UrlRedirect.NotFound(isPlural: false)
-            });
+            if (urlRedirect == null) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(false), null);
+            return new DataResult<UrlRedirectDto>(ResultStatus.Success, new UrlRedirectDto { UrlRedirect = urlRedirect });
         }
 
         public async Task<IDataResult<UrlRedirectDto>> GetAsync(string oldUrl)
         {
             var urlRedirect = await UnitOfWork.UrlRedirects.GetAsync(ur => ur.OldUrl == oldUrl, ur => ur.User);
-            if (urlRedirect != null)
-            {
-                return new DataResult<UrlRedirectDto>(ResultStatus.Success, new UrlRedirectDto
-                {
-                    UrlRedirect = urlRedirect,
-                    ResultStatus = ResultStatus.Success
-                });
-            }
-            return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: true), new UrlRedirectDto
-            {
-                UrlRedirect = urlRedirect,
-                ResultStatus = ResultStatus.Error,
-                Message = Messages.UrlRedirect.NotFound(isPlural: true)
-            });
+            if (urlRedirect == null) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(true), null);
+            return new DataResult<UrlRedirectDto>(ResultStatus.Success, new UrlRedirectDto { UrlRedirect = urlRedirect });
         }
 
         public async Task<IDataResult<UrlRedirectUpdateDto>> GetUrlRedirectUpdateDtoAsync(int urlRedirectId)
         {
             var result = await UnitOfWork.UrlRedirects.AnyAsync(u => u.Id == urlRedirectId);
-            if (result)
-            {
-                var urlRedirect = await UnitOfWork.UrlRedirects.GetAsync(u => u.Id == urlRedirectId);
-                var urlRedirectUpdateDto = Mapper.Map<UrlRedirectUpdateDto>(urlRedirect);
-                return new DataResult<UrlRedirectUpdateDto>(ResultStatus.Success, urlRedirectUpdateDto);
-            }
-            else
-            {
-                return new DataResult<UrlRedirectUpdateDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: false), null);
-            }
+            if (!result) return new DataResult<UrlRedirectUpdateDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(false), null);
+            var urlRedirect = await UnitOfWork.UrlRedirects.GetAsync(u => u.Id == urlRedirectId);
+            var urlRedirectUpdateDto = Mapper.Map<UrlRedirectUpdateDto>(urlRedirect);
+            return new DataResult<UrlRedirectUpdateDto>(ResultStatus.Success, urlRedirectUpdateDto);
         }
 
         public async Task<IDataResult<UrlRedirectListDto>> GetAllAsync()
         {
             var urlRedirects = await UnitOfWork.UrlRedirects.GetAllAsync(null, ur => ur.User);
-            if (urlRedirects.Count > -1)
-            {
-                return new DataResult<UrlRedirectListDto>(ResultStatus.Success, new UrlRedirectListDto
-                {
-                    UrlRedirects = urlRedirects,
-                    ResultStatus = ResultStatus.Success
-                });
-            }
-            return new DataResult<UrlRedirectListDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: true), new UrlRedirectListDto
-            {
-                UrlRedirects = null,
-                ResultStatus = ResultStatus.Error,
-                Message = Messages.UrlRedirect.NotFound(isPlural: true)
-            });
+            if (urlRedirects.Count < 0) return new DataResult<UrlRedirectListDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: true), null);
+            return new DataResult<UrlRedirectListDto>(ResultStatus.Success, new UrlRedirectListDto { UrlRedirects = urlRedirects });
         }
-        
+
         public async Task<IDataResult<UrlRedirectDto>> AddAsync(UrlRedirectAddDto urlRedirectAddDto, int userId)
         {
             var urlRedirectCheck = await UnitOfWork.UrlRedirects.GetAllAsync(ur => ur.OldUrl == urlRedirectAddDto.OldUrl);
-
-            if (urlRedirectCheck.Count == 0)
-            {
-                var urlRedirect = Mapper.Map<UrlRedirect>(urlRedirectAddDto);
-                urlRedirect.UserId = userId;
-                var addedUrlRedirect = await UnitOfWork.UrlRedirects.AddAsync(urlRedirect);
-                await UnitOfWork.SaveAsync();
-                return new DataResult<UrlRedirectDto>(ResultStatus.Success, Messages.UrlRedirect.Add(addedUrlRedirect.NewUrl), new UrlRedirectDto
-                {
-                    UrlRedirect = addedUrlRedirect,
-                    ResultStatus = ResultStatus.Success,
-                    Message = Messages.UrlRedirect.Add(addedUrlRedirect.NewUrl)
-                });
-            }
-            else
-            {
-                return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.UrlCheck(), new UrlRedirectDto
-                {
-                    UrlRedirect = null,
-                    ResultStatus = ResultStatus.Error,
-                    Message = Messages.UrlRedirect.UrlCheck()
-                });
-            }
+            if (urlRedirectCheck.Count != 0) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.UrlCheck(), null);
+            var urlRedirect = Mapper.Map<UrlRedirect>(urlRedirectAddDto);
+            urlRedirect.UserId = userId;
+            var addedUrlRedirect = await UnitOfWork.UrlRedirects.AddAsync(urlRedirect);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<UrlRedirectDto>(ResultStatus.Success, Messages.UrlRedirect.Add(addedUrlRedirect.NewUrl), new UrlRedirectDto { UrlRedirect = addedUrlRedirect });
         }
 
         public async Task<IDataResult<UrlRedirectDto>> UpdateAsync(UrlRedirectUpdateDto urlRedirectUpdateDto, int userId)
         {
             var oldUrlRedirect = await UnitOfWork.UrlRedirects.GetAsync(u => u.Id == urlRedirectUpdateDto.Id, ur => ur.User);
+            if (oldUrlRedirect == null) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(false), null);
+            var urlRedirects = await UnitOfWork.UrlRedirects.GetAllAsync(p => p.OldUrl == oldUrlRedirect.OldUrl || p.OldUrl == urlRedirectUpdateDto.OldUrl);
+            if (urlRedirects.Count != 1 || urlRedirects.Count != 0) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.UrlCheck(), null);
 
-            if (oldUrlRedirect != null)
-            {
-                var urlRedirects = await UnitOfWork.UrlRedirects.GetAllAsync(p => p.OldUrl == oldUrlRedirect.OldUrl || p.OldUrl == urlRedirectUpdateDto.OldUrl);
-                if (urlRedirects.Count == 1 || urlRedirects.Count == 0)
-                {
-                    var urlRedirect = Mapper.Map<UrlRedirectUpdateDto, UrlRedirect>(urlRedirectUpdateDto, oldUrlRedirect);
-                    urlRedirect.UserId = userId;
-                    var updatedUrlRedirect = await UnitOfWork.UrlRedirects.UpdateAsync(urlRedirect);
-                    await UnitOfWork.SaveAsync();
-                    return new DataResult<UrlRedirectDto>(ResultStatus.Success, Messages.UrlRedirect.Update(updatedUrlRedirect.OldUrl), new UrlRedirectDto
-                    {
-                        UrlRedirect = updatedUrlRedirect,
-                        ResultStatus = ResultStatus.Success,
-                        Message = Messages.UrlRedirect.Update(updatedUrlRedirect.NewUrl)
-                    });
-                }
-                else
-                {
-                    return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.UrlCheck(), new UrlRedirectDto
-                    {
-                        UrlRedirect = null,
-                        ResultStatus = ResultStatus.Error,
-                        Message = Messages.UrlRedirect.UrlCheck()
-                    });
-                }
-            }
-            else
-            {
-                return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(false), new UrlRedirectDto
-                {
-                    UrlRedirect = null,
-                    ResultStatus = ResultStatus.Error,
-                    Message = Messages.UrlRedirect.NotFound(false)
-                });
-            }
+            var urlRedirect = Mapper.Map<UrlRedirectUpdateDto, UrlRedirect>(urlRedirectUpdateDto, oldUrlRedirect);
+            urlRedirect.UserId = userId;
+            var updatedUrlRedirect = await UnitOfWork.UrlRedirects.UpdateAsync(urlRedirect);
+            await UnitOfWork.SaveAsync();
+            return new DataResult<UrlRedirectDto>(ResultStatus.Success, Messages.UrlRedirect.Update(updatedUrlRedirect.OldUrl), new UrlRedirectDto { UrlRedirect = updatedUrlRedirect });
         }
 
         public async Task<IResult> DeleteAsync(int urlRedirectId)
         {
             var urlRedirect = await UnitOfWork.UrlRedirects.GetAsync(u => u.Id == urlRedirectId);
-            if (urlRedirect != null)
-            {
-                await UnitOfWork.UrlRedirects.DeleteAsync(urlRedirect);
-                await UnitOfWork.SaveAsync();
-                return new Result(ResultStatus.Success, Messages.UrlRedirect.HardDelete(urlRedirect.NewUrl));
-            }
-            else
-            {
-                return new Result(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: false));
-            }
+            if (urlRedirect == null) return new Result(ResultStatus.Error, Messages.UrlRedirect.NotFound(false));
+            await UnitOfWork.UrlRedirects.DeleteAsync(urlRedirect);
+            await UnitOfWork.SaveAsync();
+            return new Result(ResultStatus.Success, Messages.UrlRedirect.HardDelete(urlRedirect.NewUrl));
+
         }
     }
 }

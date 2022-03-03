@@ -9,13 +9,13 @@ namespace VueJS.Services.Abstract
 {
     public interface IPostService
     {
-        Task<IDataResult<PostDto>> GetAsync(int postId);
+        Task<IDataResult<PostDto>> GetAsync(int postId, SubObjectType postType);
         Task<IDataResult<PostDto>> GetAsync(string postName);
         Task<IDataResult<PostDto>> GetByIdAsync(int postId, bool includeCategories, bool includeTags, bool includeComments, bool includeGalleries, bool includeUser);
         Task<IDataResult<PostUpdateDto>> GetBasePageUpdateDtoAsync(string pageName);
         Task<IDataResult<PostListDto>> GetAllAsync(SubObjectType postType, PostStatus? postStatus);
         Task<IDataResult<PostListDto>> GetAllPostStatusAsync(SubObjectType postType, PostStatus postStatus);
-        Task<IDataResult<PostListDto>> GetAllAnotherPostsAsync(SubObjectType postType, int? postId);
+        Task<IDataResult<PostListDto>> GetAllTopPostsAsync(SubObjectType postType, int? postId);
         Task<IDataResult<PostListDto>> GetAllSubPostsAsync(SubObjectType postType, int? postId);
         Task<IDataResult<PostListDto>> GetSubPostUpdateDtoAsync(int parentId);
         Task<IDataResult<PostListDto>> GetAllSubPostDetailsAsync(int postId);
@@ -29,7 +29,6 @@ namespace VueJS.Services.Abstract
         Task<IDataResult<PostDto>> GalleryImageAddAsync(int postId, List<int> galleryIds);
         Task<IDataResult<PostDto>> PostStatusChangeAsync(int postId, PostStatus postStatus, int userId);
         Task<IDataResult<PostDto>> DeleteAsync(int postId);
-        Task<int> PublishStatusCountAsync(SubObjectType postType, PostStatus? postStatus);
         Task<IDataResult<int>> CountByNonDeletedAsync();
         Task<IDataResult<PostListDto>> GetAllByViewCountAsync(bool isAscending, int? takeSize);
         Task<IDataResult<PostListDto>> GetAllByPagingAsync(string categoryGuid, string tagGuid, int currentPage = 1, int pageSize = 5,

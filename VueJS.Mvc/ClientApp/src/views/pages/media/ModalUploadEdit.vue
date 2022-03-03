@@ -198,6 +198,7 @@
                     }
                 }).then((response) => {
                     console.log(response.data);
+                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Id;
                     this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.AltText;
                     this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.ContentType;
                     this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.CreatedDate;
@@ -229,7 +230,6 @@
                         this.sizeConvert = size + " Bayt";
                     }
 
-                    this.uploadUpdateDto.Id = this.uploadId;
                     this.uploadIndex = this.uploadIds.indexOf(this.uploadUpdateDto.Id);
                     this.isDisabledPreviousButton = this.uploadIndex == 0 ? true : false;
                     this.isDisabledNextButton = this.uploadIndex == this.uploadIds.length - 1 ? true : false;
@@ -241,6 +241,7 @@
                         uploadId: id
                     }
                 }).then((response) => {
+                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Id;
                     this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.AltText;
                     this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.ContentType;
                     this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.CreatedDate;

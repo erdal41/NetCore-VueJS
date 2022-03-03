@@ -283,7 +283,7 @@
                 this.changeDeleteRow();
             },
             changeReadRow() {
-                if (this.checkedRoleRead.length == 8) {
+                if (this.checkedRoleRead.length == 9) {
                     this.selectMultiReadCheck = 'true';
                 }
                 else {

@@ -1,4 +1,6 @@
-﻿namespace VueJS.Services.Utilities
+﻿using VueJS.Entities.ComplexTypes;
+
+namespace VueJS.Services.Utilities
 {
     public static class Messages
     {
@@ -22,7 +24,7 @@
         {
             public static string NotFound(bool isPlural)
             {
-                if (isPlural) return "Hiç bir kategori bulunamadı.";
+                if (isPlural) return "Hiçbir kategori bulunamadı.";
                 return "Böyle bir kategori bulunamadı.";
             }
 
@@ -56,7 +58,7 @@
         {
             public static string NotFound(bool isPlural)
             {
-                if (isPlural) return "Hiç bir etiket bulunamadı.";
+                if (isPlural) return "Hiçbir etiket bulunamadı.";
                 return "Böyle bir etiket bulunamadı.";
             }
 
@@ -173,13 +175,8 @@
         {
             public static string NotFound(bool isPlural)
             {
-                if (isPlural) return "Hiç bir yorum bulunamadı.";
+                if (isPlural) return "Hiçbir yorum bulunamadı.";
                 return "Böyle bir yorum bulunamadı.";
-            }
-
-            public static string Approve(int commentId)
-            {
-                return $"{commentId} no'lu yorum onaylandı.";
             }
 
             public static string Add(string createdByName)
@@ -192,9 +189,14 @@
                 return $"{createdByName} tarafından eklenen yorum güncellendi.";
             }
 
-            public static string Trash()
+            public static string CommentStatusChange(CommentStatus commentStatus, int commentId)
             {
-                return "Yorum çöp kutusuna gönderildi.";
+                if (commentStatus == CommentStatus.approved)
+                    return $"{commentId} no'lu yorum onaylandı.";
+                else if (commentStatus == CommentStatus.moderated)
+                    return $"{commentId} no'lu yorum onay için bekleyeme alındı.";
+                else
+                    return $"{commentId} no'lu yorum çöp kutusuna gönderildi.";
             }
 
             public static string MultiTrash(int count)
@@ -227,7 +229,7 @@
         {
             public static string NotFound(bool isPlural)
             {
-                if (isPlural) return "Hiç bir medya dosyası bulunamadı.";
+                if (isPlural) return "Hiçbir medya dosyası bulunamadı.";
                 return "Böyle bir medya dosyası bulunamadı.";
             }
 
@@ -251,7 +253,7 @@
         {
             public static string NotFound(bool isPlural)
             {
-                if (isPlural) return "Hiç bir url bulunamadı.";
+                if (isPlural) return "Hiçbir url bulunamadı.";
                 return "Böyle bir url bulunamadı.";
             }
 
@@ -339,7 +341,7 @@
         {
             public static string NotFound(bool isPlural)
             {
-                if (isPlural) return "Gönderi bulunamadı.";
+                if (isPlural) return "Hiçbir gönderi bulunamadı.";
                 return "Böyle bir gönderi bulunamadı.";
             }
 
@@ -363,49 +365,24 @@
                 return "Bu gönderi linki zaten mevcut, lütfen linki değiştiriniz.";
             }
 
-            public static string Add(string productTitle)
+            public static string Add(string postTitle)
             {
-                return $"{productTitle} başlıklı gönderi eklendi.";
+                return $"{postTitle} başlıklı gönderi eklendi.";
             }
 
-            public static string Update(string productTitle)
+            public static string Update(string postTitle)
             {
-                return $"{productTitle} başlıklı gönderi güncellendi.";
+                return $"{postTitle} başlıklı gönderi güncellendi.";
             }
 
-            public static string Publish(string productTitle)
+            public static string PostStatusChange(PostStatus postStatus, string postTitle)
             {
-                return $"{productTitle} başlıklı gönderi yayınlandı.";
-            }
-
-            public static string MultiPublish(int count)
-            {
-                return $"{count} adet gönderi yayınlandı.";
-            }
-
-            public static string MultiDraft(int count)
-            {
-                return $"{count} adet gönderi taslak olarak kaydedildi.";
-            }
-
-            public static string Trash(string productTitle)
-            {
-                return $"{productTitle} başlıklı gönderi çöp kutusuna gönderildi.";
-            }
-
-            public static string MultiTrash(int count)
-            {
-                return $"{count} adet gönderi çöp kutusuna gönderildi.";
-            }
-
-            public static string UnTrash(string productTitle)
-            {
-                return $"{productTitle} başlıklı gönderi çöp kutusundan geri getirildi.";
-            }
-
-            public static string MultiUnTrash(int count)
-            {
-                return $"{count} adet gönderi çöp kutusundan geri alındı.";
+                if (postStatus == PostStatus.publish)
+                    return $"{postTitle} başlıklı gönderi yayınlandı.";
+                else if (postStatus == PostStatus.draft)
+                    return $"{postTitle} başlıklı gönderi taslak olarak kaydedildi.";
+                else
+                    return $"{postTitle} başlıklı gönderi çöp kutusuna gönderildi.";
             }
 
             public static string Delete(string productTitle)
@@ -428,7 +405,7 @@
         {
             public static string NotFound(bool isPlural)
             {
-                if (isPlural) return "Hiç bir terim bulunamadı.";
+                if (isPlural) return "Hiçbir terim bulunamadı.";
                 return "Böyle bir terim bulunamadı.";
             }
 

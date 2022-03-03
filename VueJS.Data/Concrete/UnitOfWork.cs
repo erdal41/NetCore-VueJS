@@ -17,6 +17,7 @@ namespace VueJS.Data.Concrete
         private SeoObjectSettingRepository _seoObjectSettingRepository;
         private SeoGeneralSettingRepository _seoGeneralSettingRepository;
         private UrlRedirectRepository _urlRedirectRepository;
+        private CommentRepository _commentRepository;
 
         public UnitOfWork(WebAppContext context)
         {
@@ -32,6 +33,7 @@ namespace VueJS.Data.Concrete
         public ISeoObjectSettingRepository SeoObjectSettings => _seoObjectSettingRepository ??= new SeoObjectSettingRepository(_context);
         public ISeoGeneralSettingRepository SeoGeneralSettings => _seoGeneralSettingRepository ??= new SeoGeneralSettingRepository(_context);
         public IUrlRedirectRepository UrlRedirects => _urlRedirectRepository ??= new UrlRedirectRepository(_context);
+        public ICommentRepository Comments => _commentRepository ??= new CommentRepository(_context);
 
         public async Task<int> SaveAsync()
         {

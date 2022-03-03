@@ -820,98 +820,112 @@
             getData() {
                 axios.get('/admin/post-edit?postId=' + this.$route.query.edit)
                     .then((response) => {
-                        if (response.data.PostUpdateDto.PostType !== 0) {
-                            this.doHaveData = false;
-                        } else {
-                            this.parentPostName = "";
-                            if (response.data.PostUpdateDto != null) {
-                                if (response.data.PostUpdateDto.PostStatus == 2) {
-                                    this.isTrashedPost = true;
-                                    this.doHaveData = true;
+                        console.log(response.data)
+                        if (response.data.PostUpdateDto.ResultStatus === 0) {
+                            if (response.data.PostUpdateDto.Data.PostType !== 0) {
+                                this.doHaveData = false;
+                            } else {
+                                this.parentPostName = "";
+                                if (response.data.PostUpdateDto != null) {
+                                    if (response.data.PostUpdateDto.Data.PostStatus == 2) {
+                                        this.isTrashedPost = true;
+                                        this.doHaveData = true;
+                                    }
+                                    else {
+                                        this.doHaveData = true;
+                                        this.isTrashedPost = false;
+
+                                        if (response.data.PostUpdateDto.Data.Parents != null) {
+                                            for (var i = response.data.PostUpdateDto.Data.Parents.length - 1; i >= 0; --i) {
+                                                this.parentPostName += "/" + response.data.PostUpdateDto.Data.Parents[i].PostName
+                                            }
+                                        }
+
+                                        this.postUpdateDto.PostStatus = response.data.PostUpdateDto.PostStatus;
+                                        this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
+                                        this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
+                                        this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
+                                        this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
+
+                                        this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.IsShowFeaturedImage;
+                                        if (response.data.PostUpdateDto.FeaturedImage != null) {
+                                            this.featuredImage.id = response.data.PostUpdateDto.FeaturedImageId;
+                                            this.featuredImage.fileName = response.data.PostUpdateDto.FeaturedImage.FileName;
+                                            this.featuredImage.altText = response.data.PostUpdateDto.FeaturedImage.AltText;
+                                        }
+
+                                        this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
+                                        this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
+                                        this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
+                                        this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
+                                        this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
+                                        this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.IsRobotsNoFollow;
+                                        this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.IsRobotsNoArchive;
+                                        this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoImageIndex;
+                                        this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.IsRobotsNoSnippet;
+
+                                        this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.SchemaPageType;
+                                        this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.SchemaArticleType;
+
+                                        this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
+                                        this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
+
+                                        this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
+                                        this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
+
+                                        this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
+
+                                        if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
+                                            this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
+                                            this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
+                                            this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
+                                        }
+
+                                        if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
+                                            this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
+                                            this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
+                                            this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
+                                        }
+
+                                        this.isParent = true;
+                                        this.postUpdateDto.ParentId = response.data.PostUpdateDto.ParentId;
+                                        if (response.data.PostUpdateDto.Parent != null) {
+                                            this.selected = {
+                                                Id: response.data.PostUpdateDto.Parent.Id,
+                                                Name: response.data.PostUpdateDto.Parent.Name,
+                                            }
+                                        }
+
+                                        if (response.data.PostUpdateDto.Children.length > 0) {
+                                            response.data.PostUpdateDto.Children.forEach((childPost, index) => {
+                                                this.currentSelectedSubPosts.push(childPost.Id);
+                                                this.subPosts.push(childPost.Id);
+                                            });
+                                        }
+
+                                        if (response.data.PostUpdateDto.PostStatus == 0) {
+                                            this.saveButtonText = "Güncelle";
+                                        } else if (response.data.PostUpdateDto.PostStatus == 1) {
+                                            this.saveButtonText = "Yayınla";
+                                        }
+                                    }
                                 }
                                 else {
-                                    this.doHaveData = true;
+                                    this.doHaveData = false;
                                     this.isTrashedPost = false;
-
-                                    if (response.data.PostUpdateDto.Parents != null) {
-                                        for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
-                                            this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
-                                        }
-                                    }
-
-                                    this.postUpdateDto.PostStatus = response.data.PostUpdateDto.PostStatus;
-                                    this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
-                                    this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
-                                    this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
-                                    this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
-
-                                    this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.IsShowFeaturedImage;
-                                    if (response.data.PostUpdateDto.FeaturedImage != null) {
-                                        this.featuredImage.id = response.data.PostUpdateDto.FeaturedImageId;
-                                        this.featuredImage.fileName = response.data.PostUpdateDto.FeaturedImage.FileName;
-                                        this.featuredImage.altText = response.data.PostUpdateDto.FeaturedImage.AltText;
-                                    }
-
-                                    this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
-                                    this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
-                                    this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
-                                    this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.IsRobotsNoFollow;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.IsRobotsNoArchive;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoImageIndex;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.IsRobotsNoSnippet;
-
-                                    this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.SchemaPageType;
-                                    this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.SchemaArticleType;
-
-                                    this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
-                                    this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
-
-                                    this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
-                                    this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
-
-                                    this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
-
-                                    if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
-                                        this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
-                                        this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
-                                        this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
-                                    }
-
-                                    if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
-                                        this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
-                                        this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
-                                        this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
-                                    }
-
-                                    this.isParent = true;
-                                    this.postUpdateDto.ParentId = response.data.PostUpdateDto.ParentId;
-                                    if (response.data.PostUpdateDto.Parent != null) {
-                                        this.selected = {
-                                            Id: response.data.PostUpdateDto.Parent.Id,
-                                            Name: response.data.PostUpdateDto.Parent.Name,
-                                        }
-                                    }
-
-                                    if (response.data.PostUpdateDto.Children.length > 0) {
-                                        response.data.PostUpdateDto.Children.forEach((childPost, index) => {
-                                            this.currentSelectedSubPosts.push(childPost.Id);
-                                            this.subPosts.push(childPost.Id);
-                                        });
-                                    }
-
-                                    if (response.data.PostUpdateDto.PostStatus == 0) {
-                                        this.saveButtonText = "Güncelle";
-                                    } else if (response.data.PostUpdateDto.PostStatus == 1) {
-                                        this.saveButtonText = "Yayınla";
-                                    }
                                 }
                             }
-                            else {
-                                this.doHaveData = false;
-                                this.isTrashedPost = false;
-                            }
+                        }
+                        else {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Hata Oluştu!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: response.data.PostUpdateDto.Message,
+                                }
+                            })
                         }
                     })
                     .catch((error) => {
