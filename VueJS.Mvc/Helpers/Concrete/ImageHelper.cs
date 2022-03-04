@@ -94,10 +94,11 @@ namespace VueJS.Mvc.Helpers.Concrete
             }
         }
 
-        public IDataResult<FileDeleteDto> Delete(string uploadFileName)
+        public async Task<IDataResult<FileDeleteDto>> Delete(int uploadId)
         {
+            var upload = await _uploadService.GetAsync(uploadId);
             string dosyaYolu = $"{_domainPath}/{mediaFolder}";
-            var fileToDelete = Path.Combine(dosyaYolu, uploadFileName);
+            var fileToDelete = Path.Combine(dosyaYolu, upload.Data.Upload.FileName);
 
             if (File.Exists(fileToDelete))
             {
@@ -105,7 +106,7 @@ namespace VueJS.Mvc.Helpers.Concrete
 
                 var imageDeletedDto = new FileDeleteDto
                 {
-                    FileFullName = uploadFileName,
+                    FileFullName = upload.Data.Upload.FileName,
                     Extension = fileInfo.Extension,
                     Path = fileInfo.FullName,
                     Size = fileInfo.Length,

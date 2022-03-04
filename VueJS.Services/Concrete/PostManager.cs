@@ -320,7 +320,7 @@ namespace VueJS.Services.Concrete
             if (oldPost == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.NotFound(false), null);
 
             var posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == oldPost.PostName || p.PostName == postUpdateDto.PostName);
-            if (posts.Count != 1 || posts.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.UrlCheck(), null);
+            if (posts.Count >= 1 && posts.Count <= 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.UrlCheck(), null);
 
             var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
             post.UserId = userId;

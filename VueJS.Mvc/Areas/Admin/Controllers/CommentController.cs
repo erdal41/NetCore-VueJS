@@ -1,17 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
 using VueJS.Entities.Dtos;
 using VueJS.Mvc.Areas.Admin.Models;
-using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Services.Abstract;
-using VueJS.Shared.Utilities.Extensions;
-using VueJS.Shared.Utilities.Results.ComplexTypes;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
@@ -51,27 +45,22 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpGet("/admin/comment-edit")]
         public async Task<JsonResult> Edit(int commentId)
         {
-            return Json(await _commentService.GetCommentUpdateDtoAsync(commentId));
+            var result = await _commentService.GetCommentUpdateDtoAsync(commentId);
+            return Json(new CommentViewModel { CommentUpdateDto = result });
         }
 
         [HttpPost("/admin/comment-edit")]
-        public async Task<JsonResult> Edit(CommentViewModel commentViewModel)
+        public async Task<JsonResult> Edit(CommentUpdateDto commentUpdateDto)
         {
-            var result = await _commentService.UpdateAsync(commentViewModel.CommentUpdateDto.Data, LoggedInUser.Id);
-            return Json(new CommentViewModel
-            {
-                CommentDto = result,
-            });
+            var result = await _commentService.UpdateAsync(commentUpdateDto, LoggedInUser.Id);
+            return Json(new CommentViewModel { CommentDto = result });
         }
 
         [HttpPost("/admin/comment-commentstatuschange")]
         public async Task<JsonResult> CommentStatusChange(int commentId, CommentStatus commentStatus)
         {
             var result = await _commentService.CommentStatusChangeAsync(commentId, commentStatus, LoggedInUser.Id);
-            return Json(new CommentViewModel
-            {
-                CommentDto = result,
-            });
+            return Json(new CommentViewModel { CommentDto = result });
         }
 
         [HttpPost("/admin/comment-delete")]

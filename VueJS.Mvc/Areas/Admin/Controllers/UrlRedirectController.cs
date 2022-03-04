@@ -6,6 +6,7 @@ using VueJS.Mvc.Areas.Admin.Models;
 using VueJS.Services.Abstract;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using VueJS.Entities.Dtos;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -24,35 +25,25 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpGet("/admin/urlredirect-allurlredirects")]
         public async Task<JsonResult> AllUrlRedirects()
         {
-            return Json(await _urlRedirectService.GetAllAsync());
+            return Json(new UrlRedirectViewModel { UrlRedirectListDto = await _urlRedirectService.GetAllAsync() });
         }
 
         [HttpPost("/admin/urlredirect-new")]
-        public async Task<JsonResult> New(UrlRedirectViewModel urlRedirectViewModel)
+        public async Task<JsonResult> New(UrlRedirectAddDto urlRedirectAddDto)
         {
-            var result = await _urlRedirectService.AddAsync(urlRedirectViewModel.UrlRedirectAddDto, LoggedInUser.Id);
-            var urlRedirectViewModelJson = new UrlRedirectViewModel
-            {
-                UrlRedirectDto = result.Data,
-            };
-            return Json(urlRedirectViewModelJson);
+            return Json(new UrlRedirectViewModel { UrlRedirectDto = await _urlRedirectService.AddAsync(urlRedirectAddDto, LoggedInUser.Id) });
         }
 
         [HttpGet("/admin/urlredirect-edit")]
         public async Task<JsonResult> Edit(int urlRedirectId)
         {
-            return Json(await _urlRedirectService.GetUrlRedirectUpdateDtoAsync(urlRedirectId));
+            return Json(new UrlRedirectViewModel { UrlRedirectUpdateDto = await _urlRedirectService.GetUrlRedirectUpdateDtoAsync(urlRedirectId) });
         }
 
         [HttpPost("/admin/urlredirect-edit")]
-        public async Task<JsonResult> Edit(UrlRedirectViewModel urlRedirectViewModel)
+        public async Task<JsonResult> Edit(UrlRedirectUpdateDto urlRedirectUpdateDto)
         {
-            var result = await _urlRedirectService.UpdateAsync(urlRedirectViewModel.UrlRedirectUpdateDto, LoggedInUser.Id);
-            var urlRedirectViewModelJson = new UrlRedirectViewModel
-            {
-                UrlRedirectDto = result.Data
-            };
-            return Json(urlRedirectViewModelJson);
+            return Json(new UrlRedirectViewModel { UrlRedirectDto = await _urlRedirectService.UpdateAsync(urlRedirectUpdateDto, LoggedInUser.Id) });
         }
 
         [HttpPost("/admin/urlredirect-delete")]

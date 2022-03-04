@@ -42,20 +42,17 @@ namespace VueJS.Data.Concrete.EntityFramework.Contexts
 
 
             // TERM
-            modelBuilder.Entity<Term>().HasOne<Term>().WithMany(t => t.Children);
-            modelBuilder.Entity<Term>().HasOne(t => t.Parent).WithMany().HasForeignKey(t => t.ParentId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Term>().HasMany(t => t.Children).WithOne(t => t.Parent).HasForeignKey(t => t.ParentId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<PostTerm>().HasOne(pt => pt.Term).WithMany(t => t.PostTerms).HasForeignKey(pt => pt.TermId).OnDelete(DeleteBehavior.Cascade);
 
             // POST
-            modelBuilder.Entity<Post>().HasOne<Post>().WithMany(p => p.Children);
-            modelBuilder.Entity<Post>().HasOne(p => p.Parent).WithMany().HasForeignKey(p => p.ParentId).OnDelete(DeleteBehavior.Restrict); ;
+            modelBuilder.Entity<Post>().HasMany(p => p.Children).WithOne(p => p.Parent).HasForeignKey(p => p.ParentId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<PostTerm>().HasOne(pt => pt.Post).WithMany(p => p.PostTerms).HasForeignKey(pt => pt.PostId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Gallery>().HasOne(g => g.Post).WithMany(p => p.Galleries).HasForeignKey(g => g.PostId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Comment>().HasOne(c => c.Post).WithMany(p => p.Comments).HasForeignKey(c => c.PostId).OnDelete(DeleteBehavior.Cascade);
 
-            // COMMENT
-            modelBuilder.Entity<Comment>().HasOne<Comment>().WithMany(c => c.Children);
-            modelBuilder.Entity<Comment>().HasMany<Comment>().WithOne(c => c.Parent).HasForeignKey(c => c.ParentId).OnDelete(DeleteBehavior.Restrict);
+            // COMMENT            
+            modelBuilder.Entity<Comment>().HasMany(c => c.Children).WithOne(c => c.Parent).HasForeignKey(c => c.ParentId).OnDelete(DeleteBehavior.Restrict);
             #endregion
 
             #region ONE TO ONE

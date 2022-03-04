@@ -5,7 +5,6 @@ namespace VueJS.Mvc.Areas.Admin.Models
 {
     public class CommentViewModel
     {
-        public CommentAddDto CommentAddDto { get; set; }
         public IDataResult<CommentDto> CommentDto { get; set; }
         public IDataResult<CommentListDto> CommentListDto { get; set; }
         public IDataResult<CommentUpdateDto> CommentUpdateDto { get; set; }

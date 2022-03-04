@@ -1,13 +1,12 @@
 ﻿using VueJS.Entities.Dtos;
+using VueJS.Shared.Utilities.Results.Abstract;
 
 namespace VueJS.Mvc.Areas.Admin.Models
 {
     public class UrlRedirectViewModel
     {
-        public UrlRedirectAddDto UrlRedirectAddDto { get; set; }
-        public UrlRedirectDto UrlRedirectDto { get; set; }
-
-        public UrlRedirectUpdateDto UrlRedirectUpdateDto { get; set; }
-        public string UrlRedirectUpdatePartial { get; set; }
+        public IDataResult<UrlRedirectDto> UrlRedirectDto { get; set; }
+        public IDataResult<UrlRedirectListDto> UrlRedirectListDto { get; set; }
+        public IDataResult<UrlRedirectUpdateDto> UrlRedirectUpdateDto { get; set; }
     }
 }

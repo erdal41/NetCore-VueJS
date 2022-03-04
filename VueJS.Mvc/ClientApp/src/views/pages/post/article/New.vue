@@ -63,9 +63,43 @@
                                                       v-model="postAddDto.Title"
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
-                                                      placeholder="Başlık" />
+                                                      placeholder="Başlık"
+                                                      @blur="changePostName" />
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
+                                </b-form-group>
+                                <b-form-group v-if="isShowPostName">
+                                    <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postAddDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postAddDto.PostName }}</span></a>
+                                    <b-button v-if="isSlugEditActive == false"
+                                              v-b-tooltip.hover
+                                              title="Gönderinin linkini değiştirmenizi sağlar."
+                                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                              variant="outline-primary"
+                                              size="sm"
+                                              class="ml-1"
+                                              @click="postNameEdit">
+                                        Düzenle
+                                    </b-button>
+                                    <div v-show="isSlugEditActive == true"
+                                         class="card-border p-1">
+                                        <b-form-input type="text"
+                                                      v-model="postAddDto.PostName"
+                                                      placeholder="Gönderi Linki"
+                                                      size="sm">
+                                        </b-form-input>
+                                        <b-button variant="primary"
+                                                  class="mt-1"
+                                                  size="sm"
+                                                  @click="isSlugEditActive = !isSlugEditActive">
+                                            Tamam
+                                        </b-button>
+                                        <b-button variant="flat-secondary"
+                                                  size="sm"
+                                                  class="ml-1 mt-1"
+                                                  @click="postNameEditCancel">
+                                            İptal
+                                        </b-button>
+                                    </div>
                                 </b-form-group>
                                 <quill-editor v-model="postAddDto.Content"
                                               :options="editorOption" />
@@ -302,7 +336,7 @@
                               label="Name"
                               :reduce="(option) => option.Id"
                               placeholder="Kategori Seçiniz..."
-                              taggable 
+                              taggable
                               multiple
                               @input="changeCategory" />
                 </b-form-group>
@@ -528,7 +562,13 @@
                 required,
                 isSpinnerShow: true,
                 title: '',
+                isShowPostName: false,
+                domainName: window.location.origin,
+                parentPostName: '',
+                isSlugEditActive: false,
+                oldPostName: '',
                 postAddDto: {
+                    PostName: '',
                     Title: '',
                     Content: '',
                     PostType: 'article',
@@ -610,16 +650,77 @@
             }
         },
         methods: {
+            postNameEdit() {
+                this.isSlugEditActive = true;
+                this.oldPostName = this.postAddDto.PostName;
+            },
+            postNameEditCancel() {
+                this.isSlugEditActive = false;
+                this.postAddDto.PostName = this.oldPostName;
+            },
+            changePostName() {
+                this.isShowPostName = true;
+                this.friendlySEOUrl(this.postAddDto.Title);
+                console.log(this.friendlySEOUrl(this.postAddDto.Title));
+            },
+            friendlySEOUrl(url) {
+                if (url) return '';
+                console.log('url')
+                console.log(url)
+                url = url.toString();
+
+                if (url.length > 100) {
+                    url = url.substring(0, 100);
+                }
+
+                url = url.replace("İ", "I");
+                url = url.replace("ı", "i");
+                url = url.replace("ğ", "g");
+                url = url.replace("Ğ", "G");
+                url = url.replace("ç", "c");
+                url = url.replace("Ç", "C");
+                url = url.replace("ö", "o");
+                url = url.replace("Ö", "O");
+                url = url.replace("ş", "s");
+                url = url.replace("Ş", "S");
+                url = url.replace("ü", "u");
+                url = url.replace("Ü", "U");
+                url = url.replace("'", "");
+                url = url.replace("\"", "");
+
+                var chars = '$%#@!*?;:~`+=()[]{}|\'<>,/^&"".';
+                var charArray = chars.split('');
+                console.log('aarray');
+                console.log(charArray)
+                for (var i = 0; i < charArray.length; i++) {
+                    var strChr = charArray[i].toString();
+                    if (url.Contains(strChr)) {
+                        url = url.replace(strChr, '');
+                    }
+                }
+
+                url = url.normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/\s+/g, '-')
+                    .toLowerCase()
+                    .trim()
+                    .replace(/&/g, '-and-')
+                    .replace(/[^a-z0-9\-]/g, '')
+                    .replace(/-+/g, '-')
+                    .replace(/^-*/, '')
+                    .replace(/-*$/, '');
+                return url;
+            },
             allCategories() {
                 axios.get('/admin/term-allterms', {
                     params: {
-                        term_type: 'category'
+                        termType: 'category'
                     }
                 })
                     .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.categories = response.data.Terms;
-                            this.allParentTerms = response.data.Terms;
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.categories = response.data.TermListDto.Data.Terms;
+                            this.allParentTerms = response.data.TermListDto.Data.Terms;
                         }
                     })
                     .catch((error) => {
@@ -637,12 +738,12 @@
             allTags() {
                 axios.get('/admin/term-allterms', {
                     params: {
-                        term_type: 'tag'
+                        termType: 'tag'
                     }
                 })
                     .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.tags = response.data.Terms;
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.tags = response.data.TermListDto.Data.Terms;
                         }
                     })
                     .catch((error) => {
@@ -717,7 +818,7 @@
                 }
             },
             getSchnemaPageType() {
-                axios.get('/admin/post-schnemapagetype')
+                axios.get('/admin/post-getschnemapagetype')
                     .then((response) => {
                         this.schnemaPageTypes = response.data;
                     })
@@ -734,7 +835,7 @@
                     });
             },
             getSchnemaArticleType() {
-                axios.get('/admin/post-schnemaarticletype')
+                axios.get('/admin/post-getschnemapagetype')
                     .then((response) => {
                         this.schnemaArticleTypes = response.data;
                     })
@@ -779,7 +880,7 @@
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
 
-                                    this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
+                                    this.postTermAddDto.PostId = response.data.PostDto.Data.Post.Id;
                                     if (this.selectedCategory.length > 0) {
                                         for (var i = 0; i < this.selectedCategory.length; i++) {
                                             this.postTermAddDto.TermId = this.selectedCategory[i];

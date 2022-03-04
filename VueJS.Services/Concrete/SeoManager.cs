@@ -87,10 +87,10 @@ namespace VueJS.Services.Concrete
             return new DataResult<SeoObjectSettingUpdateDto>(ResultStatus.Success, seoObjectSettingUpdateDto);
         }
 
-        public async Task<IResult> SeoObjectSettingUpdateAsync(int objectId, SubObjectType subSeoObjectType, SeoObjectSettingUpdateDto seoObjectSettingUpdateDto, int userId)
+        public async Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingUpdateAsync(int objectId, SubObjectType subSeoObjectType, SeoObjectSettingUpdateDto seoObjectSettingUpdateDto, int userId)
         {
             var oldSeoObjectSetting = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.SubObjectType == subSeoObjectType);
-            if (oldSeoObjectSetting == null) return new Result(ResultStatus.Error, "Seo ayarları güncellenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.");
+            if (oldSeoObjectSetting == null) return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, "Seo ayarları güncellenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
 
             var seoObjectSetting = Mapper.Map<SeoObjectSettingUpdateDto, SeoObjectSetting>(seoObjectSettingUpdateDto, oldSeoObjectSetting);
             seoObjectSetting.SubObjectType = subSeoObjectType;
@@ -98,7 +98,7 @@ namespace VueJS.Services.Concrete
             seoObjectSetting.ModifiedDate = DateTime.Now;
             var updatedSeoSetting = await UnitOfWork.SeoObjectSettings.UpdateAsync(seoObjectSetting);
             await UnitOfWork.SaveAsync();
-            return new DataResult<SeoObjectSetting>(ResultStatus.Success, seoObjectSetting);
+            return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, new SeoObjectSettingDto { SeoObjectSetting = seoObjectSetting });
         }
 
         public async Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingAddAsync(ObjectType seoObjectType, SubObjectType subSeoObjectType, int objectId, SeoObjectSettingAddDto seoObjectSettingAddDto, int userId)

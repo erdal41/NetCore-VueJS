@@ -9,7 +9,6 @@ namespace VueJS.Mvc.Helpers.Abstract
     public interface IImageHelper
     {
         Task<IDataResult<UploadDto>> Upload(IFormFile file, int userId);
-
-        IDataResult<FileDeleteDto> Delete(string uploadFileName);
+        Task<IDataResult<FileDeleteDto>> Delete(int uploadId);
     }
 }

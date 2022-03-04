@@ -57,7 +57,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 PhoneNumberConfirmed = true,
                 SecurityStamp = Guid.NewGuid().ToString()
             };
-            adminUser.PasswordHash = CreatePasswordHash(adminUser, "adminuser");
+            adminUser.PasswordHash = CreatePasswordHash(adminUser, "Erdal4157+");
             builder.HasData(adminUser);
         }
 

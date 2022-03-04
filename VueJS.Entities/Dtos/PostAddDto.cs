@@ -50,7 +50,7 @@ namespace VueJS.Entities.Dtos
         
         [DisplayName("Ürünün alt ürünleri gösterilsin mi?")]
         [Required]
-        public bool IsShowSubProducts { get; set; }
+        public bool IsShowSubPosts { get; set; }
 
 
         public Post Parent { get; set; }

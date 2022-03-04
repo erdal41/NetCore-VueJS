@@ -1,10 +1,10 @@
 ﻿using VueJS.Entities.Dtos;
+using VueJS.Shared.Utilities.Results.Abstract;
 
 namespace VueJS.Mvc.Areas.Admin.Models
 {
     public class GalleryViewModel
     {
-        public GalleryAddDto GalleryAddDto { get; set; }
-        public GalleryDto GalleryDto { get; set; }
+        public IDataResult<GalleryDto> GalleryDto { get; set; }
     }
 }

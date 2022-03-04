@@ -305,6 +305,14 @@
             </b-card-actions>
             <b-card-actions title="Resim"
                             action-collapse>
+                <b-form-group>
+                    <b-form-checkbox v-model="postAddDto.IsShowFeaturedImage"
+                                     name="check-button"
+                                     switch
+                                     inline>
+                        Görsel gönderide gösterilsin mi?
+                    </b-form-checkbox>
+                </b-form-group>
                 <div class="image-thumb">
                     <b-img rounded
                            v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
@@ -498,9 +506,8 @@
                         }
                     })
                     .then((response) => {
-                        console.log(response.data);
-                        if (response.data.ResultStatus === 0) {
-                            this.topPosts = response.data.Data.Posts;
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.topPosts = response.data.PostListDto.Data.Posts;
                         }
                     })
                     .catch((error) => {
