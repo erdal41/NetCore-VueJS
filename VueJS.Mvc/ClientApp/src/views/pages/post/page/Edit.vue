@@ -101,7 +101,8 @@
                                                               v-model="postUpdateDto.Title"
                                                               :state="errors.length > 0 ? false:null"
                                                               type="text"
-                                                              placeholder="Başlık" />
+                                                              placeholder="Başlık" 
+                                                              @blur="changePostName"/>
                                                 <small class="text-danger">{{ errors[0] }}</small>
                                             </validation-provider>
 
@@ -115,7 +116,7 @@
                                                       variant="outline-primary"
                                                       size="sm"
                                                       class="ml-1"
-                                                      @click="postNameEdit">
+                                                      @click="isSlugEditActive = !isSlugEditActive">
                                                 Düzenle
                                             </b-button>
                                             <div v-show="isSlugEditActive == true"
@@ -128,7 +129,7 @@
                                                 <b-button variant="primary"
                                                           class="mt-1"
                                                           size="sm"
-                                                          @click="isSlugEditActive = !isSlugEditActive">
+                                                          @click="postNameEdit">
                                                     Tamam
                                                 </b-button>
                                                 <b-button variant="flat-secondary"
@@ -484,6 +485,7 @@
     import ModalMedia from '../../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import UrlHelper from '@/helper/url-helper';
 
     extend('required', {
         ...required,
@@ -635,12 +637,18 @@
         },
         methods: {
             postNameEdit() {
-                this.isSlugEditActive = true;
                 this.oldPostName = this.postUpdateDto.PostName;
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postUpdateDto.PostName);
+                this.postUpdateDto.PostName = seoPostName;
+                this.isSlugEditActive = false;
             },
             postNameEditCancel() {
                 this.isSlugEditActive = false;
                 this.postUpdateDto.PostName = this.oldPostName;
+            },
+            changePostName() {
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postUpdateDto.Title);
+                this.postUpdateDto.PostName = seoPostName;
             },
             allTopPosts() {
                 axios.get('/admin/post-alltopposts',

@@ -53,7 +53,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             });
         }
 
-        [HttpPost("/admin/term/newpostterm")]
+        [HttpPost("/admin/term-newpostterm")]
         public async Task<JsonResult> NewPostTerm(PostTermAddDto postTermAddDto)
         {
             return Json(new PostTermViewModel { PostTermDto = await _termService.PostTermAddAsync(postTermAddDto) });

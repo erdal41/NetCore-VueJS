@@ -77,7 +77,7 @@
                                               variant="outline-primary"
                                               size="sm"
                                               class="ml-1"
-                                              @click="postNameEdit">
+                                              @click="isSlugEditActive = !isSlugEditActive">
                                         Düzenle
                                     </b-button>
                                     <div v-show="isSlugEditActive == true"
@@ -90,7 +90,7 @@
                                         <b-button variant="primary"
                                                   class="mt-1"
                                                   size="sm"
-                                                  @click="isSlugEditActive = !isSlugEditActive">
+                                                  @click="postNameEdit">
                                             Tamam
                                         </b-button>
                                         <b-button variant="flat-secondary"
@@ -496,6 +496,7 @@
     import ModalMedia from '../../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import UrlHelper from '@/helper/url-helper';
 
     extend('required', {
         ...required,
@@ -650,66 +651,25 @@
             }
         },
         methods: {
-            postNameEdit() {
-                this.isSlugEditActive = true;
+            postNameEdit() {               
                 this.oldPostName = this.postAddDto.PostName;
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.PostName);
+                this.postAddDto.PostName = seoPostName;
+                this.isSlugEditActive = false;
             },
             postNameEditCancel() {
                 this.isSlugEditActive = false;
                 this.postAddDto.PostName = this.oldPostName;
             },
             changePostName() {
-                this.isShowPostName = true;
-                this.friendlySEOUrl(this.postAddDto.Title);
-                console.log(this.friendlySEOUrl(this.postAddDto.Title));
-            },
-            friendlySEOUrl(url) {
-                if (url) return '';
-                console.log('url')
-                console.log(url)
-                url = url.toString();
-
-                if (url.length > 100) {
-                    url = url.substring(0, 100);
+                if (!this.postAddDto.Title) {
+                    this.isShowPostName = false;
                 }
-
-                url = url.replace("İ", "I");
-                url = url.replace("ı", "i");
-                url = url.replace("ğ", "g");
-                url = url.replace("Ğ", "G");
-                url = url.replace("ç", "c");
-                url = url.replace("Ç", "C");
-                url = url.replace("ö", "o");
-                url = url.replace("Ö", "O");
-                url = url.replace("ş", "s");
-                url = url.replace("Ş", "S");
-                url = url.replace("ü", "u");
-                url = url.replace("Ü", "U");
-                url = url.replace("'", "");
-                url = url.replace("\"", "");
-
-                var chars = '$%#@!*?;:~`+=()[]{}|\'<>,/^&"".';
-                var charArray = chars.split('');
-                console.log('aarray');
-                console.log(charArray)
-                for (var i = 0; i < charArray.length; i++) {
-                    var strChr = charArray[i].toString();
-                    if (url.Contains(strChr)) {
-                        url = url.replace(strChr, '');
-                    }
+                else {
+                    this.isShowPostName = true;
+                    var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.Title);
+                    this.postAddDto.PostName = seoPostName;
                 }
-
-                url = url.normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .replace(/\s+/g, '-')
-                    .toLowerCase()
-                    .trim()
-                    .replace(/&/g, '-and-')
-                    .replace(/[^a-z0-9\-]/g, '')
-                    .replace(/-+/g, '-')
-                    .replace(/^-*/, '')
-                    .replace(/-*$/, '');
-                return url;
             },
             allCategories() {
                 axios.get('/admin/term-allterms', {
@@ -903,7 +863,7 @@
                                         }
                                     }
 
-                                    this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } })
+                                    this.$router.push({ name: 'pages-article-edit', query: { edit: response.data.PostDto.Data.Post.Id } })
 
                                     this.$toast({
                                         component: ToastificationContent,

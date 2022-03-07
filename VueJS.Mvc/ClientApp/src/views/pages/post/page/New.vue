@@ -63,9 +63,43 @@
                                                       v-model="postAddDto.Title"
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
-                                                      placeholder="Başlık" />
+                                                      placeholder="Başlık"
+                                                      @blur="changePostName"/>
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
+                                </b-form-group>
+                                <b-form-group v-if="isShowPostName">
+                                    <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postAddDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postAddDto.PostName }}</span></a>
+                                    <b-button v-if="isSlugEditActive == false"
+                                              v-b-tooltip.hover
+                                              title="Gönderinin linkini değiştirmenizi sağlar."
+                                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                              variant="outline-primary"
+                                              size="sm"
+                                              class="ml-1"
+                                              @click="isSlugEditActive = !isSlugEditActive">
+                                        Düzenle
+                                    </b-button>
+                                    <div v-show="isSlugEditActive == true"
+                                         class="card-border p-1">
+                                        <b-form-input type="text"
+                                                      v-model="postAddDto.PostName"
+                                                      placeholder="Gönderi Linki"
+                                                      size="sm">
+                                        </b-form-input>
+                                        <b-button variant="primary"
+                                                  class="mt-1"
+                                                  size="sm"
+                                                  @click="postNameEdit">
+                                            Tamam
+                                        </b-button>
+                                        <b-button variant="flat-secondary"
+                                                  size="sm"
+                                                  class="ml-1 mt-1"
+                                                  @click="postNameEditCancel">
+                                            İptal
+                                        </b-button>
+                                    </div>
                                 </b-form-group>
                                 <quill-editor v-model="postAddDto.Content"
                                               :options="editorOption" />
@@ -374,6 +408,7 @@
     import ModalMedia from '../../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import UrlHelper from '@/helper/url-helper';
 
     extend('required', {
         ...required,
@@ -414,7 +449,7 @@
             ValidationProvider,
             ValidationObserver,
             vSelect,
-            BLink
+            BLink,
         },
         directives: {
             'b-toggle': VBToggle,
@@ -440,7 +475,13 @@
                 required,
                 isSpinnerShow: true,
                 title: '',
+                isShowPostName: false,
+                domainName: window.location.origin,
+                parentPostName: '',
+                isSlugEditActive: false,
+                oldPostName: '',
                 postAddDto: {
+                    PostName: '',
                     Title: '',
                     Content: '',
                     BottomContent: '',
@@ -498,6 +539,26 @@
             }
         },
         methods: {
+            postNameEdit() {
+                this.oldPostName = this.postAddDto.PostName;
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.PostName);
+                this.postAddDto.PostName = seoPostName;
+                this.isSlugEditActive = false;
+            },
+            postNameEditCancel() {
+                this.isSlugEditActive = false;
+                this.postAddDto.PostName = this.oldPostName;
+            },
+            changePostName() {
+                if (!this.postAddDto.Title) {
+                    this.isShowPostName = false;
+                }
+                else {
+                    this.isShowPostName = true;
+                    var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.Title);
+                    this.postAddDto.PostName = seoPostName;
+                }
+            },
             allTopPosts() {
                 axios.get('/admin/post-alltopposts',
                     {

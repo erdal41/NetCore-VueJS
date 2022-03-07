@@ -101,7 +101,8 @@
                                                               v-model="postUpdateDto.Title"
                                                               :state="errors.length > 0 ? false:null"
                                                               type="text"
-                                                              placeholder="Başlık" />
+                                                              placeholder="Başlık"
+                                                              @blur="changePostName" />
                                                 <small class="text-danger">{{ errors[0] }}</small>
                                             </validation-provider>
 
@@ -115,7 +116,7 @@
                                                       variant="outline-primary"
                                                       size="sm"
                                                       class="ml-1"
-                                                      @click="postNameEdit">
+                                                      @click="isSlugEditActive = !isSlugEditActive">
                                                 Düzenle
                                             </b-button>
                                             <div v-show="isSlugEditActive == true"
@@ -128,7 +129,7 @@
                                                 <b-button variant="primary"
                                                           class="mt-1"
                                                           size="sm"
-                                                          @click="isSlugEditActive = !isSlugEditActive">
+                                                          @click="postNameEdit">
                                                     Tamam
                                                 </b-button>
                                                 <b-button variant="flat-secondary"
@@ -366,9 +367,8 @@
                     </b-card-actions>
                 </b-col>
                 <b-col md="12"
-                       lg="4">                  
-                    <b-card
-                            title="Kategori">
+                       lg="4">
+                    <b-card title="Kategori">
                         <b-form-group>
                             <v-select v-model="currentSelectedCategory"
                                       :options="categories"
@@ -421,8 +421,7 @@
                             </b-card>
                         </b-collapse>
                     </b-card>
-                    <b-card 
-                            title="Etiket">
+                    <b-card title="Etiket">
                         <b-form-group>
                             <v-select v-model="currentSelectedTag"
                                       :options="tags"
@@ -508,7 +507,7 @@
                     </b-card-actions>
                     <b-card-actions title="Diğer Ayarlar"
                                     action-collapse
-                                    collapsed>                       
+                                    collapsed>
                         <b-form-group>
                             <b-form-checkbox v-model="postUpdateDto.CommentStatus"
                                              name="check-button"
@@ -560,6 +559,7 @@
     import ModalMedia from '../../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import UrlHelper from '@/helper/url-helper';
 
     extend('required', {
         ...required,
@@ -673,11 +673,6 @@
                 termSeoSettingAddDto: {
                     SeoTitle: ''
                 },
-                postTermAddDto: {
-                    PostId: '',
-                    TermId: '',
-                    TermType: ''
-                },
                 terms: [],
                 categories: [],
                 currentSelectedCategory: [],
@@ -716,12 +711,18 @@
         },
         methods: {
             postNameEdit() {
-                this.isSlugEditActive = true;
                 this.oldPostName = this.postUpdateDto.PostName;
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postUpdateDto.PostName);
+                this.postUpdateDto.PostName = seoPostName;
+                this.isSlugEditActive = false;
             },
             postNameEditCancel() {
                 this.isSlugEditActive = false;
                 this.postUpdateDto.PostName = this.oldPostName;
+            },
+            changePostName() {
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postUpdateDto.Title);
+                this.postUpdateDto.PostName = seoPostName;
             },
             selectingTerms(value) {
                 var selectResult = this.terms.some(termId => termId === value.Id);
@@ -743,12 +744,13 @@
             allCategories() {
                 axios.get('/admin/term-allterms', {
                     params: {
-                        term_type: 'category'
+                        termType: 'category'
                     }
                 })
                     .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.categories = response.data.Terms;
+                        console.log(response.data)
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.categories = response.data.TermListDto.Data.Terms;
                         }
                     })
                     .catch((error) => {
@@ -766,12 +768,12 @@
             allTags() {
                 axios.get('/admin/term-allterms', {
                     params: {
-                        term_type: 'tag'
+                        termType: 'tag'
                     }
                 })
                     .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.tags = response.data.Terms;
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.tags = response.data.TermListDto.Data.Terms;
                         }
                     })
                     .catch((error) => {
@@ -882,13 +884,13 @@
             getData() {
                 axios.get('/admin/post-edit?postId=' + this.$route.query.edit)
                     .then((response) => {
-                        if (response.data.PostUpdateDto.PostType !== 1) {
+                        if (response.data.PostUpdateDto.Data.PostType !== 1) {
                             this.doHaveData = false;
                         }
                         else {
                             this.parentPostName = "";
                             if (response.data.PostUpdateDto != null) {
-                                if (response.data.PostUpdateDto.PostStatus == 2) {
+                                if (response.data.PostUpdateDto.Data.PostStatus == 2) {
                                     this.isTrashedPost = true;
                                     this.doHaveData = true;
                                 }
@@ -896,62 +898,62 @@
                                     this.doHaveData = true;
                                     this.isTrashedPost = false;
 
-                                    if (response.data.PostUpdateDto.Parents != null) {
-                                        for (var i = response.data.PostUpdateDto.Parents.length - 1; i >= 0; --i) {
-                                            this.parentPostName += "/" + response.data.PostUpdateDto.Parents[i].PostName
+                                    if (response.data.PostUpdateDto.Data.Parents != null) {
+                                        for (var i = response.data.PostUpdateDto.Data.Parents.length - 1; i >= 0; --i) {
+                                            this.parentPostName += "/" + response.data.PostUpdateDto.Data.Parents[i].PostName
                                         }
                                     }
 
-                                    this.postUpdateDto.PostStatus = response.data.PostUpdateDto.PostStatus;
-                                    this.postUpdateDto.PostName = response.data.PostUpdateDto.PostName;
-                                    this.postUpdateDto.PostType = response.data.PostUpdateDto.PostType;
-                                    this.postUpdateDto.Title = response.data.PostUpdateDto.Title;
-                                    this.postUpdateDto.Content = response.data.PostUpdateDto.Content;
+                                    this.postUpdateDto.PostStatus = response.data.PostUpdateDto.Data.PostStatus;
+                                    this.postUpdateDto.PostName = response.data.PostUpdateDto.Data.PostName;
+                                    this.postUpdateDto.PostType = response.data.PostUpdateDto.Data.PostType;
+                                    this.postUpdateDto.Title = response.data.PostUpdateDto.Data.Title;
+                                    this.postUpdateDto.Content = response.data.PostUpdateDto.Data.Content;
 
-                                    this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.IsShowFeaturedImage;
-                                    if (response.data.PostUpdateDto.FeaturedImage != null) {
-                                        this.featuredImage.id = response.data.PostUpdateDto.FeaturedImageId;
-                                        this.featuredImage.fileName = response.data.PostUpdateDto.FeaturedImage.FileName;
-                                        this.featuredImage.altText = response.data.PostUpdateDto.FeaturedImage.AltText;
+                                    this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.Data.IsShowFeaturedImage;
+                                    if (response.data.PostUpdateDto.Data.FeaturedImage != null) {
+                                        this.featuredImage.id = response.data.PostUpdateDto.Data.FeaturedImageId;
+                                        this.featuredImage.fileName = response.data.PostUpdateDto.Data.FeaturedImage.FileName;
+                                        this.featuredImage.altText = response.data.PostUpdateDto.Data.FeaturedImage.AltText;
                                     }
 
-                                    this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
-                                    this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
-                                    this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
-                                    this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.IsRobotsNoFollow;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.IsRobotsNoArchive;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoImageIndex;
-                                    this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.IsRobotsNoSnippet;
+                                    this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Data.Id;
+                                    this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.Data.SeoTitle;
+                                    this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.Data.SeoDescription;
+                                    this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.Data.CanonicalUrl;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoIndex;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoFollow;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoArchive;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoImageIndex;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoSnippet;
 
-                                    this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.SchemaPageType;
-                                    this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.SchemaArticleType;
+                                    this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.Data.SchemaPageType;
+                                    this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.Data.SchemaArticleType;
 
-                                    this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
-                                    this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
+                                    this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphTitle;
+                                    this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphDescription;
 
-                                    this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
-                                    this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
+                                    this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.Data.TwitterTitle;
+                                    this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.Data.TwitterDescription;
 
-                                    this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
+                                    this.keywords = response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword.split(',');
 
-                                    if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
-                                        this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
-                                        this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
-                                        this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
+                                    if (response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage != null) {
+                                        this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImageId;
+                                        this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.FileName;
+                                        this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.AltText;
                                     }
 
-                                    if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
-                                        this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
-                                        this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
-                                        this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
+                                    if (response.data.SeoObjectSettingUpdateDto.Data.TwitterImage != null) {
+                                        this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.Data.TwitterImageId;
+                                        this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.FileName;
+                                        this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.AltText;
                                     }
 
-                                    this.postUpdateDto.CommentStatus = response.data.PostUpdateDto.CommentStatus;
+                                    this.postUpdateDto.CommentStatus = response.data.PostUpdateDto.Data.CommentStatus;
 
-                                    if (response.data.PostUpdateDto.PostTerms.length > 0) {
-                                        response.data.PostUpdateDto.PostTerms.forEach((term, index) => {
+                                    if (response.data.PostUpdateDto.Data.PostTerms.length > 0) {
+                                        response.data.PostUpdateDto.Data.PostTerms.forEach((term, index) => {
                                             if (term.TermType === 2) {
                                                 this.currentSelectedCategory.push(term.TermId);
                                             } else if (term.TermType === 3) {
@@ -961,9 +963,9 @@
                                         this.terms = this.currentSelectedCategory.concat(this.currentSelectedTag);
                                     }
 
-                                    if (response.data.PostUpdateDto.PostStatus == 0) {
+                                    if (response.data.PostUpdateDto.Data.PostStatus == 0) {
                                         this.saveButtonText = "Güncelle";
-                                    } else if (response.data.PostUpdateDto.PostStatus == 1) {
+                                    } else if (response.data.PostUpdateDto.Data.PostStatus == 1) {
                                         this.saveButtonText = "Yayınla";
                                     }
                                 }
@@ -1011,25 +1013,20 @@
                             })
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
-
-                                    this.postTermAddDto.PostId = response.data.PostDto.Post.Id;
                                     if (this.deSelectedTerms.length > 0) {
-
+                                        console.log(this.deSelectedTerms)
                                         this.deSelectedTerms.forEach((termId, index) => {
-                                            axios.post('/admin/term-deletepostterm', {
-                                                PostId: response.data.PostDto.Post.Id,
-                                                TermId: termId,
-                                            });
+                                            axios.post('/admin/term-deletepostterm?postId=' + response.data.PostDto.Data.Post.Id + '&termId=' + termId);
                                         });
                                     }
 
                                     if (this.selectedTerms.length > 0) {
-                                        this.selectedTerms.forEach((postTerm, index) => {
-                                            this.postTermAddDto.TermId = postTerm.Id;
-                                            this.postTermAddDto.TermType = postTerm.TermType;
 
+                                        this.selectedTerms.forEach((postTerm, index) => {
                                             axios.post('/admin/term-newpostterm', {
-                                                PostTermAddDto: this.postTermAddDto
+                                                PostId: response.data.PostDto.Data.Post.Id,
+                                                TermId: postTerm.Id,
+                                                TermType: postTerm.TermType,
                                             });
                                         });
                                     }
@@ -1044,9 +1041,9 @@
                                         }
                                     });
 
-                                    if (response.data.PostDto.Post.PostStatus == 0) {
+                                    if (response.data.PostDto.Data.Post.PostStatus == 0) {
                                         this.saveButtonText = "Güncelle";
-                                    } else if (response.data.PostDto.Post.PostStatus == 1) {
+                                    } else if (response.data.PostDto.Data.Post.PostStatus == 1) {
                                         this.saveButtonText = "Yayınla";
                                     }
                                 }
@@ -1098,7 +1095,7 @@
                                         }
                                     })
                                     this.allCategories();
-                                    this.currentSelectedCategory.push(response.data.TermDto.Term.Id)
+                                    this.currentSelectedCategory.push(response.data.TermDto.Data.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -1146,7 +1143,7 @@
                                         }
                                     })
                                     this.allTags();
-                                    this.currentSelectedTag.push(response.data.TermDto.Term.Id)
+                                    this.currentSelectedTag.push(response.data.TermDto.Data.Term.Id)
                                 }
                                 else {
                                     this.$toast({

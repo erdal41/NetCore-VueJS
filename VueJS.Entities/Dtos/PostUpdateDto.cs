@@ -21,41 +21,29 @@ namespace VueJS.Entities.Dtos
         [Required]
         public SubObjectType PostType { get; set; }
 
-        [DisplayName("Düzenlenme Tarihi")]
         [DataType(DataType.DateTime)]
         public DateTime ModifiedDate { get; set; }
 
-        [DisplayName("İçerik")]
         public string Content { get; set; }
 
-        [DisplayName("Başlık")]
-        [Required(ErrorMessage = "{0} giriniz.")]
         public string Title { get; set; }
 
-        [DisplayName("Durum")]
         public PostStatus PostStatus { get; set; }
 
-        [DisplayName("Yorumlar aktif olsun mu?")]
         public bool CommentStatus { get; set; }
 
-        [DisplayName("Ebeveyn")]
         public int? ParentId { get; set; }
 
-        [DisplayName("Öne Çıkan Görsel")]
         public int? FeaturedImageId { get; set; }
 
-        [DisplayName("Alt İçerik")]
         public string BottomContent { get; set; }
 
-        [DisplayName("Gönderi diğer sayfalarda gösterilsin mi?")]
         [Required]
         public bool IsShowPage { get; set; }
 
-        [DisplayName("Resim, gönderi sayfasından gösterilsin mi?")]
         [Required]
         public bool IsShowFeaturedImage { get; set; }
 
-        [DisplayName("Gönderinin alt sayfaları gösterilsin mi?")]
         [Required]
         public bool IsShowSubPosts { get; set; }
 
