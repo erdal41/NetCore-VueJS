@@ -45,12 +45,23 @@
                     no-body>
                 <template #header>
                     <div class="float-left">
-                        <b-input-group size="sm">
+                        <b-input-group size="sm"
+                                       class="input-group-merge"
+                                       v-on:mouseover="isShowSearchTextClearButton = true"
+                                       v-on:mouseleave="isShowSearchTextClearButton = false">
                             <b-input-group-prepend is-text>
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
                                           v-model="filterText" />
+                            <b-input-group-append is-text>
+                                <feather-icon v-show="isShowSearchTextClearButton"
+                                              icon="XIcon"
+                                              v-b-tooltip.hover
+                                              title="Temizle"
+                                              class="cursor-pointer"
+                                              @click="filterText = ''" />
+                            </b-input-group-append>
                         </b-input-group>
                     </div>
                     <div class="ml-auto">
@@ -176,10 +187,19 @@
                              :per-page="perPage"
                              :current-page="currentPage"
                              class="mb-0"
+                             foot-clone
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
                         <template #head(Id)="slot">
                             <b-form-checkbox :disabled="((!$can('update', 'Otherpage') && $route.query.status !== 'trash') || (!$can('delete', 'Otherpage') && $route.query.status === 'trash'))"
+                                             v-model="selectAllCheck"
+                                             :value="true"
+                                             @change="selectAllRows($event)"></b-form-checkbox>
+                        </template>
+                        <template #foot(Id)="slot">
+                            <b-form-checkbox :disabled="((!$can('update', 'Otherpage') && $route.query.status !== 'trash') || (!$can('delete', 'Otherpage') && $route.query.status === 'trash'))"
+                                             v-model="selectAllCheck"
+                                             :value="true"
                                              @change="selectAllRows($event)"></b-form-checkbox>
                         </template>
                         <template #cell(Id)="row">
@@ -280,7 +300,8 @@
                                       last-number
                                       prev-class="prev-item"
                                       next-class="next-item"
-                                      class="mb-0">
+                                      class="mb-0"
+                                      @page-click="changePage">
                             <template #prev-text>
                                 <feather-icon icon="ChevronLeftIcon"
                                               size="18" />
@@ -302,7 +323,7 @@
     import moment from 'moment'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import {
-        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
@@ -335,6 +356,7 @@
             BInputGroup,
             BFormInput,
             BInputGroupPrepend,
+            BInputGroupAppend,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
@@ -360,19 +382,23 @@
                 pageOptions: [10, 20, 50, 100],
                 totalRows: 1,
                 currentPage: 1,
+                isShowSearchTextClearButton: false,
                 filterText: '',
                 posts: [],
                 selected: '',
                 selectedValue: null,
                 isHiddenStatusButton: false,
                 isHiddenRowActions: false,
+                pageColumnQuantity: '',
                 name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
                     { key: 'FeaturedImage', label: 'Resim', sortable: false, thStyle: { width: "50px" } },
                     { key: 'Title', label: 'Başlık', sortable: true, thStyle: { width: "200px" } },
                     { key: 'ModifiedDate', label: 'Tarih', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }],
+                    { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }
+                ],
+                selectAllCheck: false,
                 checkedRows: [],
                 checkedRowsCount: '',
                 publishPostsCount: '',
@@ -382,6 +408,14 @@
             }
         },
         methods: {
+            changePage(e, pageNumber) {
+                this.isHiddenStatusButton = false;
+                this.checkedRows = [];
+                this.checkedRowsCount = '';
+                this.selectAllCheck = 'false';
+                this.pageColumnQuantity = this.perPage * pageNumber;
+                console.log(this.pageColumnQuantity);
+            },
             rowHovered(item) {
                 this.hoveredRow = item;
                 this.isHiddenRowActions = true
@@ -399,24 +433,58 @@
                 if (this.checkedRows.length > 0) {
                     this.isHiddenStatusButton = true;
                     this.checkedRowsCount = "( " + this.checkedRows.length + " )";
+
+                    var pageDataQuantity = this.posts.length - (this.pageColumnQuantity - this.perPage);
+                    if (this.pageColumnQuantity > this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && this.posts.length === this.checkedRows.length) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    }
                 }
                 else {
                     this.isHiddenStatusButton = false;
+                    this.selectAllCheck = 'false';
                 }
             },
             selectAllRows(value) {
                 if (value === true) {
                     var idList = [];
-                    for (var i = 0; i < this.perPage; i++) {
-                        if (this.posts[i] != null) {
-                            idList.push(this.posts[i].Id);
+                    if (this.pageColumnQuantity > this.perPage) {
+                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
+                            if (this.posts[i] != null) {
+                                idList.push(this.posts[i].Id);
+                            }
                         }
+                        this.checkedRows = idList;
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        for (var i = 0; i < this.pageColumnQuantity; i++) {
+                            if (this.posts[i] != null) {
+                                idList.push(this.posts[i].Id);
+                            }
+                        }
+                        this.checkedRows = idList;
                     }
-                    this.checkedRows = idList;
+
                 }
                 else {
                     this.checkedRows = [];
-                    this.isHidden = false;
+                    this.isHiddenStatusButton = false;
                 }
                 this.checkChange();
             },
@@ -587,6 +655,7 @@
                             this.draftPostsCount = response.data.DraftPostsCount;
                             this.trashPostsCount = response.data.TrashPostsCount;
                             this.totalRows = response.data.PostListDto.Data.Posts.length;
+                            this.pageColumnQuantity = this.perPage;
                         } else {
 
                             this.posts = [];

@@ -17,8 +17,7 @@
                                           size="16"
                                           class="align-text-top" />
                         </b-breadcrumb-item>
-                        <b-breadcrumb-item 
-                                           :to="{ name: 'pages-tag-list' }">Etiketler</b-breadcrumb-item>
+                        <b-breadcrumb-item :to="{ name: 'pages-tag-list' }">Etiketler</b-breadcrumb-item>
                         <b-breadcrumb-item active>Düzenle</b-breadcrumb-item>
                         <b-button v-if="$can('create','Tag')"
                                   v-b-tooltip.hover
@@ -26,7 +25,7 @@
                                   v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                   variant="outline-primary"
                                   size="sm"
-                                  :to="{ name:'pages-article-add'}"
+                                  :to="{ name:'pages-tag-list'}"
                                   class=" ml-1">Yeni Ekle</b-button>
                     </b-breadcrumb>
                 </div>
@@ -42,8 +41,7 @@
                           @click="deleteData">
                     Kalıcı Sil
                 </b-button>
-                <b-button 
-                          variant="outline-primary"
+                <b-button variant="outline-primary"
                           class="mr-1"
                           size="sm"
                           type="button"
@@ -83,8 +81,9 @@
                                         <b-form-input id="Slug"
                                                       v-model="termUpdateDto.Slug"
                                                       type="text"
-                                                      placeholder="Kısa İsim" />
-                                    </b-form-group>                                    
+                                                      placeholder="Kısa İsim"
+                                                      @blur="changeSlug" />
+                                    </b-form-group>
 
                                     <b-form-textarea id="description"
                                                      v-model="termUpdateDto.Description"
@@ -280,6 +279,7 @@
     import ModalMedia from '../../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import UrlHelper from '@/helper/url-helper';
 
     extend('required', {
         ...required,
@@ -379,6 +379,10 @@
             }
         },
         methods: {
+            changeSlug() {
+                var seoSlug = UrlHelper.friendlySEOUrl(this.termUpdateDto.Slug);
+                this.termUpdateDto.Slug = seoSlug;
+            },
             imageChange(id, name, altText) {
                 if (this.isOpenGraphImageChoose == true) {
                     this.openGraphImage.id = id;
@@ -508,43 +512,43 @@
             getData() {
                 axios.get('/admin/term-edit?termId=' + this.$route.query.edit)
                     .then((response) => {
-                        if (response.data.TermUpdateDto.TermType !== 3) {
+                        if (response.data.TermUpdateDto.Data.TermType !== 3) {
                             this.doHaveData = false;
                         } else {
-                            if (response.data.TermUpdateDto != null) {
+                            if (response.data.TermUpdateDto.ResultStatus === 0) {
                                 this.doHaveData = true;
-                                this.termUpdateDto.Name = response.data.TermUpdateDto.Name;
-                                this.termUpdateDto.Slug = response.data.TermUpdateDto.Slug;
+                                this.termUpdateDto.Name = response.data.TermUpdateDto.Data.Name;
+                                this.termUpdateDto.Slug = response.data.TermUpdateDto.Data.Slug;
 
-                                this.termUpdateDto.ParentId = response.data.TermUpdateDto.ParentId;
-                                this.termUpdateDto.Description = response.data.TermUpdateDto.Description;
-                                this.termUpdateDto.TermType = response.data.TermUpdateDto.TermType;
+                                this.termUpdateDto.ParentId = response.data.TermUpdateDto.Data.ParentId;
+                                this.termUpdateDto.Description = response.data.TermUpdateDto.Data.Description;
+                                this.termUpdateDto.TermType = response.data.TermUpdateDto.Data.TermType;
 
-                                this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Id;
-                                this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.SeoTitle;
-                                this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.SeoDescription;
-                                this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.CanonicalUrl;
-                                this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.IsRobotsNoIndex;
+                                this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Data.Id;
+                                this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.Data.SeoTitle;
+                                this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.Data.SeoDescription;
+                                this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.Data.CanonicalUrl;
+                                this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoIndex;
 
 
-                                this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.OpenGraphTitle;
-                                this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.OpenGraphDescription;
+                                this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphTitle;
+                                this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphDescription;
 
-                                this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.TwitterTitle;
-                                this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.TwitterDescription;
+                                this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.Data.TwitterTitle;
+                                this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.Data.TwitterDescription;
 
-                                this.keywords = response.data.SeoObjectSettingUpdateDto.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.FocusKeyword.split(',');
+                                this.keywords = response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword.split(',');
 
-                                if (response.data.SeoObjectSettingUpdateDto.OpenGraphImage != null) {
-                                    this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.OpenGraphImageId;
-                                    this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.FileName;
-                                    this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.OpenGraphImage.AltText;
+                                if (response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage != null) {
+                                    this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImageId;
+                                    this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.FileName;
+                                    this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.AltText;
                                 }
 
-                                if (response.data.SeoObjectSettingUpdateDto.TwitterImage != null) {
-                                    this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.TwitterImageId;
-                                    this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.TwitterImage.FileName;
-                                    this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.TwitterImage.AltText;
+                                if (response.data.SeoObjectSettingUpdateDto.Data.TwitterImage != null) {
+                                    this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.Data.TwitterImageId;
+                                    this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.FileName;
+                                    this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.AltText;
                                 }
                             }
                             else {

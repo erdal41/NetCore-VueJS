@@ -225,6 +225,44 @@ export default [
         },
     },
 
+    //Settings
+    {
+        path: '/admin/general-settings',
+        name: 'pages-general-settings',
+        component: () => import('@/views/pages/settings/GeneralSettings.vue'),
+        meta: {
+            resource: 'User',
+            action: 'update',
+        },
+    },
+    {
+        path: '/admin/seo-settings',
+        name: 'pages-seo-settings',
+        component: () => import('@/views/pages/settings/SeoSettings.vue'),
+        meta: {
+            resource: 'User',
+            action: 'update',
+        },
+    },
+    {
+        path: '/admin/form-settings',
+        name: 'pages-form-settings',
+        component: () => import('@/views/pages/settings/FormSettings.vue'),
+        meta: {
+            resource: 'User',
+            action: 'update',
+        },
+    },
+    {
+        path: '/admin/widget-settings',
+        name: 'pages-widget-settings',
+        component: () => import('@/views/pages/settings/WidgetSettings.vue'),
+        meta: {
+            resource: 'User',
+            action: 'update',
+        },
+    },
+
     {
         path: '/error-404',
         name: 'error-404',

@@ -297,7 +297,7 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<PostDto>> AddAsync(PostAddDto postAddDto, int userId, SubObjectType postType)
         {
-            string postName = UrlExtensions.FriendlySEOUrl(postAddDto.Title);
+            string postName = postAddDto.PostName == null ? UrlExtensions.FriendlySEOUrl(postAddDto.Title) : postAddDto.PostName;
             var postNameCheck = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == postName);
             if (postNameCheck.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.Post.TitleCheck(), null);
 

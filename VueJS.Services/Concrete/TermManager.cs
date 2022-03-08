@@ -142,7 +142,7 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<TermDto>> AddAsync(TermAddDto termAddDto)
         {
-            string slug = UrlExtensions.FriendlySEOUrl(termAddDto.Name);
+            string slug = termAddDto.Slug == null ? UrlExtensions.FriendlySEOUrl(termAddDto.Name) : termAddDto.Slug;
             var slugCheck = await UnitOfWork.Terms.GetAllAsync(t => t.Slug == slug && t.TermType == termAddDto.TermType);
             if (slugCheck.Count != 0) return new DataResult<TermDto>(ResultStatus.Error, termAddDto.TermType == SubObjectType.category ? Messages.Category.UrlCheck() : Messages.Tag.UrlCheck(), null);
             var term = Mapper.Map<Term>(termAddDto);

@@ -48,8 +48,8 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var result = await _termService.AddAsync(termDataModel.TermAddDto);
             return Json(new TermViewModel
             {
-                TermDto = await _termService.AddAsync(termDataModel.TermAddDto),
-                SeoObjectSettingDto = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termDataModel.TermAddDto.TermType, result.Data.Term.Id, termDataModel.SeoObjectSettingAddDto, LoggedInUser.Id)
+                TermDto = result,
+                SeoObjectSettingDto = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termDataModel.TermAddDto.TermType, result.Data != null ? result.Data.Term.Id : -1, termDataModel.SeoObjectSettingAddDto, LoggedInUser.Id)
             });
         }
 

@@ -1,6 +1,7 @@
 ﻿<template>
     <b-row>
-        <modal-edit :urlredirect-id="urlRedirectId"></modal-edit>
+        <modal-edit :urlredirect-id="urlRedirectId"
+                    @urlRedirectGetAllData="urlRedirectsRefreshData"></modal-edit>
         <b-col class="content-header-left mb-2"
                cols="12"
                md="12">
@@ -41,7 +42,7 @@
                                                          name="oldurl"
                                                          rules="required">
                                         <b-form-input id="oldurl"
-                                                      v-model="urlRedirectAddDto.OldUrl"
+                                                      v-model="oldUrl"
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
                                                       placeholder="Eski Url" />
@@ -55,7 +56,7 @@
                                                          name="newurl"
                                                          rules="required">
                                         <b-form-input id="newurl"
-                                                      v-model="urlRedirectAddDto.NewUrl"
+                                                      v-model="newUrl"
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
                                                       placeholder="Yeni Url" />
@@ -64,7 +65,7 @@
                                 </b-form-group>
 
                                 <b-form-textarea id="description"
-                                                 v-model="urlRedirectAddDto.Description"
+                                                 v-model="description"
                                                  placeholder="Açıklama"
                                                  rows="2" />
 
@@ -91,12 +92,23 @@
                         Tüm Yönlendirmeler
                     </h3>
                     <div class="ml-auto">
-                        <b-input-group size="sm">
+                        <b-input-group size="sm"
+                                       class="input-group-merge"
+                                       v-on:mouseover="isShowSearchTextClearButton = true"
+                                       v-on:mouseleave="isShowSearchTextClearButton = false">
                             <b-input-group-prepend is-text>
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
                                           v-model="filterText" />
+                            <b-input-group-append is-text>
+                                <feather-icon v-show="isShowSearchTextClearButton"
+                                              icon="XIcon"
+                                              v-b-tooltip.hover
+                                              title="Temizle"
+                                              class="cursor-pointer"
+                                              @click="filterText = ''" />
+                            </b-input-group-append>
                         </b-input-group>
                     </div>
                     <div class="ml-auto">
@@ -142,10 +154,19 @@
                              :per-page="perPage"
                              :current-page="currentPage"
                              class="mb-0"
+                             foot-clone
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
                         <template #head(Id)="slot">
                             <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
+                                             v-model="selectAllCheck"
+                                             :value="true"
+                                             @change="selectAllRows($event)"></b-form-checkbox>
+                        </template>
+                        <template #foot(Id)="slot">
+                            <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
+                                             v-model="selectAllCheck"
+                                             :value="true"
                                              @change="selectAllRows($event)"></b-form-checkbox>
                         </template>
                         <template #cell(Id)="row">
@@ -215,7 +236,8 @@
                                       last-number
                                       prev-class="prev-item"
                                       next-class="next-item"
-                                      class="mb-0">
+                                      class="mb-0"
+                                      @page-click="changePage">
                             <template #prev-text>
                                 <feather-icon icon="ChevronLeftIcon"
                                               size="18" />
@@ -237,7 +259,7 @@
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
     import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
     } from 'bootstrap-vue'
 
     import ModalEdit from './ModalEdit.vue';
@@ -273,6 +295,7 @@
             BInputGroup,
             BFormInput,
             BInputGroupPrepend,
+            BInputGroupAppend,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
@@ -297,31 +320,47 @@
                 pageOptions: [10, 20, 50, 100],
                 totalRows: 1,
                 currentPage: 1,
+                isShowSearchTextClearButton: false,
                 filterText: '',
                 filterOnData: [],
                 urlRedirects: [],
                 dataNullMessage: 'Hiçbir yönlendirme bulunamadı.',
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
+                pageColumnQuantity: '',
                 name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
                     { key: 'OldUrl', label: 'Url', sortable: true, thStyle: { width: "200px" } },
                     { key: 'Description', label: 'Açıklama', sortable: true, thStyle: { width: "200px" } },
                     { key: 'ModifiedDate', label: 'Tarih', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }],
+                    { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }
+                ],
+                selectAllCheck: false,
                 checkedRows: [],
-                checkedRowsCount: '',
-                urlRedirectAddDto: {
-                    OldUrl: "",
-                    NewUrl: "",
-                    Description: '',
-                },
+                oldUrl: '',
+                newUrl: '',
+                description: '',
                 hoveredRow: null,
                 urlRedirectId: 0
             }
         },
         methods: {
+            urlRedirectsRefreshData(id, oldUrl, newUrl, description) {
+                var index = this.urlRedirects.findIndex(urlRedirect => urlRedirect.Id === id);
+                if (index !== -1) {
+                    this.urlRedirects[index].OldUrl = oldUrl;
+                    this.urlRedirects[index].NewUrl = newUrl;
+                    this.urlRedirects[index].Description = description;
+                }
+            },
+            changePage(e, pageNumber) {
+                this.isHiddenMultiDeleteButton = false;
+                this.checkedRows = [];
+                this.checkedRowsCount = '';
+                this.selectAllCheck = 'false';
+                this.pageColumnQuantity = this.perPage * pageNumber;
+            },
             updateClick(id) {
                 this.urlRedirectId = id;
                 console.log(this.urlRedirectId)
@@ -340,31 +379,65 @@
                 if (this.checkedRows.length > 0) {
                     this.isHiddenMultiDeleteButton = true;
                     this.checkedRowsCount = "( " + this.checkedRows.length + " )";
+
+                    var pageDataQuantity = this.urlRedirects.length - (this.pageColumnQuantity - this.perPage);
+                    if (this.pageColumnQuantity > this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && this.urlRedirects.length === this.checkedRows.length) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    }
                 }
                 else {
                     this.isHiddenMultiDeleteButton = false;
+                    this.selectAllCheck = 'false';
                 }
             },
             selectAllRows(value) {
                 if (value === true) {
                     var idList = [];
-                    for (var i = 0; i < this.perPage; i++) {
-                        if (this.urlRedirects[i] != null) {
-                            idList.push(this.urlRedirects[i].Id);
+                    if (this.pageColumnQuantity > this.perPage) {
+                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
+                            if (this.urlRedirects[i] != null) {
+                                idList.push(this.urlRedirects[i].Id);
+                            }
                         }
+                        this.checkedRows = idList;
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        for (var i = 0; i < this.pageColumnQuantity; i++) {
+                            if (this.urlRedirects[i] != null) {
+                                idList.push(this.urlRedirects[i].Id);
+                            }
+                        }
+                        this.checkedRows = idList;
                     }
-                    this.checkedRows = idList;
+
                 }
                 else {
                     this.checkedRows = [];
-                    this.isHidden = false;
+                    this.isHiddenMultiDeleteButton = false;
                 }
                 this.checkChange();
             },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
-                        if (!this.urlRedirectAddDto.OldUrl.includes('https://') && !this.urlRedirectAddDto.OldUrl.includes('http://')) {
+                        if (!this.oldUrl.includes('https://') && !this.oldUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -374,7 +447,7 @@
                                     text: 'Eski url, "https://" veya "http://" parametresi ile beraber tam linki içermerlidir. Örnek: https://www.orneksite.com/ornek-sayfa'
                                 }
                             });
-                        } else if (!this.urlRedirectAddDto.NewUrl.includes('https://') && !this.urlRedirectAddDto.NewUrl.includes('http://')) {
+                        } else if (!this.newUrl.includes('https://') && !this.newUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -387,7 +460,9 @@
                         } else {
                             axios.post('/admin/urlredirect-new',
                                 {
-                                    UrlRedirectAddDto: this.urlRedirectAddDto
+                                    OldUrl: this.oldUrl,
+                                    NewUrl: this.newUrl,
+                                    Description: this.description,
                                 })
                                 .then((response) => {
                                     console.log(response.data);
@@ -398,7 +473,7 @@
                                                 variant: 'success',
                                                 title: 'Başarılı İşlem!',
                                                 icon: 'CheckIcon',
-                                                text: this.urlRedirectAddDto.OldUrl + " linki " + this.urlRedirectAddDto.NewUrl + " linkine yönlendirildi."
+                                                text: this.oldUrl + " linki " + this.newUrl + " linkine yönlendirildi."
                                             }
                                         });
                                         this.getAllData();
@@ -521,10 +596,10 @@
                 axios.get('/admin/urlredirect-allurlredirects')
                     .then((response) => {
                         console.log(response.data)
-                        this.totalRows = response.data.UrlRedirects.length;
-                        if (response.data.ResultStatus === 0) {
-                            this.urlRedirects = response.data.UrlRedirects;
-                            this.filterOnData = response.data.UrlRedirects;
+                        this.totalRows = response.data.UrlRedirectListDto.Data.UrlRedirects.length;
+                        if (response.data.UrlRedirectListDto.ResultStatus === 0) {
+                            this.urlRedirects = response.data.UrlRedirectListDto.Data.UrlRedirects;
+                            this.pageColumnQuantity = this.perPage;
                         } else {
                             this.urlRedirects = [];
                         }
@@ -553,7 +628,7 @@
                     return true;
                 }
 
-                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+                return (data.OldUrl.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
         computed: {

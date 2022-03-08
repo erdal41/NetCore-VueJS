@@ -12,6 +12,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         protected UserManager<User> UserManager { get; }
         protected IMapper Mapper { get; }
         protected IImageHelper ImageHelper { get; }
+        protected IFileHelper FileHelper { get; }
         protected User LoggedInUser => UserManager.GetUserAsync(HttpContext.User).Result;
 
         public BaseController(UserManager<User> userManager, IMapper mapper, IImageHelper imageHelper)
@@ -19,6 +20,13 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             UserManager = userManager;
             Mapper = mapper;
             ImageHelper = imageHelper;
+        }
+
+        public BaseController(UserManager<User> userManager, IMapper mapper, IFileHelper fileHelper)
+        {
+            UserManager = userManager;
+            Mapper = mapper;
+            FileHelper = fileHelper;
         }
 
         public BaseController(UserManager<User> userManager, IMapper mapper)

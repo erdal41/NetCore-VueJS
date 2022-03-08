@@ -63,7 +63,7 @@ namespace VueJS.Services.Concrete
             var oldUrlRedirect = await UnitOfWork.UrlRedirects.GetAsync(u => u.Id == urlRedirectUpdateDto.Id, ur => ur.User);
             if (oldUrlRedirect == null) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(false), null);
             var urlRedirects = await UnitOfWork.UrlRedirects.GetAllAsync(p => p.OldUrl == oldUrlRedirect.OldUrl || p.OldUrl == urlRedirectUpdateDto.OldUrl);
-            if (urlRedirects.Count != 1 || urlRedirects.Count != 0) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.UrlCheck(), null);
+            if (urlRedirects.Count >= 1 && urlRedirects.Count <= 0) return new DataResult<UrlRedirectDto>(ResultStatus.Error, Messages.UrlRedirect.UrlCheck(), null);
 
             var urlRedirect = Mapper.Map<UrlRedirectUpdateDto, UrlRedirect>(urlRedirectUpdateDto, oldUrlRedirect);
             urlRedirect.UserId = userId;

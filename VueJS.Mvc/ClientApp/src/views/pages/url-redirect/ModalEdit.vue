@@ -8,6 +8,7 @@
                  title="Yönlendirme Düzenle"
                  :no-close-on-backdrop="true"
                  @show="getData"
+                 @hidden="urlRedirectPageGetAllData"
                  @ok.prevent="validationForm">
             <validation-observer ref="simpleRules">
                 <b-form>
@@ -19,7 +20,7 @@
                                                      name="oldurl"
                                                      rules="required">
                                     <b-form-input id="oldurl"
-                                                  v-model="urlRedirectUpdateDto.OldUrl"
+                                                  v-model="oldUrl"
                                                   :state="errors.length > 0 ? false:null"
                                                   type="text"
                                                   placeholder="Eski Url" />
@@ -33,7 +34,7 @@
                                                      name="newurl"
                                                      rules="required">
                                     <b-form-input id="newurl"
-                                                  v-model="urlRedirectUpdateDto.NewUrl"
+                                                  v-model="newUrl"
                                                   :state="errors.length > 0 ? false:null"
                                                   type="text"
                                                   placeholder="Yeni Url" />
@@ -42,7 +43,7 @@
                             </b-form-group>
 
                             <b-form-textarea id="description"
-                                             v-model="urlRedirectUpdateDto.Description"
+                                             v-model="description"
                                              placeholder="Açıklama"
                                              rows="2" />
                         </b-col>
@@ -90,15 +91,15 @@
         data() {
             return {
                 required,
-                urlRedirectUpdateDto: {
-                    Id: '',
-                    OldUrl: "",
-                    NewUrl: "",
-                    Description: '',
-                },
+                oldUrl: '',
+                newUrl: '',
+                description: '',
             }
         },
         methods: {
+            urlRedirectPageGetAllData() {
+                this.$emit('urlRedirectGetAllData', this.urlredirectId, this.oldUrl, this.newUrl, this.description);
+            },
             getData() {
                 console.log('Number');
                 axios.get('/admin/urlredirect-edit', {
@@ -107,16 +108,15 @@
                     }
                 }).then((response) => {
                     console.log(response.data);
-                    this.urlRedirectUpdateDto.Id = response.data.Id;
-                    this.urlRedirectUpdateDto.OldUrl = response.data.OldUrl;
-                    this.urlRedirectUpdateDto.NewUrl = response.data.NewUrl;
-                    this.urlRedirectUpdateDto.Description = response.data.Description;
+                    this.oldUrl = response.data.UrlRedirectUpdateDto.Data.OldUrl;
+                    this.newUrl = response.data.UrlRedirectUpdateDto.Data.NewUrl;
+                    this.description = response.data.UrlRedirectUpdateDto.Data.Description;
                 })
             },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
-                        if (!this.urlRedirectUpdateDto.OldUrl.includes('https://') && !this.urlRedirectUpdateDto.OldUrl.includes('http://')) {
+                        if (!this.oldUrl.includes('https://') && !this.oldUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -126,7 +126,7 @@
                                     text: 'Eski url, "https://" veya "http://" parametresi ile beraber tam linki içermerlidir. Örnek: https://www.orneksite.com/ornek-sayfa'
                                 }
                             });
-                        } else if (!this.urlRedirectUpdateDto.NewUrl.includes('https://') && !this.urlRedirectUpdateDto.NewUrl.includes('http://')) {
+                        } else if (!this.newUrl.includes('https://') && !this.newUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -139,7 +139,10 @@
                         } else {
                             axios.post('/admin/urlredirect-edit',
                                 {
-                                    UrlRedirectUpdateDto: this.urlRedirectUpdateDto
+                                    Id: this.urlredirectId,
+                                    OldUrl: this.oldUrl,
+                                    NewUrl: this.newUrl,
+                                    Description: this.description,
                                 })
                                 .then((response) => {
                                     console.log(response.data);
@@ -150,7 +153,7 @@
                                                 variant: 'success',
                                                 title: 'Başarılı İşlem!',
                                                 icon: 'CheckIcon',
-                                                text: this.urlRedirectUpdateDto.OldUrl + " linki " + this.urlRedirectUpdateDto.NewUrl + " linkine yönlendirildi."
+                                                text: this.oldUrl + " linki " + this.newUrl + " linkine yönlendirildi."
                                             }
                                         });
                                     }
