@@ -12,7 +12,8 @@
             </b-col>
         </b-row>
         <b-row>
-            <b-table striped
+            <b-table id="role-table"
+                     striped
                      responsive
                      class="mb-0"
                      :fields="fields"
@@ -237,10 +238,10 @@
                                                 module == 'Article' ? 'Makaleler' :
                                                     module == 'Category' ? 'Kategoriler' :
                                                         module == 'Tag' ? 'Etiketler' :
-                                                                module == 'User' ? 'Kullanıcılar' :
-                                                                    module == 'Comment' ? 'Yorumlar' :
-                                                                        module == 'Urlredirect' ? 'Link Yönlendirme' :
-                                                                            null,
+                                                            module == 'User' ? 'Kullanıcılar' :
+                                                                module == 'Comment' ? 'Yorumlar' :
+                                                                    module == 'Urlredirect' ? 'Link Yönlendirme' :
+                                                                        null,
                                 read: {
                                     action: module + '.read',
                                     show: rolesSplit.filter(x => x.Name.includes('read')) ? true : false
@@ -415,3 +416,9 @@
         }
     }
 </script>
+
+<style lang="scss">
+    #role-table.table th {
+        padding: 0.72rem;
+    }
+</style>

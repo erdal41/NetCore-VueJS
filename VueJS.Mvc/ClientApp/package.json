@@ -37,6 +37,7 @@
     "postcss-rtl": "1.7.3",
     "prismjs": "1.19.0",
     "quill-source-code-button": "^1.0.1",
+    "simple-code-editor": "^1.1.2",
     "swiper": "5.4.5",
     "trumbowyg": "^2.25.1",
     "uuid": "8.3.2",

@@ -44,9 +44,7 @@
                 Yayınla
             </b-button>
         </b-col>
-        <modal-media v-bind:show="modalShow"
-                     @changeImage="imageChange"
-                     ref="modalMedia"></modal-media>
+        <modal-media @changeImage="imageChange"></modal-media>
         <b-col md="12"
                lg="8">
             <b-card>
@@ -64,7 +62,7 @@
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
                                                       placeholder="Başlık"
-                                                      @blur="changePostName"/>
+                                                      @blur="changePostName" />
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
                                 </b-form-group>
@@ -224,37 +222,37 @@
                                 <b-row class="kb-search-content-info match-height">
                                     <b-col lg="4"
                                            md="4"
-                                           sm="6"
-                                           class="image-thumb ml-1">
-                                        <b-img rounded
-                                               v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
-                                               :alt="openGraphImage.altText" />
-                                    </b-col>
-                                    <b-col lg="3"
-                                           md="3"
                                            sm="6">
-                                        <b-button id="selectOpenGraphImage"
-                                                  v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                                  variant="primary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  v-b-modal.modal-media
-                                                  @click="selectImage">
-                                            Resim Seç
-                                        </b-button>
-                                        <!--/ upload button -->
-                                        <!-- reset -->
-                                        <b-button id="removeOpenGraphImage"
-                                                  v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  @click="removeImage">
-                                            Resmi Kaldır
-                                        </b-button>
-                                        <b-form-input type="text"
-                                                      hidden
-                                                      v-model="openGraphImage.id"></b-form-input>
+                                        <div class="image-preview">
+                                            <div class="image-thumbnail select-opengraph-image"
+                                                 v-b-modal.modal-media
+                                                 @click="selectImage">
+                                                <b-img rounded
+                                                       v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
+                                                       :alt="openGraphImage.altText"
+                                                       class="select-opengraph-image" />
+                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                          variant="relief-primary"
+                                                          size="sm"
+                                                          class="btn-icon rounded-circle select-image select-opengraph-image">
+                                                    <feather-icon icon="Edit2Icon"
+                                                                  class="select-opengraph-image"
+                                                                  size="11" />
+                                                </b-button>
+                                            </div>
+                                            <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                      variant="relief-secondary"
+                                                      size="sm"
+                                                      class="btn-icon rounded-circle remove-image remove-opengraph-image"
+                                                      @click="removeImage">
+                                                <feather-icon icon="XIcon"
+                                                              class="remove-opengraph-image"
+                                                              size="11" />
+                                            </b-button>
+                                            <b-form-input type="text"
+                                                          hidden
+                                                          v-model="openGraphImage.id"></b-form-input>
+                                        </div>
                                     </b-col>
                                 </b-row>
                                 <b-form-group class="mt-1">
@@ -274,37 +272,37 @@
                                 <b-row class="kb-search-content-info match-height">
                                     <b-col lg="4"
                                            md="4"
-                                           sm="6"
-                                           class="image-thumb ml-1">
-                                        <b-img rounded
-                                               v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
-                                               :alt="twitterImage.altText" />
-                                    </b-col>
-                                    <b-col lg="3"
-                                           md="3"
                                            sm="6">
-                                        <b-button id="selectTwitterImage"
-                                                  v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                                  variant="primary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  v-b-modal.modal-media
-                                                  @click="selectImage">
-                                            Resim Seç
-                                        </b-button>
-                                        <!--/ upload button -->
-                                        <!-- reset -->
-                                        <b-button id="removeTwitterImage"
-                                                  v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  @click="removeImage">
-                                            Resmi Kaldır
-                                        </b-button>
-                                        <b-form-input type="text"
-                                                      hidden
-                                                      v-model="twitterImage.id"></b-form-input>
+                                        <div class="image-preview">
+                                            <div class="image-thumbnail select-twitter-image"
+                                                 v-b-modal.modal-media
+                                                 @click="selectImage">
+                                                <b-img rounded
+                                                       v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
+                                                       :alt="twitterImage.altText" 
+                                                       class="select-twitter-image"/>
+                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                          variant="relief-primary"
+                                                          size="sm"
+                                                          class="btn-icon rounded-circle select-image select-twitter-image">
+                                                    <feather-icon icon="Edit2Icon"
+                                                                  class="select-twitter-image"
+                                                                  size="11" />
+                                                </b-button>
+                                            </div>
+                                            <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                      variant="relief-secondary"
+                                                      size="sm"
+                                                      class="btn-icon rounded-circle remove-image remove-twitter-image"
+                                                      @click="removeImage">
+                                                <feather-icon icon="XIcon"
+                                                              class="remove-twitter-image"
+                                                              size="11" />
+                                            </b-button>
+                                            <b-form-input type="text"
+                                                          hidden
+                                                          v-model="twitterImage.id"></b-form-input>
+                                        </div>
                                     </b-col>
                                 </b-row>
                                 <b-form-group class="mt-1">
@@ -334,7 +332,7 @@
                               :options="topPosts"
                               label="Title"
                               :reduce="(option) => option.Id"
-                              placeholder="— Ebeveyn Sayfa —"/>
+                              placeholder="— Ebeveyn Sayfa —" />
                 </b-form-group>
             </b-card-actions>
             <b-card-actions title="Resim"
@@ -347,30 +345,33 @@
                         Görsel gönderide gösterilsin mi?
                     </b-form-checkbox>
                 </b-form-group>
-                <div class="image-thumb">
-                    <b-img rounded
-                           v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
-                           :alt="featuredImage.altText" />
-                </div>
-                <div class="mt-1">
-                    <b-button id="selectFeaturedImage"
-                              v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                              variant="primary"
+                <div class="image-preview mt-1">
+                    <div class="image-thumbnail select-featured-image"
+                         v-b-modal.modal-media
+                         @click="selectImage">
+                        <b-img v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
+                               :alt="featuredImage.altText"
+                               rounded
+                               class="select-featured-image"
+                               v-b-modal.modal-media
+                               @click="selectImage" />
+                        <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                  variant="relief-primary"
+                                  size="sm"
+                                  class="btn-icon rounded-circle select-image select-featured-image">
+                            <feather-icon icon="Edit2Icon"
+                                          class="select-featured-image"
+                                          size="11" />
+                        </b-button>
+                    </div>
+                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                              variant="relief-secondary"
                               size="sm"
-                              class="mb-75 mr-75"
-                              v-b-modal.modal-media
-                              @click="selectImage">
-                        Resim Seç
-                    </b-button>
-                    <!--/ upload button -->
-                    <!-- reset -->
-                    <b-button id="removeFeaturedImage"
-                              v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                              variant="outline-secondary"
-                              size="sm"
-                              class="mb-75 mr-75"
+                              class="btn-icon rounded-circle remove-image remove-featured-image"
                               @click="removeImage">
-                        Resmi Kaldır
+                        <feather-icon icon="XIcon"
+                                      class="remove-featured-image"
+                                      size="11" />
                     </b-button>
                     <b-form-input type="text"
                                   hidden
@@ -520,7 +521,6 @@
                 },
                 isFeaturedImageChoose: false,
                 keywords: [],
-                modalShow: false,
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
                 openGraphImage: {
                     id: null,
@@ -602,25 +602,24 @@
                 this.isTwitterImageChoose = false;
             },
             selectImage: function (e) {
-                if (e.target.id == "selectFeaturedImage") {
+                if (e.target._prevClass.includes('select-featured-image')) {
                     this.isFeaturedImageChoose = true;
-                } else if (e.target.id == "selectOpenGraphImage") {
+                } else if (e.target._prevClass.includes('select-opengraph-image')) {
                     this.isOpenGraphImageChoose = true;
-                } else if (e.target.id == "selectTwitterImage") {
+                } else if (e.target._prevClass.includes('select-twitter-image')) {
                     this.isTwitterImageChoose = true;
                 }
-                this.modalShow = true;
             },
             removeImage: function (e) {
-                if (e.target.id == "removeFeaturedImage") {
+                if (e.target._prevClass.includes('remove-featured-image')) {
                     this.featuredImage.id = null;
                     this.featuredImage.fileName = null;
                     this.featuredImage.altText = null;
-                } else if (e.target.id == "removeOpenGraphImage") {
+                } else if (e.target._prevClass.includes('remove-opengraph-image')) {
                     this.openGraphImage.id = null;
                     this.openGraphImage.fileName = null;
                     this.openGraphImage.altText = null;
-                } else if (e.target.id == "removeTwitterImage") {
+                } else if (e.target._prevClass.includes('remove-twitter-image')) {
                     this.twitterImage.id = null;
                     this.twitterImage.fileName = null;
                     this.twitterImage.altText = null;
@@ -686,7 +685,7 @@
                                     if (this.$can('update', 'Otherpage')) {
                                         this.$router.push({ name: 'pages-page-edit', query: { edit: response.data.PostDto.Data.Post.Id } });
                                     } else {
-                                        this.$router.push({ name: 'pages-page-list'});
+                                        this.$router.push({ name: 'pages-page-list' });
                                     }
                                     this.$toast({
                                         component: ToastificationContent,
@@ -750,7 +749,13 @@
         border-radius: 5px;
     }
 
-    .image-thumb {
+    .image-preview {
+        width: 100%;
+        height: 200px;
+        position: relative;
+    }
+
+    .image-thumbnail {
         width: 100%;
         height: 200px;
         -webkit-box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
@@ -760,7 +765,7 @@
         border-radius: 5px;
     }
 
-    .image-thumb img {
+    .image-thumbnail img {
         max-height: 100%;
         max-width: 100%;
         position: absolute;
@@ -770,5 +775,19 @@
         right: 0;
         margin: auto;
         padding: 5px;
+    }
+
+    .image-preview .select-image {
+        position: absolute !important;
+        top: -12px;
+        right: -12px;
+        padding: 5px !important;
+    }
+
+    .image-preview .remove-image {
+        position: absolute !important;
+        bottom: -12px;
+        right: -12px;
+        padding: 5px !important;
     }
 </style>

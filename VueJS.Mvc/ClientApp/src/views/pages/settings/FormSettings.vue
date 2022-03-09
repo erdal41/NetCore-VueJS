@@ -556,7 +556,7 @@
     import vSelect from 'vue-select';
     import Ripple from 'vue-ripple-directive';
     import { quillEditor } from 'vue-quill-editor';
-    import ModalMedia from '../../media/ModalMedia.vue';
+    import ModalMedia from '../media/ModalMedia.vue';
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
     import UrlHelper from '@/helper/url-helper';

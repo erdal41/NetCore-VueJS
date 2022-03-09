@@ -10,6 +10,7 @@ using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Services.Abstract;
 using VueJS.Shared.Utilities.Helpers.Abstract;
 using System.Threading.Tasks;
+using VueJS.Shared.Utilities.Results.ComplexTypes;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -84,16 +85,16 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("admin/settings-email")]
         public JsonResult Email(SmtpSettings smtpSettings)
         {
-                _smtpSettingsWriter.Update(x =>
-                {
-                    x.Server = smtpSettings.Server;
-                    x.Port = smtpSettings.Port;
-                    x.SenderEmail = smtpSettings.SenderEmail;
-                    x.Username = smtpSettings.Username;
-                    x.Password = smtpSettings.Password;
-                    x.IsEnableSsl = smtpSettings.IsEnableSsl;
-                });
-                return Json(smtpSettings);
+            _smtpSettingsWriter.Update(x =>
+            {
+                x.Server = smtpSettings.Server;
+                x.Port = smtpSettings.Port;
+                x.SenderEmail = smtpSettings.SenderEmail;
+                x.Username = smtpSettings.Username;
+                x.Password = smtpSettings.Password;
+                x.IsEnableSsl = smtpSettings.IsEnableSsl;
+            });
+            return Json(smtpSettings);
         }
 
         [HttpGet("admin/settings-recaptcha")]
@@ -105,12 +106,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("admin/settings-recaptcha")]
         public JsonResult ReCaptcha(ReCaptcha reCaptcha)
         {
-                _reCaptchaWriter.Update(x =>
-                {
-                    x.SiteKey = reCaptcha.SiteKey;
-                    x.SecretKey = reCaptcha.SecretKey;
-                });
-                return Json(reCaptcha);
+            _reCaptchaWriter.Update(x =>
+            {
+                x.SiteKey = reCaptcha.SiteKey;
+                x.SecretKey = reCaptcha.SecretKey;
+            });
+            return Json(reCaptcha);
         }
 
         [HttpGet("admin/settings-blog")]
@@ -122,7 +123,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpGet("admin/settings-articlerightsidebar")]
         public async Task<JsonResult> ArticleRightSideBarWidgetSettings()
         {
-            var categoriesResult = await _termService.GetAllAsync(SubObjectType.category, null);
+            var categoriesResult = await _termService.GetAllAsync(SubObjectType.category);
             var articleRightSideBarWidgetOptionsViewModel = Mapper.Map<ArticleRightSideBarWidgetOptionsViewModel>(_articleRightSideBarWidgetOptions);
             articleRightSideBarWidgetOptionsViewModel.Terms = categoriesResult.Data.Terms;
             return Json(articleRightSideBarWidgetOptionsViewModel);
@@ -131,32 +132,26 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("admin/settings-articlerightsidebar")]
         public async Task<JsonResult> ArticleRightSideBarWidgetSettings(ArticleRightSideBarWidgetOptionsViewModel articleRightSideBarWidgetOptionsViewModel)
         {
-            var categoriesResult = await _termService.GetAllAsync(SubObjectType.category, null);
+            var categoriesResult = await _termService.GetAllAsync(SubObjectType.category);
+            if(categoriesResult.ResultStatus != ResultStatus.Success) return Json(categoriesResult);
             articleRightSideBarWidgetOptionsViewModel.Terms = categoriesResult.Data.Terms;
-            if (ModelState.IsValid)
+
+            _articleRightSideBarWidgetOptionsWriter.Update(x =>
             {
-                _articleRightSideBarWidgetOptionsWriter.Update(x =>
-                {
-                    x.Header = articleRightSideBarWidgetOptionsViewModel.Header;
-                    x.TakeSize = articleRightSideBarWidgetOptionsViewModel.TakeSize;
-                    x.CategoryId = articleRightSideBarWidgetOptionsViewModel.CategoryId;
-                    x.FilterBy = articleRightSideBarWidgetOptionsViewModel.FilterBy;
-                    x.OrderBy = articleRightSideBarWidgetOptionsViewModel.OrderBy;
-                    x.IsAscending = articleRightSideBarWidgetOptionsViewModel.IsAscending;
-                    x.StartAt = articleRightSideBarWidgetOptionsViewModel.StartAt;
-                    x.EndAt = articleRightSideBarWidgetOptionsViewModel.EndAt;
-                    x.MaxViewCount = articleRightSideBarWidgetOptionsViewModel.MaxViewCount;
-                    x.MinViewCount = articleRightSideBarWidgetOptionsViewModel.MinViewCount;
-                    x.MaxCommentCount = articleRightSideBarWidgetOptionsViewModel.MaxCommentCount;
-                    x.MinCommentCount = articleRightSideBarWidgetOptionsViewModel.MinCommentCount;
-                });
-                _toastNotification.AddSuccessToastMessage("Makale sayfalarınızın widget ayarları başarıyla güncellenmiştir.", new ToastrOptions
-                {
-                    Title = "İşlem Başarılı!"
-                });
-                return View(articleRightSideBarWidgetOptionsViewModel);
-            }
-            return View(articleRightSideBarWidgetOptionsViewModel);
+                x.Header = articleRightSideBarWidgetOptionsViewModel.Header;
+                x.TakeSize = articleRightSideBarWidgetOptionsViewModel.TakeSize;
+                x.CategoryId = articleRightSideBarWidgetOptionsViewModel.CategoryId;
+                x.FilterBy = articleRightSideBarWidgetOptionsViewModel.FilterBy;
+                x.OrderBy = articleRightSideBarWidgetOptionsViewModel.OrderBy;
+                x.IsAscending = articleRightSideBarWidgetOptionsViewModel.IsAscending;
+                x.StartAt = articleRightSideBarWidgetOptionsViewModel.StartAt;
+                x.EndAt = articleRightSideBarWidgetOptionsViewModel.EndAt;
+                x.MaxViewCount = articleRightSideBarWidgetOptionsViewModel.MaxViewCount;
+                x.MinViewCount = articleRightSideBarWidgetOptionsViewModel.MinViewCount;
+                x.MaxCommentCount = articleRightSideBarWidgetOptionsViewModel.MaxCommentCount;
+                x.MinCommentCount = articleRightSideBarWidgetOptionsViewModel.MinCommentCount;
+            });
+            return Json(articleRightSideBarWidgetOptionsViewModel);
         }
     }
 }

@@ -293,7 +293,6 @@
                 this.getAllData();
             },
             imageChange(id, name, altText) {
-                console.log(id);
                 this.profileImage.id = id;
                 this.profileImage.fileName = name;
                 this.profileImage.altText = altText;

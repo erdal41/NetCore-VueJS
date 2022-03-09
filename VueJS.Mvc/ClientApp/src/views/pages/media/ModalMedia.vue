@@ -115,6 +115,7 @@
         methods: {
             selectedImage() {
                 this.$emit('changeImage', this.selectedImageId, this.selectedImageFileName, this.selectedImageAltText);
+                this.selectedImageId = '';
             },
             imageClick(id, name, altText) {
                 this.selectedImageId = id;
@@ -318,13 +319,13 @@
         cursor: pointer;
     }
 
-    .check-image {
+    .image-list .check-image {
         position: absolute;
         right: -6px;
         top: 1px;
     }
 
-    .select-image {
+    .image-list .select-image {
         max-width: 100%;
         max-height: 100%;
         position: relative;
