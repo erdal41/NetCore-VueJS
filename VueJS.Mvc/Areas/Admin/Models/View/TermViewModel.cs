@@ -1,7 +1,7 @@
 ﻿using VueJS.Entities.Dtos;
 using VueJS.Shared.Utilities.Results.Abstract;
 
-namespace VueJS.Mvc.Areas.Admin.Models
+namespace VueJS.Mvc.Areas.Admin.Models.View
 {
     public class TermViewModel
     {
@@ -10,6 +10,7 @@ namespace VueJS.Mvc.Areas.Admin.Models
         public IDataResult<TermUpdateDto> TermUpdateDto { get; set; }
         public IDataResult<SeoObjectSettingDto> SeoObjectSettingDto { get; set; }
         public IDataResult<SeoObjectSettingUpdateDto> SeoObjectSettingUpdateDto { get; set; }
+        public IDataResult<PostTermDto> PostTermDto { get; set; }
         public bool IsActiveCategorySeoSetting { get; set; }
         public bool IsActiveTagSeoSetting { get; set; }
     }

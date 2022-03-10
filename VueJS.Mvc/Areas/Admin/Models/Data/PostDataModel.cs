@@ -1,6 +1,6 @@
 ﻿using VueJS.Entities.Dtos;
 
-namespace VueJS.Mvc.Areas.Admin.Models
+namespace VueJS.Mvc.Areas.Admin.Models.Data
 {
     public class PostDataModel
     {

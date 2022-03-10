@@ -5,9 +5,9 @@ using AutoMapper;
 using VueJS.Services.Abstract;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
-using VueJS.Mvc.Areas.Admin.Models;
+using VueJS.Mvc.Areas.Admin.Models.Data;
+using VueJS.Mvc.Areas.Admin.Models.View;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
-using VueJS.Entities.Dtos;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -54,9 +54,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost("/admin/term-newpostterm")]
-        public async Task<JsonResult> NewPostTerm(PostTermAddDto postTermAddDto)
+        public async Task<JsonResult> NewPostTerm(TermDataModel termDataModel)
         {
-            return Json(new PostTermViewModel { PostTermDto = await _termService.PostTermAddAsync(postTermAddDto) });
+            return Json(new TermViewModel { PostTermDto = await _termService.PostTermAddAsync(termDataModel.PostTermAddDto) });
         }
 
         [HttpGet("/admin/term-edit")]

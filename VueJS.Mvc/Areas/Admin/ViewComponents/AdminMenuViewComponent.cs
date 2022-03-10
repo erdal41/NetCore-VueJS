@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using VueJS.Entities.Concrete;
 using VueJS.Services.Abstract;
 using System.Threading.Tasks;
-using VueJS.Mvc.Areas.Admin.Models;
+using VueJS.Mvc.Areas.Admin.Models.View;
 
 namespace VueJS.Mvc.Areas.Admin.ViewComponents
 {

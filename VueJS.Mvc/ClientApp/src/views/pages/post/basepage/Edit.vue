@@ -243,7 +243,7 @@
                                 </p>
                                 <b-form-group label="Sayfa Türü">
                                     <v-select v-model="seoObjectSettingUpdateDto.SchemaPageType"
-                                              :options="schnemaPageTypes"
+                                              :options="schemaPageTypes"
                                               label="Name"
                                               :reduce="(option) => option.Id"
                                               :clearable="false"
@@ -251,7 +251,7 @@
                                 </b-form-group>
                                 <b-form-group label="Makale Türü">
                                     <v-select v-model="seoObjectSettingUpdateDto.SchemaArticleType"
-                                              :options="schnemaArticleTypes"
+                                              :options="schemaArticleTypes"
                                               label="Name"
                                               :reduce="(option) => option.Id"
                                               :clearable="false"
@@ -629,8 +629,8 @@
                 },
                 isOpenGraphImageChoose: false,
                 isTwitterImageChoose: false,
-                schnemaPageTypes: [],
-                schnemaArticleTypes: []
+                schemaPageTypes: [],
+                schemaArticleTypes: []
             }
         },
         methods: {
@@ -777,10 +777,10 @@
                     this.twitterImage.altText = null;
                 }
             },
-            getSchnemaPageType() {
-                axios.get('/admin/post-getschnemapagetype')
+            getSchemaPageType() {
+                axios.get('/admin/post-getschemapagetype')
                     .then((response) => {
-                        this.schnemaPageTypes = response.data;
+                        this.schemaPageTypes = response.data;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -794,10 +794,10 @@
                         })
                     });
             },
-            getSchnemaArticleType() {
-                axios.get('/admin/post-getschnemaarticletype')
+            getSchemaArticleType() {
+                axios.get('/admin/post-getschemaarticletype')
                     .then((response) => {
-                        this.schnemaArticleTypes = response.data;
+                        this.schemaArticleTypes = response.data;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -1073,8 +1073,8 @@
             this.allTopPosts();
             this.allSubPosts();
             this.getData();
-            this.getSchnemaPageType();
-            this.getSchnemaArticleType();
+            this.getSchemaPageType();
+            this.getSchemaArticleType();
         }
     }
 </script>

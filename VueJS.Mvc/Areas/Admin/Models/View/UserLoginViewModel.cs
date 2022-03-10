@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using VueJS.Entities.Concrete;
 
-namespace VueJS.Mvc.Areas.Admin.Models
+namespace VueJS.Mvc.Areas.Admin.Models.View
 {
     public class UserLoginViewModel
     {

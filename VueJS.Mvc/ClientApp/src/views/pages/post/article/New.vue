@@ -199,18 +199,18 @@
                             Bu, arama motorlarının web sitenizi ve içeriğinizi anlamasına yardımcı olur. Bu sayfa için bazı ayarlarınızı aşağıda değiştirebilirsiniz.
                         </p>
                         <b-form-group label="Sayfa Türü">
-                            <v-select id="schnemaPageType"
+                            <v-select id="schemaPageType"
                                       v-model="articleSeoSettingAddDto.SchemaPageType"
-                                      :options="schnemaPageTypes"
+                                      :options="schemaPageTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
                                       placeholder="Sayfa Türü Seçiniz..."
                                       @input="changePageType()" />
                         </b-form-group>
                         <b-form-group label="Makale Türü">
-                            <v-select id="schnemaArticleType"
+                            <v-select id="schemaArticleType"
                                       v-model="selectedArticleType"
-                                      :options="schnemaArticleTypes"
+                                      :options="schemaArticleTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
                                       placeholder="Makale Türü Seçiniz..."
@@ -644,8 +644,8 @@
                 },
                 isOpenGraphImageChoose: false,
                 isTwitterImageChoose: false,
-                schnemaPageTypes: [],
-                schnemaArticleTypes: [],
+                schemaPageTypes: [],
+                schemaArticleTypes: [],
                 selectedPageType: { Id: '0', Name: 'Sayfalar için varsayılan(Web sayfası)' },
                 selectedArticleType: { Id: '0', Name: 'Yazılar için varsayılan(Makale)' }
             }
@@ -776,10 +776,10 @@
                     this.twitterImage.altText = null;
                 }
             },
-            getSchnemaPageType() {
-                axios.get('/admin/post-getschnemapagetype')
+            getSchemaPageType() {
+                axios.get('/admin/post-getschemapagetype')
                     .then((response) => {
-                        this.schnemaPageTypes = response.data;
+                        this.schemaPageTypes = response.data;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -793,10 +793,10 @@
                         })
                     });
             },
-            getSchnemaArticleType() {
-                axios.get('/admin/post-getschnemapagetype')
+            getSchemaArticleType() {
+                axios.get('/admin/post-getschemapagetype')
                     .then((response) => {
-                        this.schnemaArticleTypes = response.data;
+                        this.schemaArticleTypes = response.data;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -1004,8 +1004,8 @@
         mounted() {
             this.allCategories();
             this.allTags();
-            this.getSchnemaPageType();
-            this.getSchnemaArticleType();
+            this.getSchemaPageType();
+            this.getSchemaArticleType();
             console.log(this.selectedTag);
         }
     }

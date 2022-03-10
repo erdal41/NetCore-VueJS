@@ -4,13 +4,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
-using VueJS.Entities.Dtos;
-using VueJS.Mvc.Areas.Admin.Models;
 using VueJS.Mvc.Helpers.Abstract;
 using VueJS.Services.Abstract;
 using VueJS.Shared.Utilities.Helpers.Abstract;
 using System.Threading.Tasks;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
+using VueJS.Mvc.Areas.Admin.Models.View;
+using VueJS.Mvc.Areas.Admin.Models.Data;
+using System.Linq;
+using System;
+using VueJS.Shared.Utilities.Extensions;
+using VueJS.Entities.Dtos;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -25,9 +29,22 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         private readonly ArticleRightSideBarWidgetOptions _articleRightSideBarWidgetOptions;
         private readonly IWritableOptions<ArticleRightSideBarWidgetOptions> _articleRightSideBarWidgetOptionsWriter;
         private readonly ISettingService _settingService;
+        private readonly ISeoService _seoService;
         private readonly ITermService _termService;
 
-        public SettingsController(IOptionsSnapshot<SmtpSettings> smtpSettings, IWritableOptions<SmtpSettings> smtpSettingsWriter, IOptionsSnapshot<ReCaptcha> reCaptcha, IWritableOptions<ReCaptcha> reCaptchaWriter, IOptionsSnapshot<ArticleRightSideBarWidgetOptions> articleRightSideBarWidgetOptions, IWritableOptions<ArticleRightSideBarWidgetOptions> articleRightSideBarWidgetOptionsWriter, ISettingService settingService, ITermService termService, UserManager<User> userManager, IMapper mapper, IFileHelper fileHelper) : base(userManager, mapper, fileHelper)
+        public SettingsController(
+            IOptionsSnapshot<SmtpSettings> smtpSettings,
+            IWritableOptions<SmtpSettings> smtpSettingsWriter,
+            IOptionsSnapshot<ReCaptcha> reCaptcha,
+            IWritableOptions<ReCaptcha> reCaptchaWriter,
+            IOptionsSnapshot<ArticleRightSideBarWidgetOptions> articleRightSideBarWidgetOptions,
+            IWritableOptions<ArticleRightSideBarWidgetOptions> articleRightSideBarWidgetOptionsWriter,
+            ISettingService settingService,
+            ISeoService seoService,
+            ITermService termService,
+            UserManager<User> userManager,
+            IMapper mapper,
+            IFileHelper fileHelper) : base(userManager, mapper, fileHelper)
         {
             _smtpSettings = smtpSettings.Value;
             _smtpSettingsWriter = smtpSettingsWriter;
@@ -36,122 +53,274 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             _articleRightSideBarWidgetOptions = articleRightSideBarWidgetOptions.Value;
             _articleRightSideBarWidgetOptionsWriter = articleRightSideBarWidgetOptionsWriter;
             _settingService = settingService;
+            _seoService = seoService;
             _termService = termService;
         }
 
-        [HttpGet("admin/settings-general")]
+        #region GENERAL
+
+        [HttpGet("/admin/settings-general")]
         public async Task<JsonResult> General()
         {
-            return Json(new GeneralSettingViewModel { GeneralSettingUpdateDto = await _settingService.GetGeneralSettingUpdateDtoAsync() });
+            return Json(new SettingsViewModel { GeneralSettingUpdateDto = await _settingService.GetGeneralSettingUpdateDtoAsync() });
         }
 
-        [HttpPost("admin/settings-general")]
-        public async Task<JsonResult> General(GeneralSettingUpdateDto generalSettingUpdateDto)
+        [HttpPost("/admin/settings-general")]
+        public async Task<JsonResult> General(SettingsDataModel settingsDataModel)
         {
-            return Json(new GeneralSettingViewModel { GeneralSettingDto = await _settingService.GeneralSettingUpdateAsync(generalSettingUpdateDto, LoggedInUser.Id) });
+            return Json(new SettingsViewModel { GeneralSettingDto = await _settingService.GeneralSettingUpdateAsync(settingsDataModel.GeneralSettingUpdateDto, LoggedInUser.Id) });
         }
 
-        [HttpGet("admin/settings-getjsfileread")]
+        [HttpGet("/admin/settings-getjsfileread")]
         public JsonResult GetJsFileRead()
         {
-            return Json(new FileViewModel { FileDto = FileHelper.GetJsFileRead("custom.js") });
+            return Json(new SettingsViewModel { FileDto = FileHelper.GetJsFileRead("custom.js") });
         }
 
-        [HttpPost("admin/settings-jsfileupdate")]
+        [HttpPost("/admin/settings-jsfileupdate")]
         public JsonResult JsFileUpdate(string text)
         {
-            return Json(new FileViewModel { FileDto = FileHelper.JsFileUpdate("custom.js", text) });
+            return Json(new SettingsViewModel { FileDto = FileHelper.JsFileUpdate("custom.js", text) });
         }
 
-        [HttpGet("admin/settings-getcssfileread")]
+        [HttpGet("/admin/settings-getcssfileread")]
         public JsonResult GetCssFileRead()
         {
-            return Json(new FileViewModel { FileDto = FileHelper.GetCssFileRead("custom.css") });
+            return Json(new SettingsViewModel { FileDto = FileHelper.GetCssFileRead("custom.css") });
 
         }
 
-        [HttpPost("admin/settings-cssfileupdate")]
+        [HttpPost("/admin/settings-cssfileupdate")]
         public JsonResult CssFileUpdate(string text)
         {
-            return Json(new FileViewModel { FileDto = FileHelper.CssFileUpdate("custom.css", text) });
+            return Json(new SettingsViewModel { FileDto = FileHelper.CssFileUpdate("custom.css", text) });
         }
 
-        [HttpGet("admin/settings-email")]
-        public JsonResult Email()
+        #endregion
+
+        #region SEO
+
+        [HttpGet("/admin/settings-seogeneral")]
+        public async Task<JsonResult> SeoGeneralSettings()
         {
-            return Json(_smtpSettings);
+            return Json(new SettingsViewModel { SeoGeneralSettingUpdateDto = await _seoService.GetSeoGeneralSettingUpdateDtoAsync() });
         }
 
-        [HttpPost("admin/settings-email")]
-        public JsonResult Email(SmtpSettings smtpSettings)
+        [HttpPost("/admin/settings-seogeneral")]
+        public async Task<JsonResult> SeoGeneralSettings(SettingsDataModel settingsDataModel)
         {
-            _smtpSettingsWriter.Update(x =>
+            var result = await _seoService.SeoGeneralSettingUpdateAsync(settingsDataModel.SeoGeneralSettingUpdateDto, LoggedInUser.Id);
+            if (result.ResultStatus == ResultStatus.Success)
             {
-                x.Server = smtpSettings.Server;
-                x.Port = smtpSettings.Port;
-                x.SenderEmail = smtpSettings.SenderEmail;
-                x.Username = smtpSettings.Username;
-                x.Password = smtpSettings.Password;
-                x.IsEnableSsl = smtpSettings.IsEnableSsl;
-            });
-            return Json(smtpSettings);
+                if (result.Data.SeoGeneralSetting.IsActiveRobotsTxt == false)
+                {
+                    FileHelper.Delete("robots.txt");
+                }
+
+                if (result.Data.SeoGeneralSetting.IsActiveSitemap == false)
+                {
+                    FileHelper.Delete("sitemap.xml");
+                }
+                else
+                {
+                    await FileHelper.CreateSitemapInRootDirectoryAsync();
+                }
+            }
+            return Json(new SettingsViewModel { SeoGeneralSettingDto = result });
         }
 
-        [HttpGet("admin/settings-recaptcha")]
-        public JsonResult ReCaptcha()
+        [HttpGet("/admin/settings-getseotype")]
+        public JsonResult GetSeoType()
         {
-            return Json(_reCaptcha);
+            return Json(Enum.GetValues(typeof(SeoType))
+                .Cast<SeoType>()
+                .Select(spt => new EnumViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                }));
         }
 
-        [HttpPost("admin/settings-recaptcha")]
-        public JsonResult ReCaptcha(ReCaptcha reCaptcha)
+        [HttpGet("/admin/settings-getschemapagetype")]
+        public JsonResult GetSchemaPageType()
         {
-            _reCaptchaWriter.Update(x =>
+            return Json(Enum.GetValues(typeof(SchemaPageType))
+                .Cast<SchemaPageType>()
+                .Select(spt => new EnumViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                }));
+        }
+
+        [HttpGet("/admin/settings-getschemaarticletype")]
+        public JsonResult GetSchemaArticleType()
+        {
+            return Json(Enum.GetValues(typeof(SchemaArticleType))
+                .Cast<SchemaArticleType>()
+                .Select(spt => new EnumViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                }));
+        }
+
+        [HttpGet("/admin/settings-gettwittercardtype")]
+        public JsonResult GetTwitterCardType()
+        {
+            return Json(Enum.GetValues(typeof(TwitterCardType))
+                .Cast<TwitterCardType>()
+                .Select(spt => new EnumViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                }));
+        }
+
+        [HttpGet("/admin/settings-seorobotstxt")]
+        public JsonResult RobotsTxt()
+        {
+            var result = FileHelper.GetFileRead("robots.txt");
+            if (result.Data.Text == null)
             {
-                x.SiteKey = reCaptcha.SiteKey;
-                x.SecretKey = reCaptcha.SecretKey;
-            });
-            return Json(reCaptcha);
+                result.Data.Text = FileHelper.DefaultRobotsTxt();
+            }
+            return Json(new SettingsViewModel { FileDto = result });
         }
 
-        [HttpGet("admin/settings-blog")]
-        public JsonResult Blog()
+        [HttpPost("/admin/settings-seorobotstxt")]
+        public JsonResult RobotsTxt(SettingsDataModel settingsDataModel)
         {
-            return Json(_smtpSettings);
+            return Json(new SettingsViewModel { FileDto = FileHelper.FileAddOrUpdate("robots.txt", settingsDataModel.FileDto.Text) });
         }
 
-        [HttpGet("admin/settings-articlerightsidebar")]
+        [Route("/admin/settings-seorobotstxtdelete")]
+        public JsonResult RobotsTxtDelete()
+        {
+            return Json(new SettingsViewModel { FileDto = FileHelper.Delete("robots.txt") });
+        }
+
+        #endregion
+
+        #region FORM
+
+        [HttpGet("/admin/settings-form")]
+        public JsonResult Form()
+        {
+            return Json(new SettingsViewModel
+            {
+                SmtpSettings = _smtpSettings,
+                ReCaptcha = _reCaptcha
+            });
+        }
+
+        [HttpPost("/admin/settings-form")]
+        public JsonResult Form(SettingsViewModel settingsViewModel)
+        {
+            if (settingsViewModel.SmtpSettings != null)
+            {
+                _smtpSettingsWriter.Update(x =>
+                {
+                    x.Server = settingsViewModel.SmtpSettings.Server;
+                    x.Port = settingsViewModel.SmtpSettings.Port;
+                    x.SenderEmail = settingsViewModel.SmtpSettings.SenderEmail;
+                    x.Username = settingsViewModel.SmtpSettings.Username;
+                    x.Password = settingsViewModel.SmtpSettings.Password;
+                    x.IsEnableSsl = settingsViewModel.SmtpSettings.IsEnableSsl;
+                });
+            }
+
+            if (settingsViewModel.ReCaptcha != null)
+            {
+                _reCaptchaWriter.Update(x =>
+                {
+                    x.SiteKey = settingsViewModel.ReCaptcha.SiteKey;
+                    x.SecretKey = settingsViewModel.ReCaptcha.SecretKey;
+                });
+            }
+
+            return Json(new SettingsViewModel
+            {
+                SmtpSettings = settingsViewModel.SmtpSettings,
+                ReCaptcha = settingsViewModel.ReCaptcha
+            });
+        }
+
+        #endregion
+
+        #region WIDGET
+
+        [HttpGet("/admin/settings-getfilter")]
+        public JsonResult GetFilter()
+        {
+            return Json(Enum.GetValues(typeof(FilterBy))
+                .Cast<FilterBy>()
+                .Select(spt => new EnumViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                }));
+        }
+
+        [HttpGet("/admin/settings-getorder")]
+        public JsonResult GetOrder()
+        {
+            return Json(Enum.GetValues(typeof(OrderBy))
+                .Cast<OrderBy>()
+                .Select(spt => new EnumViewModel
+                {
+                    Id = (int)spt,
+                    Name = spt.GetDisplayName()
+                }));
+        }
+
+        [HttpGet("/admin/settings-widget")]
         public async Task<JsonResult> ArticleRightSideBarWidgetSettings()
         {
-            var categoriesResult = await _termService.GetAllAsync(SubObjectType.category);
-            var articleRightSideBarWidgetOptionsViewModel = Mapper.Map<ArticleRightSideBarWidgetOptionsViewModel>(_articleRightSideBarWidgetOptions);
-            articleRightSideBarWidgetOptionsViewModel.Terms = categoriesResult.Data.Terms;
-            return Json(articleRightSideBarWidgetOptionsViewModel);
+            var categories = await _termService.GetAllAsync(SubObjectType.category);
+            var tags = await _termService.GetAllAsync(SubObjectType.tag);
+            if (categories.ResultStatus != ResultStatus.Success && tags.ResultStatus != ResultStatus.Success) return Json(new SettingsViewModel { ArticleRightSideBarWidgetOptionsDto = null });
+
+            var articleRightSideBarWidgetOptionsDto = Mapper.Map<ArticleRightSideBarWidgetOptionsDto>(_articleRightSideBarWidgetOptions);
+            articleRightSideBarWidgetOptionsDto.Categories = categories.Data.Terms;
+            articleRightSideBarWidgetOptionsDto.Tags = tags.Data.Terms;
+            return Json(new SettingsViewModel { ArticleRightSideBarWidgetOptionsDto = articleRightSideBarWidgetOptionsDto });
         }
 
-        [HttpPost("admin/settings-articlerightsidebar")]
-        public async Task<JsonResult> ArticleRightSideBarWidgetSettings(ArticleRightSideBarWidgetOptionsViewModel articleRightSideBarWidgetOptionsViewModel)
+        [HttpPost("/admin/settings-widget")]
+        public async Task<JsonResult> ArticleRightSideBarWidgetSettings(SettingsViewModel settingsViewModel)
         {
-            var categoriesResult = await _termService.GetAllAsync(SubObjectType.category);
-            if(categoriesResult.ResultStatus != ResultStatus.Success) return Json(categoriesResult);
-            articleRightSideBarWidgetOptionsViewModel.Terms = categoriesResult.Data.Terms;
+            var categories = await _termService.GetAllAsync(SubObjectType.category);
+            var tags = await _termService.GetAllAsync(SubObjectType.tag);
+            if (categories.ResultStatus != ResultStatus.Success && tags.ResultStatus != ResultStatus.Success && settingsViewModel.ArticleRightSideBarWidgetOptions == null) return Json(settingsViewModel);
+            settingsViewModel.ArticleRightSideBarWidgetOptionsDto.Categories = categories.Data.Terms;
+            settingsViewModel.ArticleRightSideBarWidgetOptionsDto.Tags = tags.Data.Terms;
 
             _articleRightSideBarWidgetOptionsWriter.Update(x =>
             {
-                x.Header = articleRightSideBarWidgetOptionsViewModel.Header;
-                x.TakeSize = articleRightSideBarWidgetOptionsViewModel.TakeSize;
-                x.CategoryId = articleRightSideBarWidgetOptionsViewModel.CategoryId;
-                x.FilterBy = articleRightSideBarWidgetOptionsViewModel.FilterBy;
-                x.OrderBy = articleRightSideBarWidgetOptionsViewModel.OrderBy;
-                x.IsAscending = articleRightSideBarWidgetOptionsViewModel.IsAscending;
-                x.StartAt = articleRightSideBarWidgetOptionsViewModel.StartAt;
-                x.EndAt = articleRightSideBarWidgetOptionsViewModel.EndAt;
-                x.MaxViewCount = articleRightSideBarWidgetOptionsViewModel.MaxViewCount;
-                x.MinViewCount = articleRightSideBarWidgetOptionsViewModel.MinViewCount;
-                x.MaxCommentCount = articleRightSideBarWidgetOptionsViewModel.MaxCommentCount;
-                x.MinCommentCount = articleRightSideBarWidgetOptionsViewModel.MinCommentCount;
+                x.Header = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.Header;
+                x.TakeSize = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.TakeSize;
+                x.CategoryId = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.CategoryId;
+                x.TagId = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.TagId;
+                x.FilterBy = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.FilterBy;
+                x.OrderBy = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.OrderBy;
+                x.IsAscending = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.IsAscending;
+                x.StartAt = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.StartAt;
+                x.EndAt = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.EndAt;
+                x.MaxViewCount = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.MaxViewCount;
+                x.MinViewCount = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.MinViewCount;
+                x.MaxCommentCount = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.MaxCommentCount;
+                x.MinCommentCount = settingsViewModel.ArticleRightSideBarWidgetOptionsDto.MinCommentCount;
             });
-            return Json(articleRightSideBarWidgetOptionsViewModel);
+            return Json(new SettingsViewModel { ArticleRightSideBarWidgetOptions = _articleRightSideBarWidgetOptions });
+        }
+
+        #endregion
+
+        [HttpGet("/admin/settings-blog")]
+        public JsonResult Blog()
+        {
+            return Json(_smtpSettings);
         }
     }
 }

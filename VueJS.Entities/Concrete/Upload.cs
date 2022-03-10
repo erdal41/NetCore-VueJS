@@ -31,6 +31,10 @@ namespace VueJS.Entities.Concrete
         public GeneralSetting Icon { get; set; }
         public SeoGeneralSetting SiteMainSetting { get; set; }
         public SeoGeneralSetting OpenGraphSetting { get; set; }
+        public SeoGeneralSetting PageSocialSetting { get; set; }
+        public SeoGeneralSetting ArticleSocialSetting { get; set; }
+        public SeoGeneralSetting CategorySocialSetting { get; set; }
+        public SeoGeneralSetting TagSocialSetting { get; set; }
         public ICollection<Post> Posts { get; set; }
         public ICollection<User> Users { get; set; }
         public ICollection<Gallery> Galleries { get; set; }

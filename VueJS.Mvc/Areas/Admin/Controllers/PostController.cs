@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
-using VueJS.Mvc.Areas.Admin.Models;
+using VueJS.Mvc.Areas.Admin.Models.Data;
+using VueJS.Mvc.Areas.Admin.Models.View;
 using VueJS.Services.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System.Collections.Generic;
@@ -11,7 +12,6 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using VueJS.Shared.Utilities.Extensions;
-using VueJS.Entities.Dtos;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -47,24 +47,24 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             });
         }
 
-        [HttpGet("/admin/post-getschnemapagetype")]
-        public JsonResult GetSchnemaPageType()
+        [HttpGet("/admin/post-getschemapagetype")]
+        public JsonResult GetSchemaPageType()
         {
             return Json(Enum.GetValues(typeof(SchemaPageType))
                 .Cast<SchemaPageType>()
-                .Select(spt => new SchnemaTypeViewModel
+                .Select(spt => new EnumViewModel
                 {
                     Id = (int)spt,
                     Name = spt.GetDisplayName()
                 }));
         }
 
-        [HttpGet("/admin/post-getschnemaarticletype")]
-        public JsonResult GetSchnemaArticleType()
+        [HttpGet("/admin/post-getschemaarticletype")]
+        public JsonResult GetSchemaArticleType()
         {
             return Json(Enum.GetValues(typeof(SchemaArticleType))
                 .Cast<SchemaArticleType>()
-                .Select(spt => new SchnemaTypeViewModel
+                .Select(spt => new EnumViewModel
                 {
                     Id = (int)spt,
                     Name = spt.GetDisplayName()

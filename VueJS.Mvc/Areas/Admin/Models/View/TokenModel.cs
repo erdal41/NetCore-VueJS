@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VueJS.Mvc.Areas.Admin.Models
+namespace VueJS.Mvc.Areas.Admin.Models.View
 {
     public class TokenModel
     {

@@ -4,7 +4,7 @@ using VueJS.Entities.Concrete;
 using VueJS.Services.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System.Threading.Tasks;
-using VueJS.Mvc.Areas.Admin.Models;
+using VueJS.Mvc.Areas.Admin.Models.View;
 using AutoMapper;
 using System;
 using VueJS.Mvc.Areas.Admin.Helper.Abstract;

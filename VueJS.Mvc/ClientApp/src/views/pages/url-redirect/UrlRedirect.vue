@@ -163,7 +163,7 @@
                                              :value="true"
                                              @change="selectAllRows($event)"></b-form-checkbox>
                         </template>
-                        <template #foot(Id)="slot">
+                        <template #foot(Id)="slot" v-if="urlRedirects.length > 0">
                             <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
                                              v-model="selectAllCheck"
                                              :value="true"
@@ -210,7 +210,7 @@
                         </template>
                     </b-table>
                 </div>
-                <div v-show="urlRedirects.length <= 0"
+                <div v-if="urlRedirects.length <= 0"
                      class="text-center mt-1">{{ dataNullMessage  }}</div>
                 <b-card-body>
                     <div class="d-flex justify-content-between flex-wrap">

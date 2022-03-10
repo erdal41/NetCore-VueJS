@@ -1,6 +1,6 @@
 ﻿using VueJS.Entities.Dtos;
 
-namespace VueJS.Mvc.Areas.Admin.Models
+namespace VueJS.Mvc.Areas.Admin.Models.Data
 {
     public class TermDataModel
     {
@@ -8,5 +8,6 @@ namespace VueJS.Mvc.Areas.Admin.Models
         public TermUpdateDto TermUpdateDto { get; set; }
         public SeoObjectSettingAddDto SeoObjectSettingAddDto { get; set; }
         public SeoObjectSettingUpdateDto SeoObjectSettingUpdateDto { get; set; }
+        public PostTermAddDto PostTermAddDto { get; set; }
     }
 }

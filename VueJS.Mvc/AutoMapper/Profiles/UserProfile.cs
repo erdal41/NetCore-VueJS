@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using VueJS.Entities.Concrete;
 using VueJS.Entities.Dtos;
-using VueJS.Mvc.Areas.Admin.Models;
+using VueJS.Mvc.Areas.Admin.Models.View;
 
 namespace VueJS.Mvc.AutoMapper.Profiles
 {

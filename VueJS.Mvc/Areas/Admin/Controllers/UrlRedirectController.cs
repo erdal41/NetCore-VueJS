@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VueJS.Entities.Concrete;
-using VueJS.Mvc.Areas.Admin.Models;
+using VueJS.Mvc.Areas.Admin.Models.Data;
+using VueJS.Mvc.Areas.Admin.Models.View;
 using VueJS.Services.Abstract;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using VueJS.Entities.Dtos;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -29,9 +29,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost("/admin/urlredirect-new")]
-        public async Task<JsonResult> New(UrlRedirectAddDto urlRedirectAddDto)
+        public async Task<JsonResult> New(UrlRedirectDataModel urlRedirectDataModel)
         {
-            return Json(new UrlRedirectViewModel { UrlRedirectDto = await _urlRedirectService.AddAsync(urlRedirectAddDto, LoggedInUser.Id) });
+            return Json(new UrlRedirectViewModel { UrlRedirectDto = await _urlRedirectService.AddAsync(urlRedirectDataModel.UrlRedirectAddDto, LoggedInUser.Id) });
         }
 
         [HttpGet("/admin/urlredirect-edit")]
@@ -41,9 +41,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost("/admin/urlredirect-edit")]
-        public async Task<JsonResult> Edit(UrlRedirectUpdateDto urlRedirectUpdateDto)
+        public async Task<JsonResult> Edit(UrlRedirectDataModel urlRedirectDataModel)
         {
-            return Json(new UrlRedirectViewModel { UrlRedirectDto = await _urlRedirectService.UpdateAsync(urlRedirectUpdateDto, LoggedInUser.Id) });
+            return Json(new UrlRedirectViewModel { UrlRedirectDto = await _urlRedirectService.UpdateAsync(urlRedirectDataModel.UrlRedirectUpdateDto, LoggedInUser.Id) });
         }
 
         [HttpPost("/admin/urlredirect-delete")]

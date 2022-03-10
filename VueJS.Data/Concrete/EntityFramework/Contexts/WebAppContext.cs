@@ -31,15 +31,14 @@ namespace VueJS.Data.Concrete.EntityFramework.Contexts
             modelBuilder.Entity<Upload>().HasOne(u => u.User).WithMany(u => u.Uploads).HasForeignKey(u => u.UserId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Comment>().HasOne(c => c.User).WithMany(u => u.Comments).HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<SeoObjectSetting>().HasOne(sos => sos.User).WithMany(u => u.SeoObjectSettings).HasForeignKey(sos => sos.UserId).OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<UrlRedirect>().HasOne(ur => ur.User).WithMany(u => u.UrlRedirects).HasForeignKey(ur => ur.UserId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<UrlRedirect>().HasOne(ur => ur.User).WithMany(u => u.UrlRedirects).HasForeignKey(ur => ur.UserId).OnDelete(DeleteBehavior.Restrict);            
 
             // UPLOAD
             modelBuilder.Entity<Post>().HasOne(p => p.FeaturedImage).WithMany(u => u.Posts).HasForeignKey(p => p.FeaturedImageId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<User>().HasOne(u => u.ProfileImage).WithMany(u => u.Users).HasForeignKey(u => u.ProfileImageId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Gallery>().HasOne(g => g.Upload).WithMany(u => u.Galleries).HasForeignKey(g => g.UploadId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<SeoObjectSetting>().HasOne(sos => sos.OpenGraphImage).WithMany(u => u.OpenGraphImages).HasForeignKey(sos => sos.OpenGraphImageId).OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<SeoObjectSetting>().HasOne(sos => sos.TwitterImage).WithMany(u => u.TwitterImages).HasForeignKey(sos => sos.TwitterImageId).OnDelete(DeleteBehavior.Restrict);
-
+            modelBuilder.Entity<SeoObjectSetting>().HasOne(sos => sos.TwitterImage).WithMany(u => u.TwitterImages).HasForeignKey(sos => sos.TwitterImageId).OnDelete(DeleteBehavior.Restrict);            
 
             // TERM
             modelBuilder.Entity<Term>().HasMany(t => t.Children).WithOne(t => t.Parent).HasForeignKey(t => t.ParentId).OnDelete(DeleteBehavior.Restrict);
@@ -58,15 +57,19 @@ namespace VueJS.Data.Concrete.EntityFramework.Contexts
             #region ONE TO ONE
 
             // USER
-            modelBuilder.Entity<User>().HasOne(u => u.GeneralSetting).WithOne(gs => gs.User).HasForeignKey<GeneralSetting>(gs => gs.UserId).OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<User>().HasOne(u => u.SeoGeneralSetting).WithOne(sgs => sgs.User).HasForeignKey<SeoGeneralSetting>(sgs => sgs.UserId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<GeneralSetting>().HasOne(gs => gs.User).WithOne(u => u.GeneralSetting).HasForeignKey<GeneralSetting>(gs => gs.UserId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.User).WithOne(u => u.SeoGeneralSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.UserId).OnDelete(DeleteBehavior.Restrict);
 
             // UPLOAD
-            modelBuilder.Entity<Upload>().HasOne(u => u.Logo).WithOne(gs => gs.Logo).HasForeignKey<GeneralSetting>(gs => gs.LogoId).OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Upload>().HasOne(u => u.MobileLogo).WithOne(gs => gs.MobileLogo).HasForeignKey<GeneralSetting>(gs => gs.MobileLogoId).OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Upload>().HasOne(u => u.Icon).WithOne(gs => gs.Icon).HasForeignKey<GeneralSetting>(gs => gs.IconId).OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Upload>().HasOne(u => u.SiteMainSetting).WithOne(sgs => sgs.SiteMainImage).HasForeignKey<SeoGeneralSetting>(gs => gs.SiteMainImageId).OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Upload>().HasOne(u => u.OpenGraphSetting).WithOne(sgs => sgs.OpenGraphImage).HasForeignKey<SeoGeneralSetting>(gs => gs.OpenGraphImageId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<GeneralSetting>().HasOne(gs => gs.Logo).WithOne(u => u.Logo).HasForeignKey<GeneralSetting>(gs => gs.LogoId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<GeneralSetting>().HasOne(gs => gs.MobileLogo).WithOne(u => u.MobileLogo).HasForeignKey<GeneralSetting>(gs => gs.MobileLogoId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<GeneralSetting>().HasOne(gs => gs.Icon).WithOne(u => u.Icon).HasForeignKey<GeneralSetting>(gs => gs.IconId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.OpenGraphImage).WithOne(u => u.OpenGraphSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.OpenGraphImageId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.SiteMainImage).WithOne(u => u.SiteMainSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.SiteMainImageId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.PageSocialImage).WithOne(u => u.PageSocialSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.PageSocialImageId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.ArticleSocialImage).WithOne(u => u.ArticleSocialSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.ArticleSocialImageId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.CategorySocialImage).WithOne(u => u.CategorySocialSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.CategorySocialImageId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.TagSocialImage).WithOne(u => u.TagSocialSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.TagSocialImageId).OnDelete(DeleteBehavior.Restrict);
 
             #endregion
 

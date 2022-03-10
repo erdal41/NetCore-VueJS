@@ -2,7 +2,7 @@
 using VueJS.Entities.Dtos;
 using System.Collections.Generic;
 
-namespace VueJS.Mvc.Areas.Admin.Models
+namespace VueJS.Mvc.Areas.Admin.Models.View
 {
     public class UserRolesViewModel
     {

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using VueJS.Mvc.Areas.Admin.Models;
-using Newtonsoft.Json;
+using VueJS.Mvc.Areas.Admin.Models.Data;
+using VueJS.Mvc.Areas.Admin.Models.View;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VueJS.Services.Abstract;
@@ -56,9 +56,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost("/admin/upload-postgalleryadd")]
-        public async Task<ActionResult> PostGalleryAdd(GalleryAddDto galleryAddDto)
+        public async Task<ActionResult> PostGalleryAdd(UploadDataModel uploadDataModel)
         {
-            return Json(new GalleryViewModel { GalleryDto = await _uploadService.GalleryAddAsync(galleryAddDto) });
+            return Json(new UploadViewModel { GalleryDto = await _uploadService.GalleryAddAsync(uploadDataModel.GalleryAddDto) });
         }
 
         [HttpGet("/admin/upload-edit")]
@@ -68,11 +68,11 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpPost("/admin/upload-edit")]
-        public async Task<JsonResult> Edit(UploadUpdateDto uploadUpdateDto)
+        public async Task<JsonResult> Edit(UploadDataModel uploadDataModel)
         {
-            var result = await _uploadService.UpdateAsync(uploadUpdateDto, LoggedInUser.Id);
+            var result = await _uploadService.UpdateAsync(uploadDataModel.UploadUpdateDto, LoggedInUser.Id);
             if (result.ResultStatus == ResultStatus.Success)
-                uploadUpdateDto.User = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == LoggedInUser.Id);
+                uploadDataModel.UploadUpdateDto.User = await UserManager.Users.FirstOrDefaultAsync(u => u.Id == LoggedInUser.Id);
             return Json(new UploadViewModel { UploadDto = result });
         }
 

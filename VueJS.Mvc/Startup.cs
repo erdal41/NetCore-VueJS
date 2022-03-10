@@ -21,21 +21,28 @@ using System;
 using VueJS.Mvc.Areas.Admin.Helper.Abstract;
 using VueJS.Mvc.Areas.Admin.Helper.Concrete;
 using System.Text;
+using VueJS.Shared.Utilities.Extensions;
+using VueJS.Entities.Concrete;
 
 namespace VueJS.Mvc
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.Configure<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
+            services.Configure<ArticleRightSideBarWidgetOptions>(Configuration.GetSection("ArticleRightSideBarWidgetOptions"));
+            services.Configure<ReCaptcha>(Configuration.GetSection("ReCaptcha"));
+            services.ConfigureWritable<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
+            services.ConfigureWritable<ArticleRightSideBarWidgetOptions>(Configuration.GetSection("ArticleRightSideBarWidgetOptions"));
+            services.ConfigureWritable<ReCaptcha>(Configuration.GetSection("ReCaptcha"));
             services.AddAuthorization()
                 .AddAuthentication(options =>
             {
@@ -68,6 +75,7 @@ namespace VueJS.Mvc
             services.AddAutoMapper(typeof(CommentProfile), typeof(UploadProfile), typeof(UrlRedirectProfile), typeof(SettingProfile), typeof(PostProfile), typeof(TermProfile), typeof(SeoProfile), typeof(UserProfile));
             services.LoadMyServices(connectionString: Configuration.GetConnectionString("DefaultConnection"));
             services.AddScoped<IImageHelper, ImageHelper>();
+            services.AddScoped<IFileHelper, FileHelper>();
             services.AddScoped<IJwtHelper, JwtHelper>();
             services.AddControllers();
 

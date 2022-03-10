@@ -626,7 +626,7 @@
                 }
             },
             getSchemaPageType() {
-                axios.get('/admin/post-getschnemapagetype')
+                axios.get('/admin/post-getschemapagetype')
                     .then((response) => {
                         this.schemaPageTypes = response.data;
                     })
@@ -643,7 +643,7 @@
                     });
             },
             getSchemaArticleType() {
-                axios.get('/admin/post-getschnemaarticletype')
+                axios.get('/admin/post-getschemaarticletype')
                     .then((response) => {
                         this.schemaArticleTypes = response.data;
                     })

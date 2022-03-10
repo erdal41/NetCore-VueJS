@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VueJS.Entities.Concrete;
 using VueJS.Entities.Dtos;
-using VueJS.Mvc.Areas.Admin.Models;
-using VueJS.Shared.Utilities.Results.ComplexTypes;
+using VueJS.Mvc.Areas.Admin.Models.View;
 using System;
 using System.Threading.Tasks;
-using VueJS.Services.Concrete;
 using VueJS.Services.Abstract;
 using System.Collections.Generic;
 

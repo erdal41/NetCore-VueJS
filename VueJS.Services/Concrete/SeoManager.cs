@@ -51,7 +51,7 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<SeoGeneralSettingUpdateDto>> GetSeoGeneralSettingUpdateDtoAsync()
         {
-            var seoSetting = await UnitOfWork.SeoGeneralSettings.FirstOrDefaultAsync(sgs => sgs.OpenGraphImage, sgs => sgs.SiteMainImage);
+            var seoSetting = await UnitOfWork.SeoGeneralSettings.FirstOrDefaultAsync(sgs => sgs.SiteMainImage, sgs => sgs.PageSocialImage, sgs => sgs.ArticleSocialImage, sgs => sgs.CategorySocialImage, sgs => sgs.TagSocialImage, sgs => sgs.OpenGraphImage);
             if (seoSetting == null) return new DataResult<SeoGeneralSettingUpdateDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
             var seoSettingUpdateDto = Mapper.Map<SeoGeneralSettingUpdateDto>(seoSetting);
             return new DataResult<SeoGeneralSettingUpdateDto>(ResultStatus.Success, seoSettingUpdateDto);

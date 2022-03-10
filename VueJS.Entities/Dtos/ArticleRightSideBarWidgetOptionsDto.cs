@@ -5,9 +5,9 @@ using System.ComponentModel.DataAnnotations;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
 
-namespace VueJS.Mvc.Areas.Admin.Models
+namespace VueJS.Entities.Dtos
 {
-    public class ArticleRightSideBarWidgetOptionsViewModel
+    public class ArticleRightSideBarWidgetOptionsDto
     {
         [DisplayName("Widget Başlığı")]
         [Required(ErrorMessage = "{0} alanı zorunludur.")]
@@ -16,11 +16,16 @@ namespace VueJS.Mvc.Areas.Admin.Models
         public string Header { get; set; }
         [DisplayName("Makale Sayısı")]
         [Required(ErrorMessage = "{0} alanı zorunludur.")]
-        [Range(0, 50, ErrorMessage = "{0} alanı en az {1}, en fazla {2} olmalıdır.")]
+        [Range(0,50,ErrorMessage = "{0} alanı en az {1}, en fazla {2} olmalıdır.")]
         public int TakeSize { get; set; }
         [DisplayName("Kategori")]
         [Required(ErrorMessage = "{0} alanı zorunludur.")]
         public int CategoryId { get; set; }
+
+        [DisplayName("Etiket")]
+        [Required(ErrorMessage = "{0} alanı zorunludur.")]
+        public int TagId { get; set; }
+
         [DisplayName("Filtre Türü")]
         [Required(ErrorMessage = "{0} alanı zorunludur.")]
         public FilterBy FilterBy { get; set; }
@@ -32,7 +37,7 @@ namespace VueJS.Mvc.Areas.Admin.Models
         public bool IsAscending { get; set; }
         [DisplayName("Başlangıç Tarihi")]
         [Required(ErrorMessage = "{0} alanı zorunludur.")]
-        [DataType(DataType.Date, ErrorMessage = "{0} alanı tarih formatında olmalıdır.")]
+        [DataType(DataType.Date,ErrorMessage = "{0} alanı tarih formatında olmalıdır.")]
         public DateTime StartAt { get; set; }
         [DisplayName("Bitiş Tarihi")]
         [Required(ErrorMessage = "{0} alanı zorunludur.")]
@@ -50,6 +55,7 @@ namespace VueJS.Mvc.Areas.Admin.Models
         [DisplayName("Minimum Yorum Sayısı")]
         [Required(ErrorMessage = "{0} alanı zorunludur.")]
         public int MinCommentCount { get; set; }
-        public IList<Term> Terms { get; set; }
+        public IList<Term> Categories { get; set; }
+        public IList<Term> Tags { get; set; }
     }
 }
