@@ -198,26 +198,26 @@
                     }
                 }).then((response) => {
                     console.log(response.data);
-                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Id;
-                    this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.AltText;
-                    this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.ContentType;
-                    this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.CreatedDate;
-                    this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Description;
-                    this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.FileName;
-                    this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.FileUrl;
-                    this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Height;
-                    this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.SubTitle;
-                    this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Title;
-                    this.uploadUpdateDto.User = response.data.UploadUpdateDto.User;
-                    this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.UserId;
-                    this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Width;
-                    this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Size;
-                    var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.FileName)
+                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Data.Id;
+                    this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.Data.AltText;
+                    this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.Data.ContentType;
+                    this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.Data.CreatedDate;
+                    this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Data.Description;
+                    this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.Data.FileName;
+                    this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.Data.FileUrl;
+                    this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Data.Height;
+                    this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.Data.SubTitle;
+                    this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Data.Title;
+                    this.uploadUpdateDto.User = response.data.UploadUpdateDto.Data.User;
+                    this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.Data.UserId;
+                    this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Data.Width;
+                    this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Data.Size;
+                    var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.Data.FileName)
                     this.altText = location.origin + imgPath;
-                    this.createdDate = moment(new Date(response.data.UploadUpdateDto.CreatedDate)).format('DD.MM.YYYY');
+                    this.createdDate = moment(new Date(response.data.UploadUpdateDto.Data.CreatedDate)).format('DD.MM.YYYY');
 
 
-                    var size = response.data.UploadUpdateDto.Size;
+                    var size = response.data.UploadUpdateDto.Data.Size;
                     if (size >= 1024) {
                         this.sizeConvert = (size / 1024).toFixed(0) + " KB";
                     } else if (size >= 1048576) {
@@ -241,26 +241,26 @@
                         uploadId: id
                     }
                 }).then((response) => {
-                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Id;
-                    this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.AltText;
-                    this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.ContentType;
-                    this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.CreatedDate;
-                    this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Description;
-                    this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.FileName;
-                    this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.FileUrl;
-                    this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Height;
-                    this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.SubTitle;
-                    this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Title;
-                    this.uploadUpdateDto.User = response.data.UploadUpdateDto.User;
-                    this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.UserId;
-                    this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Width;
-                    this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Size;
-                    var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.FileName)
+                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Data.Id;
+                    this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.Data.AltText;
+                    this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.Data.ContentType;
+                    this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.Data.CreatedDate;
+                    this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Data.Description;
+                    this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.Data.FileName;
+                    this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.Data.FileUrl;
+                    this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Data.Height;
+                    this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.Data.SubTitle;
+                    this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Data.Title;
+                    this.uploadUpdateDto.User = response.data.UploadUpdateDto.Data.User;
+                    this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.Data.UserId;
+                    this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Data.Width;
+                    this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Data.Size;
+                    var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.Data.FileName)
                     this.altText = location.origin + imgPath;
-                    this.createdDate = moment(new Date(response.data.UploadUpdateDto.CreatedDate)).format('DD.MM.YYYY');
+                    this.createdDate = moment(new Date(response.data.UploadUpdateDto.Data.CreatedDate)).format('DD.MM.YYYY');
 
 
-                    var size = response.data.UploadUpdateDto.Size;
+                    var size = response.data.UploadUpdateDto.Data.Size;
                     if (size >= 1024) {
                         this.sizeConvert = (size / 1024).toFixed(0) + " KB";
                     } else if (size >= 1048576) {
