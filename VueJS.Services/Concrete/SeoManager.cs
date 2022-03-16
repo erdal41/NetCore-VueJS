@@ -95,7 +95,6 @@ namespace VueJS.Services.Concrete
             var seoObjectSetting = Mapper.Map<SeoObjectSettingUpdateDto, SeoObjectSetting>(seoObjectSettingUpdateDto, oldSeoObjectSetting);
             seoObjectSetting.SubObjectType = subSeoObjectType;
             seoObjectSetting.UserId = userId;
-            seoObjectSetting.ModifiedDate = DateTime.Now;
             var updatedSeoSetting = await UnitOfWork.SeoObjectSettings.UpdateAsync(seoObjectSetting);
             await UnitOfWork.SaveAsync();
             return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, new SeoObjectSettingDto { SeoObjectSetting = seoObjectSetting });
@@ -106,9 +105,6 @@ namespace VueJS.Services.Concrete
             var seoObject = Mapper.Map<SeoObjectSetting>(seoObjectSettingAddDto);
             seoObject.ObjectId = objectId;
             seoObject.UserId = userId;
-            seoObject.CreatedDate = DateTime.Now;
-            seoObject.ModifiedDate = DateTime.Now;
-
 
             switch (seoObjectType)
             {

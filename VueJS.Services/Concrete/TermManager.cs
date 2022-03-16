@@ -22,7 +22,7 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<TermDto>> GetAsync(int termId)
         {
             var term = await UnitOfWork.Terms.GetAsync(t => t.Id == termId);
-            if (term == null) return new DataResult<TermDto>(ResultStatus.Error, Messages.Term.NotFound(false), null);
+            if (term == null) return new DataResult<TermDto>(ResultStatus.Error, Messages.NotFound(term.TermType, false), null);
             return new DataResult<TermDto>(ResultStatus.Success, new TermDto { Term = term });
         }
 
@@ -47,14 +47,14 @@ namespace VueJS.Services.Concrete
                     break;
             }
 
-            if (term == null) return new DataResult<TermDto>(ResultStatus.Error, Messages.Term.NotFound(false), null);
+            if (term == null) return new DataResult<TermDto>(ResultStatus.Error, Messages.NotFound(termType, false), null);
             return new DataResult<TermDto>(ResultStatus.Success, new TermDto { Term = term });
         }
 
         public async Task<IDataResult<TermListDto>> GetAllAsync(SubObjectType termType)
         {
             var terms = await UnitOfWork.Terms.GetAllAsync(t => t.TermType == termType, t => t.Parent, t => t.Children, t => t.PostTerms);
-            if (terms.Count < 1) return new DataResult<TermListDto>(ResultStatus.Error, Messages.Term.NotFound(true), null);
+            if (terms.Count < 1) return new DataResult<TermListDto>(ResultStatus.Error, Messages.NotFound(termType, true), null);
 
             foreach (var term in terms)
             {
@@ -108,6 +108,8 @@ namespace VueJS.Services.Concrete
                     terms = await UnitOfWork.Terms.GetAllAsync(c => c.Id != termId.Value && c.TermType == SubObjectType.category);
                 }
             }
+            if (terms.Count < 1) return new DataResult<TermListDto>(ResultStatus.Error, Messages.NotFound(SubObjectType.category, true), null);
+
             return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto { Terms = terms });
         }
 
@@ -125,10 +127,9 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<TermUpdateDto>> GetTermUpdateDtoAsync(int termId)
         {
-            var result = await UnitOfWork.Terms.AnyAsync(c => c.Id == termId);
-            if (!result) return new DataResult<TermUpdateDto>(ResultStatus.Error, Messages.Term.NotFound(false), null);
-
             var term = await UnitOfWork.Terms.GetAsync(c => c.Id == termId, c => c.Parent, c => c.Children);
+            if (term == null) return new DataResult<TermUpdateDto>(ResultStatus.Error, null);
+
             Term parent = term.Parent;
             term.Parents = new List<Term>();
             while (parent != null)
@@ -142,9 +143,9 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<TermDto>> AddAsync(TermAddDto termAddDto)
         {
-            string slug = termAddDto.Slug == null ? UrlExtensions.FriendlySEOUrl(termAddDto.Name) : termAddDto.Slug;
+            string slug = termAddDto.Slug == "" ? UrlExtensions.FriendlySEOUrl(termAddDto.Name) : termAddDto.Slug;
             var slugCheck = await UnitOfWork.Terms.GetAllAsync(t => t.Slug == slug && t.TermType == termAddDto.TermType);
-            if (slugCheck.Count != 0) return new DataResult<TermDto>(ResultStatus.Error, termAddDto.TermType == SubObjectType.category ? Messages.Category.UrlCheck() : Messages.Tag.UrlCheck(), null);
+            if (slugCheck.Count != 0) return new DataResult<TermDto>(ResultStatus.Error, Messages.UrlCheck(termAddDto.TermType), null);
             var term = Mapper.Map<Term>(termAddDto);
 
             if (termAddDto.Slug == null || termAddDto.Slug == "")
@@ -153,7 +154,7 @@ namespace VueJS.Services.Concrete
             }
             var addedTerm = await UnitOfWork.Terms.AddAsync(term);
             await UnitOfWork.SaveAsync();
-            return new DataResult<TermDto>(ResultStatus.Success, termAddDto.TermType == SubObjectType.category ? Messages.Category.Add(addedTerm.Name) : Messages.Tag.Add(addedTerm.Name), new TermDto { Term = addedTerm });
+            return new DataResult<TermDto>(ResultStatus.Success, Messages.Add(termAddDto.TermType, addedTerm.Name), new TermDto { Term = addedTerm });
         }
 
         public async Task<IDataResult<PostTermDto>> PostTermAddAsync(PostTermAddDto postTermAddDto)
@@ -167,7 +168,7 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<TermDto>> UpdateAsync(TermUpdateDto termUpdateDto)
         {
             var slugCheck = await UnitOfWork.Terms.GetAllAsync(t => (t.Slug == termUpdateDto.Slug && t.Id == termUpdateDto.Id) || (t.Slug != termUpdateDto.Slug && t.Id == termUpdateDto.Id));
-            if (slugCheck.Count != 1) return new DataResult<TermDto>(ResultStatus.Error, termUpdateDto.TermType == SubObjectType.category ? Messages.Category.UrlCheck() : Messages.Tag.UrlCheck(), null);
+            if (slugCheck.Count != 1) return new DataResult<TermDto>(ResultStatus.Error, Messages.UrlCheck(termUpdateDto.TermType), null);
 
             Term oldTerm = null;
             switch (slugCheck.FirstOrDefault().TermType)
@@ -182,7 +183,7 @@ namespace VueJS.Services.Concrete
             var term = Mapper.Map<TermUpdateDto, Term>(termUpdateDto, oldTerm);
             var updatedTerm = await UnitOfWork.Terms.UpdateAsync(term);
             await UnitOfWork.SaveAsync();
-            return new DataResult<TermDto>(ResultStatus.Success, termUpdateDto.TermType == SubObjectType.category ? Messages.Category.Update(term.Name) : Messages.Tag.Update(term.Name), new TermDto { Term = term });
+            return new DataResult<TermDto>(ResultStatus.Success, Messages.Update(termUpdateDto.TermType, term.Name), new TermDto { Term = term });
         }
 
         public async Task<IResult> PostTermDeleteAsync(int postId, int termId)
@@ -197,13 +198,13 @@ namespace VueJS.Services.Concrete
         public async Task<IResult> DeleteAsync(int termId)
         {
             var term = await UnitOfWork.Terms.GetAsync(t => t.Id == termId);
-            if (term == null) return new Result(ResultStatus.Error, term.TermType == SubObjectType.category ? Messages.Category.NotFound(false) : Messages.Tag.NotFound(false));
+            if (term == null) return new Result(ResultStatus.Error, Messages.NotFound(term.TermType, false));
 
             var seo = await UnitOfWork.SeoObjectSettings.GetAsync(sos => sos.ObjectId == termId && sos.SubObjectType == term.TermType);
             await UnitOfWork.Terms.DeleteAsync(term);
             await UnitOfWork.SeoObjectSettings.DeleteAsync(seo);
             await UnitOfWork.SaveAsync();
-            return new Result(ResultStatus.Success, term.TermType == SubObjectType.category ? Messages.Category.Delete(term.Name) : Messages.Tag.Delete(term.Name));
+            return new Result(ResultStatus.Success, Messages.Delete(term.TermType, term.Name));
         }
 
         public async Task<IDataResult<int>> CountAsync()

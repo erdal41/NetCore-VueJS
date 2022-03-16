@@ -72,7 +72,14 @@
                 action: 'read',
             },
         ],
-    },    
+    },
+    {
+        title: 'Menu',
+        icon: 'MenuIcon',
+        route: 'pages-menu',
+        resource: 'Urlredirect',
+        action: 'read',
+    },
     {
         title: 'Url Redirects',
         icon: 'RepeatIcon',

@@ -64,7 +64,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         {
             var termResult = await _termService.GetTermUpdateDtoAsync(termId);
             var seoGeneralResult = await _seoService.GetSeoGeneralSettingUpdateDtoAsync();
-            if (termResult.ResultStatus != ResultStatus.Success && seoGeneralResult.ResultStatus != ResultStatus.Success) return Json(new TermViewModel { TermUpdateDto = termResult });
+            if ((termResult.ResultStatus != ResultStatus.Success && seoGeneralResult.ResultStatus != ResultStatus.Success) || (termResult.ResultStatus == ResultStatus.Error && seoGeneralResult.ResultStatus == ResultStatus.Success)) return Json(new TermViewModel { TermUpdateDto = termResult });
 
             return Json(new TermViewModel
             {

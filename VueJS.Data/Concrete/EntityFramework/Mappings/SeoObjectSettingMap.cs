@@ -11,7 +11,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<SeoObjectSetting> builder)
         {
             builder.HasKey(sos => sos.Id);
-            builder.Property(sos => sos.Id).ValueGeneratedOnAdd();
+            builder.Property(sos => sos.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(sos => sos.Permalink).HasColumnType("NVARCHAR(MAX)");
             builder.Property(sos => sos.UserId).IsRequired();
             builder.Property(sos => sos.SeoTitle).HasMaxLength(100);

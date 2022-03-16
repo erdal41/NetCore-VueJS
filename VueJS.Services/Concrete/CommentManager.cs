@@ -97,7 +97,6 @@ namespace VueJS.Services.Concrete
             var post = comment.Post;
             comment.CommentStatus = commentStatus;
             comment.UserId = userId;
-            comment.ModifiedDate = DateTime.Now;
             await UnitOfWork.Comments.UpdateAsync(comment);
             post.CommentCount = await UnitOfWork.Comments.CountAsync(c => c.PostId == post.Id && c.CommentStatus == CommentStatus.approved);
             await UnitOfWork.Posts.UpdateAsync(post);
@@ -126,7 +125,7 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<CommentDto>> AddAsync(CommentAddDto commentAddDto, int? userId)
         {
             var post = await UnitOfWork.Posts.GetAsync(a => a.Id == commentAddDto.PostId, c => c.User);
-            if (post == null) return new DataResult<CommentDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), null);
+            if (post == null) return new DataResult<CommentDto>(ResultStatus.Error, Messages.Comment.NotFound(isPlural: false), null);
 
             var comment = Mapper.Map<Comment>(commentAddDto);
             if (userId == 1)
@@ -150,7 +149,7 @@ namespace VueJS.Services.Concrete
             var post = await UnitOfWork.Posts.GetAsync(a => a.Id == commentAddDto.PostId, c => c.User);
             if (post == null)
             {
-                return new DataResult<CommentDto>(ResultStatus.Error, Messages.Post.NotFound(isPlural: false), null);
+                return new DataResult<CommentDto>(ResultStatus.Error, Messages.Comment.NotFound(isPlural: false), null);
             }
 
             var comment = Mapper.Map<Comment>(commentAddDto);

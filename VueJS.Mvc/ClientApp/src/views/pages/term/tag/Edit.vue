@@ -512,48 +512,53 @@
             getData() {
                 axios.get('/admin/term-edit?termId=' + this.$route.query.edit)
                     .then((response) => {
-                        if (response.data.TermUpdateDto.Data.TermType !== 3) {
-                            this.doHaveData = false;
-                        } else {
-                            if (response.data.TermUpdateDto.ResultStatus === 0) {
-                                this.doHaveData = true;
-                                this.termUpdateDto.Name = response.data.TermUpdateDto.Data.Name;
-                                this.termUpdateDto.Slug = response.data.TermUpdateDto.Data.Slug;
-
-                                this.termUpdateDto.ParentId = response.data.TermUpdateDto.Data.ParentId;
-                                this.termUpdateDto.Description = response.data.TermUpdateDto.Data.Description;
-                                this.termUpdateDto.TermType = response.data.TermUpdateDto.Data.TermType;
-
-                                this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Data.Id;
-                                this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.Data.SeoTitle;
-                                this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.Data.SeoDescription;
-                                this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.Data.CanonicalUrl;
-                                this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoIndex;
-
-
-                                this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphTitle;
-                                this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphDescription;
-
-                                this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.Data.TwitterTitle;
-                                this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.Data.TwitterDescription;
-
-                                this.keywords = response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword.split(',');
-
-                                if (response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage != null) {
-                                    this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImageId;
-                                    this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.FileName;
-                                    this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.AltText;
-                                }
-
-                                if (response.data.SeoObjectSettingUpdateDto.Data.TwitterImage != null) {
-                                    this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.Data.TwitterImageId;
-                                    this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.FileName;
-                                    this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.AltText;
-                                }
-                            }
-                            else {
+                        if (response.data.TermUpdateDto.ResultStatus === 0) {
+                            if (response.data.TermUpdateDto.Data.TermType !== 3) {
                                 this.doHaveData = false;
+                            } else {
+                                if (response.data.TermUpdateDto.ResultStatus === 0) {
+                                    this.doHaveData = true;
+                                    this.termUpdateDto.Name = response.data.TermUpdateDto.Data.Name;
+                                    this.termUpdateDto.Slug = response.data.TermUpdateDto.Data.Slug;
+
+                                    this.termUpdateDto.ParentId = response.data.TermUpdateDto.Data.ParentId;
+                                    this.termUpdateDto.Description = response.data.TermUpdateDto.Data.Description;
+                                    this.termUpdateDto.TermType = response.data.TermUpdateDto.Data.TermType;
+
+                                    this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Data.Id;
+                                    this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.Data.SeoTitle;
+                                    this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.Data.SeoDescription;
+                                    this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.Data.CanonicalUrl;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoIndex;
+
+
+                                    this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphTitle;
+                                    this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphDescription;
+
+                                    this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.Data.TwitterTitle;
+                                    this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.Data.TwitterDescription;
+
+                                    this.keywords = response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword.split(',');
+
+                                    if (response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage != null) {
+                                        this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImageId;
+                                        this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.FileName;
+                                        this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.AltText;
+                                    }
+
+                                    if (response.data.SeoObjectSettingUpdateDto.Data.TwitterImage != null) {
+                                        this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.Data.TwitterImageId;
+                                        this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.FileName;
+                                        this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.AltText;
+                                    }
+                                }
+                                else {
+                                    this.doHaveData = false;
+                                }
                             }
+                        }
+                        else {
+                            this.doHaveData = false;
                         }
                     })
                     .catch((error) => {

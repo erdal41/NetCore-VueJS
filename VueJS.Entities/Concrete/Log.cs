@@ -1,12 +1,10 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using VueJS.Shared.Entities.Abstract;
 
 namespace VueJS.Entities.Concrete
 {
     public class Log : IEntity
     {
-        [Key]
         public int Id { get; set; }
         public string MachineName { get; set; }
         public DateTime Logged { get; set; }

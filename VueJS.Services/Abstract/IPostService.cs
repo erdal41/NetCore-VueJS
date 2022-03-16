@@ -22,7 +22,6 @@ namespace VueJS.Services.Abstract
         Task<IDataResult<PostUpdateDto>> GetPostUpdateDtoAsync(int postId);
         Task<IDataResult<PostDto>> AddAsync(PostAddDto postAddDto, int userId, SubObjectType postType);
         Task<IDataResult<PostDto>> UpdateAsync(PostUpdateDto postUpdateDto, int userId);
-        Task<IResult> BasePageUpdateAsync(PostUpdateDto postUpdateDto, int userId);
         Task<IDataResult<PostDto>> TopPostUpdateAsync(int postId, int parentId);
         Task<IResult> SubPostUpdateAsync(int subPostId, int? subPostParentId);
         Task<IDataResult<PostDto>> SubPostDetailUpdateAsync(int postId, string description, int? featuredImageId);

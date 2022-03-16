@@ -18,6 +18,8 @@ namespace VueJS.Data.Concrete
         private SeoGeneralSettingRepository _seoGeneralSettingRepository;
         private UrlRedirectRepository _urlRedirectRepository;
         private CommentRepository _commentRepository;
+        private MenuRepository _menuRepository;
+        private MenuDetailRepository _menuDetailRepository;
 
         public UnitOfWork(WebAppContext context)
         {
@@ -34,6 +36,8 @@ namespace VueJS.Data.Concrete
         public ISeoGeneralSettingRepository SeoGeneralSettings => _seoGeneralSettingRepository ??= new SeoGeneralSettingRepository(_context);
         public IUrlRedirectRepository UrlRedirects => _urlRedirectRepository ??= new UrlRedirectRepository(_context);
         public ICommentRepository Comments => _commentRepository ??= new CommentRepository(_context);
+        public IMenuRepository Menus => _menuRepository ??= new MenuRepository(_context);
+        public IMenuDetailRepository MenuDetails => _menuDetailRepository ??= new MenuDetailRepository(_context);
 
         public async Task<int> SaveAsync()
         {

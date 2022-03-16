@@ -7,6 +7,5 @@
         category = 2,
         tag = 3,
         basepage = 4,
-        menu = 5
     }
 }

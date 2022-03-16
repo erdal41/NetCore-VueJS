@@ -17,6 +17,8 @@ namespace VueJS.Data.Concrete.EntityFramework.Contexts
         public DbSet<PostTerm> PostTerms { get; set; }
         public DbSet<SeoGeneralSetting> SeoGeneralSettings { get; set; }
         public DbSet<SeoObjectSetting> SeoObjectSettings { get; set; }
+        public DbSet<Menu> Menus { get; set; }
+        public DbSet<MenuDetail> MenuDetails { get; set; }
 
         public WebAppContext(DbContextOptions<WebAppContext> options) : base(options)
         {
@@ -52,6 +54,11 @@ namespace VueJS.Data.Concrete.EntityFramework.Contexts
 
             // COMMENT            
             modelBuilder.Entity<Comment>().HasMany(c => c.Children).WithOne(c => c.Parent).HasForeignKey(c => c.ParentId).OnDelete(DeleteBehavior.Restrict);
+
+            //MENU
+            modelBuilder.Entity<MenuDetail>().HasOne(md => md.Menu).WithMany(m => m.MenuDetails).HasForeignKey(md => md.MenuId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MenuDetail>().HasMany(md => md.Children).WithOne(md => md.Parent).HasForeignKey(md => md.ParentId).OnDelete(DeleteBehavior.Restrict);
+
             #endregion
 
             #region ONE TO ONE
@@ -70,6 +77,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Contexts
             modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.ArticleSocialImage).WithOne(u => u.ArticleSocialSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.ArticleSocialImageId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.CategorySocialImage).WithOne(u => u.CategorySocialSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.CategorySocialImageId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<SeoGeneralSetting>().HasOne(sgs => sgs.TagSocialImage).WithOne(u => u.TagSocialSetting).HasForeignKey<SeoGeneralSetting>(sgs => sgs.TagSocialImageId).OnDelete(DeleteBehavior.Restrict);
+
 
             #endregion
 
@@ -121,6 +129,8 @@ namespace VueJS.Data.Concrete.EntityFramework.Contexts
             modelBuilder.ApplyConfiguration(new PostTermMap());
             modelBuilder.ApplyConfiguration(new SeoGeneralSettingMap());
             modelBuilder.ApplyConfiguration(new SeoObjectSettingMap());
+            modelBuilder.ApplyConfiguration(new MenuMap());
+            modelBuilder.ApplyConfiguration(new MenuDetailMap());
         }
     }
 }

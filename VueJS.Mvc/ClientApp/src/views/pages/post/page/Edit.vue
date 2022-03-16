@@ -925,15 +925,7 @@
                             }
                         }
                         else {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: response.data.PostUpdateDto.Message,
-                                }
-                            })
+                            this.doHaveData = false;
                         }
                     })
                     .catch((error) => {

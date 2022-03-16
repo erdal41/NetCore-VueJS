@@ -9,7 +9,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<Log> builder)
         {
             builder.HasKey(l => l.Id);
-            builder.Property(l => l.Id).ValueGeneratedOnAdd();
+            builder.Property(l => l.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(l => l.MachineName).IsRequired();
             builder.Property(l => l.MachineName).HasMaxLength(50);
             builder.Property(l => l.Logged).IsRequired();

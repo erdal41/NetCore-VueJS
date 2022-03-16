@@ -1,12 +1,10 @@
 ﻿using VueJS.Shared.Entities.Abstract;
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace VueJS.Entities.Concrete
 {
     public class GeneralSetting : IEntity
     {
-        [Key]
         public int Id { get; set; }
         public int? LogoId { get; set; }
         public int? MobileLogoId { get; set; }
@@ -14,8 +12,8 @@ namespace VueJS.Entities.Concrete
         public bool IsUseLogoAdminPanel { get; set; }
         public bool IsUseIconAdminPanel { get; set; }
         public bool IsActiveArticleComments { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
         public int UserId { get; set; }
         public bool IsShowArticleDate { get; set; }
         public bool IsShowArticleAuthor { get; set; }

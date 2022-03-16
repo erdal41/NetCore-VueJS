@@ -39,7 +39,6 @@
         </b-col>
         <b-col md="12"
                lg="12">
-
             <b-card id="page-list"
                     header-tag="header"
                     no-body>

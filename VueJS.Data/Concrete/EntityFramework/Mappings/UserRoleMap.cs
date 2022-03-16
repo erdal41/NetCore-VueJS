@@ -8,7 +8,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
     {
         public void Configure(EntityTypeBuilder<UserRole> builder)
         {
-            builder.HasKey(r => new { r.UserId, r.RoleId });
+            builder.HasKey(ur => new { ur.UserId, ur.RoleId });
             builder.ToTable("UserRoles");
 
             builder.HasData(

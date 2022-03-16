@@ -7,7 +7,6 @@ namespace VueJS.Entities.Concrete
 {
     public class SeoGeneralSetting : IEntity
     {
-        [Key]
         public int Id { get; set; }
         public string GoogleVerificationCode { get; set; }
         public string YandexVerificationCode { get; set; }
@@ -62,8 +61,8 @@ namespace VueJS.Entities.Concrete
         public bool IsActiveTwitterOpenGraph { get; set; }
         public TwitterCardType TwitterCardType { get; set; }
         public string PinterestConfirmationCode { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
         public int UserId { get; set; }
 
         public User User { get; set; }

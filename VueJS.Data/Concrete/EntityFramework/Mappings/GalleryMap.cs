@@ -8,11 +8,9 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
     {
         public void Configure(EntityTypeBuilder<Gallery> builder)
         {
-            builder.HasKey(pg => pg.Id);
-            builder.Property(pg => pg.Id).ValueGeneratedOnAdd();
-            builder.Property(pg => pg.PostId).IsRequired(true);
-            builder.Property(pg => pg.UploadId).IsRequired(true);
-            builder.HasKey(pg => new { pg.PostId, pg.UploadId });
+            builder.HasKey(g => new { g.PostId, g.UploadId });
+            builder.Property(g => g.PostId).IsRequired(true);
+            builder.Property(g => g.UploadId).IsRequired(true);
             builder.ToTable("Galleries");
         }
     }

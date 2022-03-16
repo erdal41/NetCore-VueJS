@@ -11,7 +11,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<Post> builder)
         {
             builder.HasKey(p => p.Id);
-            builder.Property(p => p.Id).ValueGeneratedOnAdd();
+            builder.Property(p => p.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(p => p.UserId).IsRequired();
             builder.Property(p => p.CreatedDate).IsRequired();
             builder.Property(p => p.ModifiedDate).IsRequired();

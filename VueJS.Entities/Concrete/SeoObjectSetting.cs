@@ -7,13 +7,12 @@ namespace VueJS.Entities.Concrete
 {
     public class SeoObjectSetting : IEntity
     {
-        [Key]
         public int Id { get; set; }
         public string Permalink { get; set; }
         public int ObjectId { get; set; }
         public int UserId { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
         public string SeoTitle { get; set; }
         public string SeoDescription { get; set; }
         public string CanonicalUrl { get; set; }

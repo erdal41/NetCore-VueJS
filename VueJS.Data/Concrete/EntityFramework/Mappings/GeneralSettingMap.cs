@@ -10,7 +10,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<GeneralSetting> builder)
         {
             builder.HasKey(gs => gs.Id);
-            builder.Property(gs => gs.Id).ValueGeneratedOnAdd();
+            builder.Property(gs => gs.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(gs => gs.IsUseLogoAdminPanel).IsRequired();
             builder.Property(gs => gs.IsUseIconAdminPanel).IsRequired();
             builder.Property(gs => gs.CreatedDate).IsRequired();

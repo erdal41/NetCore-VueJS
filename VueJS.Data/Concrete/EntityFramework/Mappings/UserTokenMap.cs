@@ -8,9 +8,9 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
     {
         public void Configure(EntityTypeBuilder<UserToken> builder)
         {
-            builder.HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
-            builder.Property(t => t.LoginProvider).HasMaxLength(256);
-            builder.Property(t => t.Name).HasMaxLength(256);
+            builder.HasKey(ut => new { ut.UserId, ut.LoginProvider, ut.Name });
+            builder.Property(ut => ut.LoginProvider).HasMaxLength(256);
+            builder.Property(ut => ut.Name).HasMaxLength(256);
             builder.ToTable("UserTokens");
         }
     }

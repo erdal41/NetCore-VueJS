@@ -11,7 +11,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<SeoGeneralSetting> builder)
         {
             builder.HasKey(sgs => sgs.Id);
-            builder.Property(sgs => sgs.Id).ValueGeneratedOnAdd();
+            builder.Property(sgs => sgs.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(sgs => sgs.GoogleVerificationCode).HasMaxLength(100);
             builder.Property(sgs => sgs.YandexVerificationCode).HasMaxLength(100);
             builder.Property(sgs => sgs.BingVerificationCode).HasMaxLength(100);

@@ -43,7 +43,7 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<UrlRedirectListDto>> GetAllAsync()
         {
             var urlRedirects = await UnitOfWork.UrlRedirects.GetAllAsync(null, ur => ur.User);
-            if (urlRedirects.Count < 0) return new DataResult<UrlRedirectListDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: true), null);
+            if (urlRedirects.Count < 1) return new DataResult<UrlRedirectListDto>(ResultStatus.Error, Messages.UrlRedirect.NotFound(isPlural: true), null);
             return new DataResult<UrlRedirectListDto>(ResultStatus.Success, new UrlRedirectListDto { UrlRedirects = urlRedirects });
         }
 
@@ -78,7 +78,7 @@ namespace VueJS.Services.Concrete
             if (urlRedirect == null) return new Result(ResultStatus.Error, Messages.UrlRedirect.NotFound(false));
             await UnitOfWork.UrlRedirects.DeleteAsync(urlRedirect);
             await UnitOfWork.SaveAsync();
-            return new Result(ResultStatus.Success, Messages.UrlRedirect.HardDelete(urlRedirect.NewUrl));
+            return new Result(ResultStatus.Success, Messages.UrlRedirect.Delete(urlRedirect.NewUrl));
 
         }
     }

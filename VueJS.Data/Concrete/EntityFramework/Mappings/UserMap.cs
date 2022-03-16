@@ -11,6 +11,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.HasKey(u => u.Id);
+            builder.Property(u => u.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(u => u.YoutubeLink).HasMaxLength(250);
             builder.Property(u => u.TwitterLink).HasMaxLength(250);
             builder.Property(u => u.InstagramLink).HasMaxLength(250);

@@ -8,9 +8,9 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
     {
         public void Configure(EntityTypeBuilder<UserLogin> builder)
         {
-            builder.HasKey(l => new { l.LoginProvider, l.ProviderKey });
-            builder.Property(l => l.LoginProvider).HasMaxLength(128);
-            builder.Property(l => l.ProviderKey).HasMaxLength(128);
+            builder.HasKey(ul => new { ul.LoginProvider, ul.ProviderKey });
+            builder.Property(ul => ul.LoginProvider).HasMaxLength(128);
+            builder.Property(ul => ul.ProviderKey).HasMaxLength(128);
             builder.ToTable("UserLogins");
         }
     }

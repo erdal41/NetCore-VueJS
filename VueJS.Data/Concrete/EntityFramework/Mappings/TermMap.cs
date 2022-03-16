@@ -10,8 +10,8 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<Term> builder)
         {
             builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).ValueGeneratedOnAdd();
-            builder.Property(a => a.Slug).IsRequired(true);
+            builder.Property(t => t.Id).ValueGeneratedOnAdd().UseIdentityColumn();
+            builder.Property(t => t.Slug).IsRequired();
             builder.Property(a => a.Slug).HasColumnType("NVARCHAR(MAX)");
             builder.Property(t => t.Name).IsRequired();
             builder.Property(t => t.Description).HasMaxLength(500);            

@@ -573,11 +573,11 @@
                     }
                 })
                     .then((response) => {
-                        this.totalRows = response.data.TermListDto.Data.Terms.length;
                         if (response.data.TermListDto.ResultStatus === 0) {
                             this.terms = response.data.TermListDto.Data.Terms;
                             this.allParentTerms = response.data.TermListDto.Data.Terms;
                             this.pageColumnQuantity = this.perPage;
+                            this.totalRows = response.data.TermListDto.Data.Terms.length;
                         }
                         else {
                             this.isSpinnerShow = false;

@@ -15,6 +15,8 @@ namespace VueJS.Data.Abstract
         ISeoGeneralSettingRepository SeoGeneralSettings { get; }
         IUrlRedirectRepository UrlRedirects { get; }
         ICommentRepository Comments { get; }
+        IMenuRepository Menus { get; }
+        IMenuDetailRepository MenuDetails { get; }
         Task<int> SaveAsync();
     }
 }

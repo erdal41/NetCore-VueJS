@@ -72,7 +72,7 @@ namespace VueJS.Mvc
             //    c.AddPolicy("Default", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:50598/"));
             //});
             services.AddSingleton(HtmlEncoder.Create(allowedRanges: new[] { UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement, UnicodeRanges.LatinExtendedA }));
-            services.AddAutoMapper(typeof(CommentProfile), typeof(UploadProfile), typeof(UrlRedirectProfile), typeof(SettingProfile), typeof(PostProfile), typeof(TermProfile), typeof(SeoProfile), typeof(UserProfile));
+            services.AddAutoMapper(typeof(CommentProfile), typeof(UploadProfile), typeof(UrlRedirectProfile), typeof(SettingProfile), typeof(PostProfile), typeof(TermProfile), typeof(SeoProfile), typeof(UserProfile), typeof(MenuProfile));
             services.LoadMyServices(connectionString: Configuration.GetConnectionString("DefaultConnection"));
             services.AddScoped<IImageHelper, ImageHelper>();
             services.AddScoped<IFileHelper, FileHelper>();

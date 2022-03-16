@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Shared.Entities.Abstract;
 
@@ -8,11 +7,10 @@ namespace VueJS.Entities.Concrete
 {
     public class Post : IEntity
     {
-        [Key]
         public int Id { get; set; }
         public int UserId { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
         public string Content { get; set; }
         public string Title { get; set; }
         public PostStatus PostStatus { get; set; }

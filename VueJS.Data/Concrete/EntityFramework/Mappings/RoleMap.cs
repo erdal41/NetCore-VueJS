@@ -10,10 +10,11 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<Role> builder)
         {
             builder.HasKey(r => r.Id);
+            builder.Property(r => r.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.HasIndex(r => r.NormalizedName).HasName("RoleNameIndex").IsUnique();
             builder.Property(r => r.ConcurrencyStamp).IsConcurrencyToken();
-            builder.Property(u => u.Name).HasMaxLength(100);
-            builder.Property(u => u.NormalizedName).HasMaxLength(100);
+            builder.Property(r => r.Name).HasMaxLength(100);
+            builder.Property(r => r.NormalizedName).HasMaxLength(100);
             builder.ToTable("Roles");
 
             builder.HasMany<UserRole>().WithOne().HasForeignKey(ur => ur.RoleId).IsRequired();

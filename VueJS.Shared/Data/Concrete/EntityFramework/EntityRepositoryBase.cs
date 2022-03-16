@@ -103,7 +103,7 @@ namespace VueJS.Shared.Data.Concrete.EntityFramework
             {
                 foreach (var includeProperty in includeProperties)
                 {
-                    query = query.Include(includeProperty);
+                    query = includeProperties.Aggregate(query, (current, include) => current.Include(include));
                 }
             }
 

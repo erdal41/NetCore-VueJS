@@ -263,6 +263,17 @@ export default [
         },
     },
 
+    //Menu
+    {
+        path: '/admin/menu',
+        name: 'pages-menu',
+        component: () => import('@/views/pages/menu/Menu.vue'),
+        meta: {
+            resource: 'User',
+            action: 'update',
+        },
+    },
+
     {
         path: '/error-404',
         name: 'error-404',

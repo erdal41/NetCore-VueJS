@@ -31,67 +31,74 @@
         <b-col v-if="$can('create', 'Urlredirect')"
                md="12"
                lg="12">
-            <b-card title="Yönlendirme Ekle">
-                <validation-observer ref="simpleRules">
-                    <b-form>
-                        <b-row>
-                            <b-col cols="12">
-                                <b-form-group label-for="oldurl"
-                                              description="Yönlendirilecek linki giriniz.">
-                                    <validation-provider #default="{ errors }"
-                                                         name="oldurl"
-                                                         rules="required">
-                                        <b-form-input id="oldurl"
-                                                      v-model="oldUrl"
-                                                      :state="errors.length > 0 ? false:null"
-                                                      type="text"
-                                                      placeholder="Eski Url" />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
-                                </b-form-group>
 
-                                <b-form-group label-for="newurl"
-                                              description="Yönelecek olan linki giriniz.">
-                                    <validation-provider #default="{ errors }"
-                                                         name="newurl"
-                                                         rules="required">
-                                        <b-form-input id="newurl"
-                                                      v-model="newUrl"
-                                                      :state="errors.length > 0 ? false:null"
-                                                      type="text"
-                                                      placeholder="Yeni Url" />
-                                        <small class="text-danger">{{ errors[0] }}</small>
-                                    </validation-provider>
-                                </b-form-group>
+                <b-card id="card-add"
+                        header-tag="header">
+                    <template #header>
+                        <span class="font-weight-bold" style="font-size:18px;">Yönlendirme Ekle</span>
+                    </template>
+                    <validation-observer ref="simpleRules">
+                            <b-row>
+                                <b-col cols="12">
+                                    <b-form-group label-for="oldurl"
+                                                  description="Yönlendirilecek linki giriniz.">
+                                        <validation-provider #default="{ errors }"
+                                                             name="oldurl"
+                                                             rules="required">
+                                            <b-form-input id="oldurl"
+                                                          v-model="urlRedirectAddDto.OldUrl"
+                                                          :state="errors.length > 0 ? false:null"
+                                                          type="text"
+                                                          placeholder="Eski Url" />
+                                            <small class="text-danger">{{ errors[0] }}</small>
+                                        </validation-provider>
+                                    </b-form-group>
 
-                                <b-form-textarea id="description"
-                                                 v-model="description"
-                                                 placeholder="Açıklama"
-                                                 rows="2" />
+                                    <b-form-group label-for="newurl"
+                                                  description="Yönelecek olan linki giriniz.">
+                                        <validation-provider #default="{ errors }"
+                                                             name="newurl"
+                                                             rules="required">
+                                            <b-form-input id="newurl"
+                                                          v-model="urlRedirectAddDto.NewUrl"
+                                                          :state="errors.length > 0 ? false:null"
+                                                          type="text"
+                                                          placeholder="Yeni Url" />
+                                            <small class="text-danger">{{ errors[0] }}</small>
+                                        </validation-provider>
+                                    </b-form-group>
 
-                                <!-- reset button -->
-                                <b-button variant="primary"
-                                          class="float-right mt-1"
-                                          type="submit"
-                                          @click.prevent="validationForm">
-                                    Ekle
-                                </b-button>
-                            </b-col>
-                        </b-row>
-                    </b-form>
-                </validation-observer>
-            </b-card>
-        </b-col>
+                                    <b-form-textarea id="description"
+                                                     v-model="urlRedirectAddDto.Description"
+                                                     placeholder="Açıklama"
+                                                     rows="2" />
+
+                                    <!-- reset button -->
+                                    <div class="float-right mt-1">
+                                        <b-spinner v-if="addButtonDisabled"
+                                                   variant="secondary"
+                                                   class="align-middle mr-1"/>
+                                        <b-button :disabled="addButtonDisabled"
+                                                  :variant="addButtonVariant"                                                  
+                                                  @click.prevent="validationForm">
+                                            Ekle
+                                        </b-button>
+                                    </div>
+                                </b-col>
+                            </b-row>
+                    </validation-observer>
+                </b-card>
+                </b-col>
         <b-col md="12"
                lg="12">
-            <b-card title="Tüm Yönlendirmeler"
+            <b-card  
+                    id="card-list"
                     header-tag="header"
                     no-body>
                 <template #header>
-                    <h3 class="modal-title">
-                        Tüm Yönlendirmeler
-                    </h3>
-                    <div class="ml-auto">
+                    <span class="font-weight-bold" style="font-size:18px;">Tüm Yönlendirmeler</span>
+                    <div v-if="urlRedirects.length > 0"
+                         class="ml-auto">
                         <b-input-group size="sm"
                                        class="input-group-merge"
                                        v-on:mouseover="isShowSearchTextClearButton = true"
@@ -144,75 +151,83 @@
                         </b-form-group>
                     </div>
                 </b-card-body>
-                <div v-if="isSpinnerShow == true"
-                     class="text-center mt-2 mb-2">
-                    <b-spinner variant="primary" />
-                </div>
-                <div v-else>
-                    <b-table :items="filteredData"
-                             :fields="fields"
-                             :per-page="perPage"
-                             :current-page="currentPage"
-                             class="mb-0"
-                             foot-clone
-                             @row-hovered="rowHovered"
-                             @row-unhovered="rowUnHovered">
-                        <template #head(Id)="slot">
-                            <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #foot(Id)="slot" v-if="urlRedirects.length > 0">
-                            <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(Id)="row">
-                            <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
-                                             :value="row.item.Id.toString()"
-                                             :id="row.item.Id.toString()"
-                                             v-model="checkedRows"
-                                             @change="checkChange($event)"></b-form-checkbox>
-                        </template>
-
-                        <template #cell(OldUrl)="row">
-                            <b-link :href="row.item.OldUrl"
-                                    target="_blank">
-                                <b>
-                                    {{row.item.OldUrl}}
-                                    <feather-icon icon="ExternalLinkIcon"
-                                                  size="14" />
-                                </b><br />
-                                <span class="text-muted">{{row.item.NewUrl}}</span>
-                            </b-link>
-                            <div class="row-actions">
-                                <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :href="row.item.OldUrl"
-                                            class="text-primary small">Görüntüle</b-link>
-                                    <small v-if="$can('update', 'Urlredirect')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-if="$can('update', 'Urlredirect')"
-                                            v-b-modal.modal-edit
-                                            class="text-success small"
-                                            variant="flat-danger"
-                                            @click.prevent=updateClick(row.item.Id)>Düzenle</b-link>
-                                    <small v-if="$can('delete', 'Urlredirect')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-if="$can('delete', 'Urlredirect')"
-                                            href="javascript:;"
-                                            no-prefetch
-                                            class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.OldUrl)">Sil</b-link>
-                                </div>
+                <b-table id="urlredirect-table"
+                         :busy="isBusy"
+                         :items="filteredData"
+                         :fields="fields"
+                         :per-page="perPage"
+                         :current-page="currentPage"
+                         class="mb-0"
+                         foot-clone
+                         @row-hovered="rowHovered"
+                         @row-unhovered="rowUnHovered">
+                    <template #table-busy>
+                        <div class="text-center text-dark my-2">
+                            <b-spinner class="align-middle"></b-spinner>
+                        </div>
+                    </template>
+                    <template #head(Id)="slot">
+                        <b-form-checkbox :disabled="!$can('delete', 'Urlredirect') || filteredData.length <= 0"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #foot(Id)="slot">
+                        <b-form-checkbox :disabled="!$can('delete', 'Urlredirect') || filteredData.length <= 0"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Id)="row">
+                        <b-form-checkbox :disabled="!$can('delete', 'Urlredirect')"
+                                         :value="row.item.Id.toString()"
+                                         :id="row.item.Id.toString()"
+                                         v-model="checkedRows"
+                                         @change="checkChange($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(OldUrl)="row">
+                        <b-link :href="row.item.OldUrl"
+                                target="_blank">
+                            <b>
+                                {{row.item.OldUrl}}
+                                <feather-icon icon="ExternalLinkIcon"
+                                              size="14" />
+                            </b><br />
+                            <span class="text-muted">{{row.item.NewUrl}}</span>
+                        </b-link>
+                        <div class="row-actions">
+                            <div v-if="isHovered(row.item) && isHiddenRowActions">
+                                <b-link :href="row.item.OldUrl"
+                                        class="text-primary small">Görüntüle</b-link>
+                                <small v-if="$can('update', 'Urlredirect')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="$can('update', 'Urlredirect')"
+                                        v-b-modal.modal-edit
+                                        class="text-success small"
+                                        variant="flat-danger"
+                                        @click.prevent=updateClick(row.item.Id)>Düzenle</b-link>
+                                <small v-if="$can('delete', 'Urlredirect')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="$can('delete', 'Urlredirect')"
+                                        href="javascript:;"
+                                        no-prefetch
+                                        class="text-danger small"
+                                        @click="singleDeleteData(row.item.Id, row.item.OldUrl)">Sil</b-link>
                             </div>
-                        </template>
-                    </b-table>
-                </div>
-                <div v-if="urlRedirects.length <= 0"
-                     class="text-center mt-1">{{ dataNullMessage  }}</div>
-                <b-card-body>
+                        </div>
+                    </template>
+                    <template #cell(ModifiedDate)="row">
+                        <span class="small">{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>
+                    </template>
+                    <template v-if="filteredData.length <= 0"
+                              slot="bottom-row">
+                        <td colspan="5"
+                            class="pt-3 pb-3">
+                            {{ dataNullMessage  }}
+                        </td>
+                    </template>
+                </b-table>
+                <b-card-body v-if="urlRedirects.length > 0">
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
                         <b-form-group label="Kayıt Sayısı: "
@@ -256,17 +271,17 @@
 </template>
 
 <script>
+    import ModalEdit from './ModalEdit.vue';
+    import moment from 'moment';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
-    import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
-    } from 'bootstrap-vue'
-
-    import ModalEdit from './ModalEdit.vue';
-    import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
+    import {
+        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BOverlay, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BInputGroupPrepend, BInputGroupAppend, BFormInput, BFormCheckbox, BFormTextarea, BButton, VBTooltip, BSpinner, BTable, BLink, BFormSelect, BPagination,
+    } from 'bootstrap-vue'
+    import axios from 'axios'
+
 
     extend('required', {
         ...required,
@@ -276,31 +291,31 @@
     export default {
         components: {
             ModalEdit,
-            BBreadcrumb,
-            BBreadcrumbItem,
-            BSpinner,
-            BCardTitle,
-            BForm,
-            BFormSelect,
-            BTable,
-            BButton,
-            BFormCheckbox,
-            BFormTextarea,
-            BCard,
-            BRow,
-            BCol,
-            BCardBody,
-            BFormGroup,
-            BPagination,
-            BInputGroup,
-            BFormInput,
-            BInputGroupPrepend,
-            BInputGroupAppend,
-            ToastificationContent,
+            moment,
             ValidationProvider,
             ValidationObserver,
-            vSelect,
-            BLink
+            ToastificationContent,
+            BRow,
+            BCol,
+            BBreadcrumb,
+            BBreadcrumbItem,
+            BOverlay,
+            BCard,
+            BCardBody,
+            BForm,
+            BFormGroup,
+            BInputGroup,
+            BInputGroupPrepend,
+            BInputGroupAppend,
+            BFormInput,
+            BFormCheckbox,
+            BFormTextarea,
+            BButton,
+            BSpinner,
+            BTable,
+            BLink,
+            BFormSelect,
+            BPagination
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -315,20 +330,22 @@
                     }
                 ],
                 required,
-                isSpinnerShow: true,
-                perPage: 10,
-                pageOptions: [10, 20, 50, 100],
-                totalRows: 1,
-                currentPage: 1,
+                addButtonDisabled: false,
+                addButtonVariant: 'primary',
+                isBusy: true,
+                urlRedirectAddDto: {
+                    OldUrl: '',
+                    NewUrl: '',
+                    Description: ''
+                },
+                dataNullMessage: 'Hiçbir yönlendirme bulunamadı.',
                 isShowSearchTextClearButton: false,
                 filterText: '',
                 filterOnData: [],
                 urlRedirects: [],
-                dataNullMessage: 'Hiçbir yönlendirme bulunamadı.',
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
                 pageColumnQuantity: '',
-                name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
                     { key: 'OldUrl', label: 'Url', sortable: true, thStyle: { width: "200px" } },
@@ -338,10 +355,11 @@
                 ],
                 selectAllCheck: false,
                 checkedRows: [],
-                oldUrl: '',
-                newUrl: '',
-                description: '',
                 hoveredRow: null,
+                perPage: 10,
+                pageOptions: [10, 20, 50, 100],
+                totalRows: 1,
+                currentPage: 1,
                 urlRedirectId: 0
             }
         },
@@ -355,15 +373,12 @@
                 }
             },
             changePage(e, pageNumber) {
-                this.isHiddenMultiDeleteButton = false;
                 this.checkedRows = [];
-                this.checkedRowsCount = '';
-                this.selectAllCheck = 'false';
+                this.checkChange();
                 this.pageColumnQuantity = this.perPage * pageNumber;
             },
             updateClick(id) {
                 this.urlRedirectId = id;
-                console.log(this.urlRedirectId)
             },
             rowHovered(item) {
                 this.hoveredRow = item;
@@ -378,7 +393,7 @@
             checkChange() {
                 if (this.checkedRows.length > 0) {
                     this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = "( " + this.checkedRows.length + " )";
+                    this.checkedRowsCount = this.checkedRows.length > 0 ? "( " + this.checkedRows.length + " )" : '';
 
                     var pageDataQuantity = this.urlRedirects.length - (this.pageColumnQuantity - this.perPage);
                     if (this.pageColumnQuantity > this.perPage) {
@@ -426,7 +441,6 @@
                         }
                         this.checkedRows = idList;
                     }
-
                 }
                 else {
                     this.checkedRows = [];
@@ -437,7 +451,7 @@
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
-                        if (!this.oldUrl.includes('https://') && !this.oldUrl.includes('http://')) {
+                        if (!this.urlRedirectAddDto.OldUrl.includes('https://') && !this.urlRedirectAddDto.OldUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -447,7 +461,7 @@
                                     text: 'Eski url, "https://" veya "http://" parametresi ile beraber tam linki içermerlidir. Örnek: https://www.orneksite.com/ornek-sayfa'
                                 }
                             });
-                        } else if (!this.newUrl.includes('https://') && !this.newUrl.includes('http://')) {
+                        } else if (!this.urlRedirectAddDto.NewUrl.includes('https://') && !this.urlRedirectAddDto.NewUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -458,14 +472,13 @@
                                 }
                             });
                         } else {
+                            this.addButtonDisabled = true;
+                            this.addButtonVariant = 'outline-secondary';
                             axios.post('/admin/urlredirect-new',
                                 {
-                                    OldUrl: this.oldUrl,
-                                    NewUrl: this.newUrl,
-                                    Description: this.description,
+                                    UrlRedirectAddDto: this.urlRedirectAddDto
                                 })
                                 .then((response) => {
-                                    console.log(response.data);
                                     if (response.data.UrlRedirectDto.ResultStatus === 0) {
                                         this.$toast({
                                             component: ToastificationContent,
@@ -473,12 +486,16 @@
                                                 variant: 'success',
                                                 title: 'Başarılı İşlem!',
                                                 icon: 'CheckIcon',
-                                                text: this.oldUrl + " linki " + this.newUrl + " linkine yönlendirildi."
+                                                text: this.urlRedirectAddDto.OldUrl + " linki " + this.urlRedirectAddDto.NewUrl + " linkine yönlendirildi."
                                             }
                                         });
                                         this.getAllData();
+                                        this.addButtonDisabled = false;
+                                        this.addButtonVariant = 'primary';
                                     }
                                     else {
+                                        this.addButtonDisabled = false;
+                                        this.addButtonVariant = 'primary';
                                         this.$toast({
                                             component: ToastificationContent,
                                             props: {
@@ -491,8 +508,6 @@
                                     }
                                 })
                                 .catch((error) => {
-                                    console.log(error);
-                                    console.log(error.request);
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
@@ -549,7 +564,6 @@
                                 }
                             })
                             .catch((error) => {
-                                console.log(error)
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
@@ -592,25 +606,24 @@
                 })
             },
             getAllData() {
-                this.isSpinnerShow = true;
+                this.isBusy = true;
                 axios.get('/admin/urlredirect-allurlredirects')
                     .then((response) => {
-                        console.log(response.data)
-                        this.totalRows = response.data.UrlRedirectListDto.Data.UrlRedirects.length;
                         if (response.data.UrlRedirectListDto.ResultStatus === 0) {
                             this.urlRedirects = response.data.UrlRedirectListDto.Data.UrlRedirects;
                             this.pageColumnQuantity = this.perPage;
+                            this.isBusy = false;
+                            this.totalRows = response.data.UrlRedirectListDto.Data.UrlRedirects.length;
                         } else {
                             this.urlRedirects = [];
+                            this.isBusy = false;
+                            this.dataNullMessage = response.data.UrlRedirectListDto.Message;
                         }
                         this.filterText = "";
-                        this.isSpinnerShow = false;
-                        this.checkedRowsCount = "";
                         this.checkedRows = [];
-                        this.isHiddenStatusButton = false;
+                        this.checkChange();
                     })
                     .catch((error) => {
-                        console.log(error)
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -627,7 +640,6 @@
                 if (this.filterText.length === 0) {
                     return true;
                 }
-
                 return (data.OldUrl.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
@@ -635,6 +647,9 @@
             filteredData: function () {
                 return this.urlRedirects
                     .filter(this.filterByName);
+            },
+            isSave() {
+
             }
         },
         mounted() {
@@ -644,13 +659,25 @@
 </script>
 
 <style lang="scss">
-    @import '@core/scss/vue/libs/vue-select.scss';
+    #card-add.card .card-header{
+        padding: 8px 8px 8px 20px;
+        border-bottom: 1px solid #ebe9f1;
+        margin-bottom: 20px;
+    }
 
-    [dir] .table th, [dir] .table td {
+    #card-list.card .card-header {
+        padding: 8px 8px 8px 20px;
+    }
+
+    #urlredirect-table.table th, #urlredirect-table.table td {
         padding: 0.72rem !important;
     }
 
-    [dir] .table th:last-child, [dir] .table td:last-child {
+    #urlredirect-table.table th:last-child, #urlredirect-table.table td:last-child {
         text-align: center;
+    }
+
+    #urlredirect-table > tbody > tr.b-table-bottom-row td {
+        padding: 30px 0px 30px 0 !important;
     }
 </style>

@@ -8,14 +8,14 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
     {
         public void Configure(EntityTypeBuilder<UrlRedirect> builder)
         {
-            builder.HasKey(u => u.Id);
-            builder.Property(u => u.Id).ValueGeneratedOnAdd();
-            builder.Property(u => u.OldUrl).IsRequired();
-            builder.Property(u => u.NewUrl).IsRequired();
-            builder.Property(u => u.UserId).IsRequired();
-            builder.Property(u => u.CreatedDate).IsRequired();
-            builder.Property(u => u.ModifiedDate).IsRequired();
-            builder.Property(u => u.Description).HasMaxLength(500);
+            builder.HasKey(ur => ur.Id);
+            builder.Property(ur => ur.Id).ValueGeneratedOnAdd().UseIdentityColumn();
+            builder.Property(ur => ur.OldUrl).IsRequired();
+            builder.Property(ur => ur.NewUrl).IsRequired();
+            builder.Property(ur => ur.UserId).IsRequired();
+            builder.Property(ur => ur.CreatedDate).IsRequired();
+            builder.Property(ur => ur.ModifiedDate).IsRequired();
+            builder.Property(ur => ur.Description).HasMaxLength(500);
             builder.ToTable("UrlRedirects");
         }
     }

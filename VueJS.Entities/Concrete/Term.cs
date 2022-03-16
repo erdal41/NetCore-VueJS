@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Shared.Entities.Abstract;
 
@@ -7,7 +6,6 @@ namespace VueJS.Entities.Concrete
 {
     public class Term : IEntity
     {
-        [Key]
         public int Id { get; set; }
         public string Slug { get; set; }
         public string Name { get; set; }

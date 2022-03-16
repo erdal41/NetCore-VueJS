@@ -10,7 +10,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<Upload> builder)
         {
             builder.HasKey(u => u.Id);
-            builder.Property(u => u.Id).ValueGeneratedOnAdd();
+            builder.Property(u => u.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.Property(u => u.FileName).IsRequired();
             builder.Property(u => u.FileName).HasMaxLength(250);
             builder.Property(u => u.UserId).IsRequired();

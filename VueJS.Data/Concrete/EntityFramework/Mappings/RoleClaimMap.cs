@@ -9,6 +9,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
         public void Configure(EntityTypeBuilder<RoleClaim> builder)
         {
             builder.HasKey(rc => rc.Id);
+            builder.Property(rc => rc.Id).ValueGeneratedOnAdd().UseIdentityColumn();
             builder.ToTable("RoleClaims");
         }
     }
