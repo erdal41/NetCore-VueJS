@@ -8,16 +8,15 @@ using VueJS.Shared.Utilities.Results.Concrete;
 using VueJS.Shared.Utilities.Results.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System.Threading.Tasks;
-using VueJS.Services.Extensions;
 using System.Collections.Generic;
-using System.Linq;
 using VueJS.Entities.ComplexTypes;
+using VueJS.Services.Helper.Abstract;
 
 namespace VueJS.Services.Concrete
 {
     public class MenuManager : ManagerBase, IMenuService
     {
-        public MenuManager(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper) { }
+        public MenuManager(IUnitOfWork unitOfWork, IMapper mapper, IExtensionsHelper extensionsHelper) : base(unitOfWork, mapper, extensionsHelper) { }
 
 
         #region MENU
@@ -102,28 +101,7 @@ namespace VueJS.Services.Concrete
             if (menuDetails.Count < 1) return new DataResult<MenuDetailListDto>(ResultStatus.Error, Messages.MenuDetail.NotFound(true), null);
 
             foreach (var menuDetail in menuDetails)
-            {
-                if (menuDetail.SubObjectType == SubObjectType.page || menuDetail.SubObjectType == SubObjectType.article || menuDetail.SubObjectType == SubObjectType.basepage)
-                {
-                    menuDetail.Object = await UnitOfWork.Posts.GetAsync(p => p.PostType == menuDetail.SubObjectType && p.Id == menuDetail.ObjectId);
-                }
-                else if (menuDetail.SubObjectType == SubObjectType.category)
-                {
-                    menuDetail.Object = await UnitOfWork.Terms.GetAsync(p => p.TermType == menuDetail.SubObjectType && p.Id == menuDetail.ObjectId);
-                }
-
-                foreach (var child in menuDetail.Children)
-                {
-                    if (child.SubObjectType == SubObjectType.page || menuDetail.SubObjectType == SubObjectType.article || menuDetail.SubObjectType == SubObjectType.basepage)
-                    {
-                        child.Object = await UnitOfWork.Posts.GetAsync(p => p.PostType == child.SubObjectType && p.Id == child.ObjectId);
-                    }
-                    else if (menuDetail.SubObjectType == SubObjectType.category)
-                    {
-                        child.Object = await UnitOfWork.Terms.GetAsync(p => p.TermType == child.SubObjectType && p.Id == child.ObjectId);
-                    }
-                }
-
+            {              
                 MenuDetail parent = menuDetail.Parent;
                 menuDetail.Parents = new List<MenuDetail>();
                 while (parent != null)
@@ -197,6 +175,21 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<MenuDetailDto>> MenuDetailAddAsync(MenuDetailAddDto menuDetailAddDto)
         {
             var menuDetail = Mapper.Map<MenuDetail>(menuDetailAddDto);
+
+            if (menuDetail.ObjectId != null)
+            {
+                if (menuDetail.SubObjectType == ObjectType.basepage || menuDetail.SubObjectType == ObjectType.page || menuDetail.SubObjectType == ObjectType.article)
+                {
+                    var post = await UnitOfWork.Posts.GetAsync(p => p.Id == menuDetail.ObjectId && p.PostType == menuDetail.SubObjectType);
+                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(menuDetailAddDto.SubObjectType.Value, post);
+                }
+                else
+                {
+                    var term = await UnitOfWork.Terms.GetAsync(t => t.Id == menuDetail.ObjectId && t.TermType == menuDetail.SubObjectType);
+                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(menuDetailAddDto.SubObjectType.Value, term);
+                }
+            }           
+
             var addedMenuDetail = await UnitOfWork.MenuDetails.AddAsync(menuDetail);
             await UnitOfWork.SaveAsync();
             return new DataResult<MenuDetailDto>(ResultStatus.Success, new MenuDetailDto { MenuDetail = addedMenuDetail });

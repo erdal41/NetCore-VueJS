@@ -2,7 +2,10 @@
 {
     public enum ObjectType
     {
-        post = 0,
-        term = 1,
+        page = 0,
+        article = 1,
+        category = 2,
+        tag = 3,
+        basepage = 4,
     }
 }

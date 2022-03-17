@@ -31,7 +31,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/post-allposts")]
-        public async Task<JsonResult> AllPosts(SubObjectType postType, PostStatus? postStatus)
+        public async Task<JsonResult> AllPosts(ObjectType postType, PostStatus? postStatus)
         {
             var postListResult = await _postService.GetAllAsync(postType, postStatus);
             var publishPosts = await _postService.GetAllAsync(postType, PostStatus.publish);
@@ -79,9 +79,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                 postDataModel.SeoObjectSettingAddDto.SeoTitle = postDataModel.PostAddDto.Title;
             }
 
-            var postResult = await _postService.AddAsync(postDataModel.PostAddDto, LoggedInUser.Id, postDataModel.PostAddDto.PostType);
+            var postResult = await _postService.AddAsync(postDataModel.PostAddDto, LoggedInUser.Id);
             //_cacheService.Clear();
-            var seoResult = await _seoService.SeoObjectSettingAddAsync(ObjectType.post, postDataModel.PostAddDto.PostType, postResult.ResultStatus == ResultStatus.Success ?  postResult.Data.Post.Id : -1, postDataModel.SeoObjectSettingAddDto, LoggedInUser.Id);
+            var seoResult = await _seoService.SeoObjectSettingAddAsync(postDataModel.PostAddDto.PostType, postResult.ResultStatus == ResultStatus.Success ?  postResult.Data.Post.Id : -1, postDataModel.SeoObjectSettingAddDto, LoggedInUser.Id);
             //await _fileHelper.CreateSitemapInRootDirectoryAsync();
             return Json(new PostViewModel
             {
@@ -122,13 +122,13 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpGet("/admin/post-alltopposts")]
         public async Task<JsonResult> GetAllTopPosts(int? postId)
         {
-            return Json(new PostViewModel { PostListDto = await _postService.GetAllTopPostsAsync(SubObjectType.page, postId) });
+            return Json(new PostViewModel { PostListDto = await _postService.GetAllTopPostsAsync(postId) });
         }
 
         [HttpGet("/admin/post-allsubposts")]
         public async Task<JsonResult> GetAllSubPosts(int? postId)
         {
-            return Json(new PostViewModel { PostListDto = await _postService.GetAllSubPostsAsync(SubObjectType.page, postId) });
+            return Json(new PostViewModel { PostListDto = await _postService.GetAllSubPostsAsync(postId) });
         }
 
         [HttpGet("/admin/post-allsubpostsDetail")]

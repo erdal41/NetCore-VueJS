@@ -27,7 +27,7 @@ namespace VueJS.Entities.Dtos
         [DisplayName("Ebeveyn Kategori")]
         public int? ParentId { get; set; }
         [Required]
-        public SubObjectType TermType { get; set; }
+        public ObjectType TermType { get; set; }
 
         public Term Parent { get; set; }
         public List<Term> Parents { get; set; }

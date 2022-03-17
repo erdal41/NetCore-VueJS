@@ -9,10 +9,12 @@ namespace VueJS.Entities.Dtos
     {
         [Required]
         public int Id { get; set; }
+        public string CustomName { get; set; }
+        public string CustomURL { get; set; }
         public int? ParentId { get; set; }
         public int MenuId { get; set; }
         public int? ObjectId { get; set; }
-        public SubObjectType? SubObjectType { get; set; }
+        public ObjectType? SubObjectType { get; set; }
         public int MenuOrder { get; set; }
         public MenuDetail Parent { get; set; }
         public List<MenuDetail> Parents { get; set; }

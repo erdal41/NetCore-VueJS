@@ -12,23 +12,23 @@ namespace VueJS.Services.Utilities
             }
         }
 
-        public static string NotFound(SubObjectType objectType, bool isPlural)
+        public static string NotFound(ObjectType objectType, bool isPlural)
         {
             switch (objectType)
             {
-                case SubObjectType.page:
+                case ObjectType.page:
                     if (isPlural) return "Hiçbir sayfa bulunamadı.";
                     return "Böyle bir sayfa bulunamadı.";
-                case SubObjectType.article:
+                case ObjectType.article:
                     if (isPlural) return "Hiçbir makale bulunamadı.";
                     return "Böyle bir makale bulunamadı.";
-                case SubObjectType.category:
+                case ObjectType.category:
                     if (isPlural) return "Hiçbir kategori bulunamadı.";
                     return "Böyle bir kategori bulunamadı.";
-                case SubObjectType.tag:
+                case ObjectType.tag:
                     if (isPlural) return "Hiçbir etiket bulunamadı.";
                     return "Böyle etiket bulunamadı.";
-                case SubObjectType.basepage:
+                case ObjectType.basepage:
                     if (isPlural) return "Hiçbir temel sayfa bulunamadı.";
                     return "Böyle bir temel sayfa bulunamadı.";
                 default:
@@ -37,82 +37,82 @@ namespace VueJS.Services.Utilities
             }
         }
 
-        public static string UrlCheck(SubObjectType objectType)
+        public static string UrlCheck(ObjectType objectType)
         {
             switch (objectType)
             {
-                case SubObjectType.page:
+                case ObjectType.page:
                     return "Bu sayfanın linki zaten mevcut, lütfen sayfanın linkini değiştiriniz.";
-                case SubObjectType.article:
+                case ObjectType.article:
                     return "Bu makalenin linki zaten mevcut, lütfen makalenin linkini değiştiriniz.";
-                case SubObjectType.category:
+                case ObjectType.category:
                     return "Bu kategorinin kısa ismi zaten mevcut, lütfen kategorinin kısa ismini değiştiriniz.";
-                case SubObjectType.tag:
+                case ObjectType.tag:
                     return "Bu etiketin kısa ismi zaten mevcut, lütfen etiketin kısa ismini değiştiriniz.";
-                case SubObjectType.basepage:
+                case ObjectType.basepage:
                     return "Bu temel sayfanın linki zaten mevcut, lütfen temel sayfanın linkini değiştiriniz.";
                 default:
                     return "Bu gönderinin linki zaten mevcut, lütfen gönderinin linkini değiştiriniz.";
             }
         }
 
-        public static string Add(SubObjectType objectType, string objectTitle)
+        public static string Add(ObjectType objectType, string objectTitle)
         {
             switch (objectType)
             {
-                case SubObjectType.page:
+                case ObjectType.page:
                     return $"{objectTitle} başlıklı sayfa eklendi.";
-                case SubObjectType.article:
+                case ObjectType.article:
                     return $"{objectTitle} başlıklı makale eklendi.";
-                case SubObjectType.category:
+                case ObjectType.category:
                     return $"{objectTitle} başlıklı kategori eklendi.";
-                case SubObjectType.tag:
+                case ObjectType.tag:
                     return $"{objectTitle} başlıklı etiket eklendi.";
-                case SubObjectType.basepage:
+                case ObjectType.basepage:
                     return $"{objectTitle} başlıklı temel sayfa eklendi.";
                 default:
                     return $"{objectTitle} başlıklı gönderi eklendi.";
             }
         }
 
-        public static string Update(SubObjectType objectType, string objectTitle)
+        public static string Update(ObjectType objectType, string objectTitle)
         {
             switch (objectType)
             {
-                case SubObjectType.page:
+                case ObjectType.page:
                     return $"{objectTitle} başlıklı sayfa güncellendi.";
-                case SubObjectType.article:
+                case ObjectType.article:
                     return $"{objectTitle} başlıklı makale güncellendi.";
-                case SubObjectType.category:
+                case ObjectType.category:
                     return $"{objectTitle} başlıklı kategori güncellendi.";
-                case SubObjectType.tag:
+                case ObjectType.tag:
                     return $"{objectTitle} başlıklı etiket güncellendi.";
-                case SubObjectType.basepage:
+                case ObjectType.basepage:
                     return $"{objectTitle} başlıklı temel sayfa güncellendi.";
                 default:
                     return $"{objectTitle} başlıklı gönderi güncellendi.";
             }
         }
 
-        public static string StatusChange(SubObjectType objectType , PostStatus postStatus, string objectTitle)
+        public static string StatusChange(ObjectType objectType , PostStatus postStatus, string objectTitle)
         {
             switch (objectType)
             {
-                case SubObjectType.page:
+                case ObjectType.page:
                     if (postStatus == PostStatus.publish)
                         return $"{objectTitle} başlıklı sayfa yayınlandı.";
                     else if (postStatus == PostStatus.draft)
                         return $"{objectTitle} başlıklı sayfa taslak olarak kaydedildi.";
                     else
                         return $"{objectTitle} başlıklı sayfa çöp kutusuna taşındı.";
-                case SubObjectType.article:
+                case ObjectType.article:
                     if (postStatus == PostStatus.publish)
                         return $"{objectTitle} başlıklı makale yayınlandı.";
                     else if (postStatus == PostStatus.draft)
                         return $"{objectTitle} başlıklı makale taslak olarak kaydedildi.";
                     else
                         return $"{objectTitle} başlıklı makale çöp kutusuna taşındı.";
-                case SubObjectType.basepage:
+                case ObjectType.basepage:
                     if (postStatus == PostStatus.publish)
                         return $"{objectTitle} başlıklı sayfa yayınlandı.";
                     else if (postStatus == PostStatus.draft)
@@ -129,19 +129,19 @@ namespace VueJS.Services.Utilities
             }
         }
 
-        public static string Delete(SubObjectType objectType, string objectTitle)
+        public static string Delete(ObjectType objectType, string objectTitle)
         {
             switch (objectType)
             {
-                case SubObjectType.page:
+                case ObjectType.page:
                     return $"{objectTitle} başlıklı sayfa kalıcı olarak silindi.";
-                case SubObjectType.article:
+                case ObjectType.article:
                     return $"{objectTitle} başlıklı makale kalıcı olarak silindi.";
-                case SubObjectType.category:
+                case ObjectType.category:
                     return $"{objectTitle} başlıklı kategori silindi.";
-                case SubObjectType.tag:
+                case ObjectType.tag:
                     return $"{objectTitle} başlıklı etiket silindi.";
-                case SubObjectType.basepage:
+                case ObjectType.basepage:
                     return $"{objectTitle} başlıklı temel sayfa kalıcı olarak silindi.";
                 default:
                     return $"{objectTitle} başlıklı gönderi kalıcı olarak silindi.";

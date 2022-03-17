@@ -18,10 +18,10 @@ namespace VueJS.Services.Abstract
 
         #region Object
 
-        Task<IDataResult<SeoObjectSettingDto>> GetSeoObjectSettingDtoAsync(int objectId, SubObjectType subSeoObjectType);
-        Task<IDataResult<SeoObjectSettingUpdateDto>> GetSeoObjectSettingUpdateDtoAsync(int objectId, SubObjectType subSeoObjectType);
-        Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingUpdateAsync(int objectId, SubObjectType subSeoObjectType, SeoObjectSettingUpdateDto seoObjectSettingUpdateDto, int userId);
-        Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingAddAsync(ObjectType seoObjectType, SubObjectType subSeoObjectType, int objectId, SeoObjectSettingAddDto seoObjectSettingAddDto, int userId);
+        Task<IDataResult<SeoObjectSettingDto>> GetSeoObjectSettingDtoAsync(int objectId, ObjectType objectType);
+        Task<IDataResult<SeoObjectSettingUpdateDto>> GetSeoObjectSettingUpdateDtoAsync(int objectId, ObjectType objectType);
+        Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingUpdateAsync(int objectId, ObjectType objectType, SeoObjectSettingUpdateDto seoObjectSettingUpdateDto, int userId);
+        Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingAddAsync(ObjectType objectType, int objectId, SeoObjectSettingAddDto seoObjectSettingAddDto, int userId);
 
         #endregion
     }

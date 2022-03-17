@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VueJS.Services.Abstract;
 using AutoMapper;
+using VueJS.Services.Helper.Abstract;
 
 namespace VueJS.Mvc.Helpers.Concrete
 {
@@ -22,13 +23,15 @@ namespace VueJS.Mvc.Helpers.Concrete
         private readonly string _domainPath;
         private readonly IUploadService _uploadService;
         private readonly IMapper _mapper;
+        private readonly IExtensionsHelper _extensionsHelper;
         private const string mediaFolder = "ClientApp/src/assets/images/media";
 
-        public ImageHelper(IWebHostEnvironment env, IUploadService uploadService, IMapper mapper)
+        public ImageHelper(IWebHostEnvironment env, IUploadService uploadService, IMapper mapper, IExtensionsHelper extensionsHelper)
         {
             _env = env;
             _uploadService = uploadService;
             _mapper = mapper;
+            _extensionsHelper = extensionsHelper;
             _domainPath = _env.ContentRootPath;
         }
 
@@ -56,7 +59,7 @@ namespace VueJS.Mvc.Helpers.Concrete
 
                 string timeFormat = DateTime.Now.ToString("yyMMddHHmmss");
 
-                string newFileNameAndExtension = UrlExtensions.FriendlySEOUrl(newFileNameNotExtension) + "-" + timeFormat + fileExtension;
+                string newFileNameAndExtension = _extensionsHelper.FriendlySEOPostName(newFileNameNotExtension) + "-" + timeFormat + fileExtension;
 
                 var path = Path.Combine(dosyaYolu, newFileNameAndExtension);
 

@@ -42,7 +42,7 @@ namespace VueJS.Mvc.Areas.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var postResult = await _postService.GetAsync("anasayfa");
-            if (postResult.ResultStatus == ResultStatus.Success && postResult.Data.Post.PostType == SubObjectType.basepage)
+            if (postResult.ResultStatus == ResultStatus.Success && postResult.Data.Post.PostType == ObjectType.basepage)
             {
                 var generalSettings = await _settingService.GetGeneralSettingAsync();
                 var seoGeneralSettings = await _seoService.GetSeoGeneralSettingDtoAsync();
@@ -69,9 +69,9 @@ namespace VueJS.Mvc.Areas.Web.Controllers
                 var seoGeneralSettings = await _seoService.GetSeoGeneralSettingDtoAsync();
                 var seoObjectSettings = await _seoService.GetSeoObjectSettingDtoAsync(postResult.Data.Post.Id, postResult.Data.Post.PostType);
                 var generalSetting = await _settingService.GetGeneralSettingAsync();
-                if (postResult.Data.Post.PostType == SubObjectType.article)
+                if (postResult.Data.Post.PostType == ObjectType.article)
                 {
-                    var posts = await _postService.GetAllAsync(SubObjectType.article, null);
+                    var posts = await _postService.GetAllAsync(ObjectType.article, null);
 
                     return Json(new PostDetailViewModel
                     {
@@ -83,7 +83,7 @@ namespace VueJS.Mvc.Areas.Web.Controllers
                     });
 
                 }
-                else if (postResult.Data.Post.PostType == SubObjectType.page)
+                else if (postResult.Data.Post.PostType == ObjectType.page)
                 {
                     return Json(new PostDetailViewModel
                     {

@@ -17,7 +17,7 @@ namespace VueJS.Entities.Concrete
         public bool CommentStatus { get; set; }
         public string PostName { get; set; }
         public int? ParentId { get; set; }
-        public SubObjectType PostType { get; set; }
+        public ObjectType PostType { get; set; }
         public int CommentCount { get; set; }
         public string Description { get; set; }
         public int? FeaturedImageId { get; set; }

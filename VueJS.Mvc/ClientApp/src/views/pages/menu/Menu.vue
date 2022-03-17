@@ -206,17 +206,17 @@
                     </app-collapse-item>
                     <app-collapse-item title="Özel Bağlantılar">
                         <div class="custom-menu-item">
-                            <b-form-group label="URL"
-                                          label-for="customUrl">
-                                <b-form-input v-model="customUrl"
-                                              id="customUrl"
+                            <b-form-group label="İsim"
+                                          label-for="custom-name">
+                                <b-form-input v-model="customName"
+                                              id="custom-name"
                                               size="sm"
                                               placeholder="Ara.."></b-form-input>
                             </b-form-group>
-                            <b-form-group label="İsim"
-                                          label-for="customName">
-                                <b-form-input v-model="customName"
-                                              id="customName"
+                            <b-form-group label="URL"
+                                          label-for="custom-url">
+                                <b-form-input v-model="customURL"
+                                              id="custom-url"
                                               size="sm"
                                               placeholder="Ara.."></b-form-input>
                             </b-form-group>
@@ -358,8 +358,8 @@
                     Id: '',
                     Name: "",
                 },
-                customUrl: '',
                 customName: '',
+                customURL: '',
                 deleteMenuItemList: [],
                 deleteMenuItemDisplay: []
             }
@@ -472,11 +472,16 @@
 
                                 var menuDetailUpdateDto = {
                                     Id: this.menuDetails[i].Id,
-                                    ParentId: null,
+                                    CustomName: this.menuDetails[i].CustomName,
+                                    CustomURL: this.menuDetails[i].CustomURL,
+                                    ParentId: this.menuDetails[i].ParentId,
                                     MenuId: this.menuId,
                                     ObjectId: this.menuDetails[i].ObjectId,
                                     SubObjectType: this.menuDetails[i].SubObjectType,
-                                    MenuOrder: i + 1
+                                    MenuOrder: i + 1,
+                                    Children: this.menuDetails[i].Children,
+                                    Parent: this.menuDetails[i].Parent,
+                                    Parents: this.menuDetails[i].Parents,
                                 }
 
                                 axios.post('/admin/menu-editmenudetail', {
@@ -491,11 +496,16 @@
                                     for (var j = 0; j < this.menuDetails[i].Children.length; j++) {
                                         var menuDetailChildrenUpdateDto = {
                                             Id: this.menuDetails[i].Children[j].Id,
+                                            CustomName: this.menuDetails[i].Children[j].CustomName,
+                                            CustomURL: this.menuDetails[i].Children[j].CustomURL,
                                             ParentId: this.menuDetails[i].Id,
                                             MenuId: this.menuId,
                                             ObjectId: this.menuDetails[i].Children[j].ObjectId,
                                             SubObjectType: this.menuDetails[i].Children[j].SubObjectType,
-                                            MenuOrder: j + 1
+                                            MenuOrder: j + 1,
+                                            Children: this.menuDetails[i].Children[j].Children,
+                                            Parent: this.menuDetails[i].Children[j].Parent,
+                                            Parents: this.menuDetails[i].Children[j].Parents,
                                         }
 
                                         axios.post('/admin/menu-editmenudetail', {
@@ -540,8 +550,8 @@
                 else {
                     this.selectedPageItem.forEach(item => {
                         var menuDetailAddDto = {
-                            Name: item.Title,
-                            MenuUrl: item.PostName,
+                            CustomName: item.Title,
+                            CustomURL: item.PostName,
                             ParentId: null,
                             MenuId: this.menuId,
                             ObjectId: item.Id,
@@ -558,26 +568,16 @@
 
                                 this.menuDetails.push({
                                     Id: response.data.MenuDetailDto.Data.MenuDetail.Id,
+                                    CustomName: response.data.MenuDetailDto.Data.MenuDetail.CustomName,
+                                    CustomURL: response.data.MenuDetailDto.Data.MenuDetail.CustomURL,
                                     MenuId: this.menuId,
-                                    Name: item.Title,
-                                    MenuUrl: item.PostName,
-                                    ObjectId: item.Id,
+                                    ObjectId: response.data.MenuDetailDto.Data.MenuDetail.ObjectId,
                                     MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                    Object: item,
                                     SubObjectType: 0,
-                                    Children: [],
-                                    Parent: null,
-                                    ParentId: null,
-                                    Parents: [],
-                                });
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'success',
-                                        title: 'Başarılı İşlem!',
-                                        icon: 'CheckIcon',
-                                        text: response.data.MenuDetailDto.Message
-                                    }
+                                    Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
+                                    Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
+                                    ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
+                                    Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
                                 });
                             }
                         });
@@ -599,8 +599,8 @@
                 else {
                     this.selectedArticleItem.forEach(item => {
                         var menuDetailAddDto = {
-                            Name: item.Title,
-                            MenuUrl: item.PostName,
+                            CustomName: item.Title,
+                            CustomURL: item.PostName,
                             ParentId: null,
                             MenuId: this.menuId,
                             ObjectId: item.Id,
@@ -617,26 +617,16 @@
 
                                 this.menuDetails.push({
                                     Id: response.data.MenuDetailDto.Data.MenuDetail.Id,
+                                    CustomName: response.data.MenuDetailDto.Data.MenuDetail.CustomName,
+                                    CustomURL: response.data.MenuDetailDto.Data.MenuDetail.CustomURL,
                                     MenuId: this.menuId,
-                                    Name: item.Title,
-                                    MenuUrl: item.PostName,
-                                    ObjectId: item.Id,
+                                    ObjectId: response.data.MenuDetailDto.Data.MenuDetail.ObjectId,
                                     MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                    Object: item,
                                     SubObjectType: 1,
-                                    Children: [],
-                                    Parent: null,
-                                    ParentId: null,
-                                    Parents: [],
-                                });
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'success',
-                                        title: 'Başarılı İşlem!',
-                                        icon: 'CheckIcon',
-                                        text: response.data.MenuDetailDto.Message
-                                    }
+                                    Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
+                                    Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
+                                    ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
+                                    Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
                                 });
                             }
                         });
@@ -658,8 +648,8 @@
                 else {
                     this.selectedCategoryItem.forEach(item => {
                         var menuDetailAddDto = {
-                            Name: item.Name,
-                            MenuUrl: item.Slug,
+                            CustomName: item.Name,
+                            CustomURL: item.Slug,
                             ParentId: null,
                             MenuId: this.menuId,
                             ObjectId: item.Id,
@@ -676,28 +666,17 @@
 
                                 this.menuDetails.push({
                                     Id: response.data.MenuDetailDto.Data.MenuDetail.Id,
+                                    CustomName: response.data.MenuDetailDto.Data.MenuDetail.CustomName,
+                                    CustomURL: response.data.MenuDetailDto.Data.MenuDetail.CustomURL,
                                     MenuId: this.menuId,
-                                    Name: item.Name,
-                                    MenuUrl: item.Slug,
-                                    ObjectId: item.Id,
+                                    ObjectId: response.data.MenuDetailDto.Data.MenuDetail.ObjectId,
                                     MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                    Object: item,
                                     SubObjectType: 2,
-                                    Children: [],
-                                    Parent: null,
-                                    ParentId: null,
-                                    Parents: [],
-                                });
-
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'success',
-                                        title: 'Başarılı İşlem!',
-                                        icon: 'CheckIcon',
-                                        text: response.data.MenuDetailDto.Message
-                                    }
-                                });
+                                    Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
+                                    Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
+                                    ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
+                                    Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
+                                });                                                               
                             }
                         });
                     });
@@ -717,8 +696,8 @@
                 }
                 else {
                     var menuDetailAddDto = {
-                        Name: this.customName,
-                        MenuUrl: this.customUrl,
+                        CustomName: this.customName,
+                        CustomURL: this.customURL,
                         ParentId: null,
                         MenuId: this.menuId,
                         ObjectId: null,
@@ -729,35 +708,21 @@
                         MenuDetailAddDto: menuDetailAddDto
                     }).then((response) => {
                         if (response.data.MenuDetailDto.ResultStatus === 0) {
-                            this.customUrl = '';
-                            this.customName = '';
                             this.menuDetails.push({
                                 Id: response.data.MenuDetailDto.Data.MenuDetail.Id,
+                                CustomName: response.data.MenuDetailDto.Data.MenuDetail.CustomName,
+                                CustomURL: response.data.MenuDetailDto.Data.MenuDetail.CustomURL,
                                 MenuId: this.menuId,
-                                Name: this.customName,
-                                MenuUrl: this.customUrl,
                                 ObjectId: '',
                                 MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                Object: {
-                                    CustomName: this.customName,
-                                    CustomUrl: this.customUrl,
-                                },
                                 SubObjectType: null,
-                                Children: [],
-                                Parent: null,
-                                ParentId: null,
-                                Parents: [],
+                                Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
+                                Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
+                                ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
+                                Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
                             });
-
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'success',
-                                    title: 'Başarılı İşlem!',
-                                    icon: 'CheckIcon',
-                                    text: response.data.MenuDetailDto.Message
-                                }
-                            });
+                            this.customURL = '';
+                            this.customName = '';                            
                         }
                     }).catch((error) => {
                         console.log(error)
@@ -797,7 +762,7 @@
                                     this.selectedPageItem = [];
                                     this.selectedArticleItem = [];
                                     this.selectedCategoryItem = [];
-                                    this.customUrl = '';
+                                    this.CustomURL = '';
                                     this.customName = '';
                                     this.menuId = '';
                                     this.newMenuName = '';

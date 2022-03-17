@@ -72,145 +72,139 @@ namespace VueJS.Services.Concrete
 
         #region OBJECT
 
-        public async Task<IDataResult<SeoObjectSettingDto>> GetSeoObjectSettingDtoAsync(int objectId, SubObjectType subSeoObjectType)
+        public async Task<IDataResult<SeoObjectSettingDto>> GetSeoObjectSettingDtoAsync(int objectId, ObjectType subSeoObjectType)
         {
-            var seoObjectSetting = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.SubObjectType == subSeoObjectType, s => s.OpenGraphImage, s => s.TwitterImage, s => s.User);
+            var seoObjectSetting = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.ObjectType == subSeoObjectType, s => s.OpenGraphImage, s => s.TwitterImage, s => s.User);
             if (seoObjectSetting == null) return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
             return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, new SeoObjectSettingDto { SeoObjectSetting = seoObjectSetting });
         }
 
-        public async Task<IDataResult<SeoObjectSettingUpdateDto>> GetSeoObjectSettingUpdateDtoAsync(int objectId, SubObjectType subSeoObjectType)
+        public async Task<IDataResult<SeoObjectSettingUpdateDto>> GetSeoObjectSettingUpdateDtoAsync(int objectId, ObjectType subSeoObjectType)
         {
-            var seoObject = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.SubObjectType == subSeoObjectType, s => s.OpenGraphImage, s => s.TwitterImage, s => s.User);
+            var seoObject = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.ObjectType == subSeoObjectType, s => s.OpenGraphImage, s => s.TwitterImage, s => s.User);
             if (seoObject == null) return new DataResult<SeoObjectSettingUpdateDto>(ResultStatus.Error, "Seo ayarları yüklenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
             var seoObjectSettingUpdateDto = Mapper.Map<SeoObjectSettingUpdateDto>(seoObject);
             return new DataResult<SeoObjectSettingUpdateDto>(ResultStatus.Success, seoObjectSettingUpdateDto);
         }
 
-        public async Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingUpdateAsync(int objectId, SubObjectType subSeoObjectType, SeoObjectSettingUpdateDto seoObjectSettingUpdateDto, int userId)
+        public async Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingUpdateAsync(int objectId, ObjectType subSeoObjectType, SeoObjectSettingUpdateDto seoObjectSettingUpdateDto, int userId)
         {
-            var oldSeoObjectSetting = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.SubObjectType == subSeoObjectType);
+            var oldSeoObjectSetting = await UnitOfWork.SeoObjectSettings.GetAsync(s => s.ObjectId == objectId && s.ObjectType == subSeoObjectType);
             if (oldSeoObjectSetting == null) return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, "Seo ayarları güncellenirken bir hata oluştu. Hata devam ederse lütfen yönetici ile iletişime geçiniz.", null);
 
             var seoObjectSetting = Mapper.Map<SeoObjectSettingUpdateDto, SeoObjectSetting>(seoObjectSettingUpdateDto, oldSeoObjectSetting);
-            seoObjectSetting.SubObjectType = subSeoObjectType;
+            seoObjectSetting.ObjectType = subSeoObjectType;
             seoObjectSetting.UserId = userId;
             var updatedSeoSetting = await UnitOfWork.SeoObjectSettings.UpdateAsync(seoObjectSetting);
             await UnitOfWork.SaveAsync();
             return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, new SeoObjectSettingDto { SeoObjectSetting = seoObjectSetting });
         }
 
-        public async Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingAddAsync(ObjectType seoObjectType, SubObjectType subSeoObjectType, int objectId, SeoObjectSettingAddDto seoObjectSettingAddDto, int userId)
+        public async Task<IDataResult<SeoObjectSettingDto>> SeoObjectSettingAddAsync(ObjectType objectType, int objectId, SeoObjectSettingAddDto seoObjectSettingAddDto, int userId)
         {
             var seoObject = Mapper.Map<SeoObjectSetting>(seoObjectSettingAddDto);
             seoObject.ObjectId = objectId;
             seoObject.UserId = userId;
 
-            switch (seoObjectType)
+            if (objectType == ObjectType.page)
             {
-                case ObjectType.post:
-                    if (subSeoObjectType == SubObjectType.page)
+                var post = await UnitOfWork.Posts.GetAsync(p => p.PostType == ObjectType.page && p.Id == objectId);
+                if (post != null)
+                {
+                    if (seoObjectSettingAddDto.SeoTitle == null)
                     {
-                        var post = await UnitOfWork.Posts.GetAsync(p => p.PostType == SubObjectType.page && p.Id == objectId);
-                        if (post != null)
-                        {
-                            if (seoObjectSettingAddDto.SeoTitle == null)
-                            {
-                                seoObject.SeoTitle = post.Title;
-                            }
-                            seoObject.ObjectType = seoObjectType;
-                            seoObject.SubObjectType = subSeoObjectType;
+                        seoObject.SeoTitle = post.Title;
+                    }
+                    seoObject.ObjectType = objectType;
 
-                            Post parent = post.Parent;
-                            post.Parents = new List<Post>();
-                            while (parent != null)
-                            {
-                                post.Parents.Add(parent);
-                                parent = await UnitOfWork.Posts.GetAsync(p => p.PostType == SubObjectType.page && p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                            }
+                    Post parent = post.Parent;
+                    post.Parents = new List<Post>();
+                    while (parent != null)
+                    {
+                        post.Parents.Add(parent);
+                        parent = await UnitOfWork.Posts.GetAsync(p => p.PostType == ObjectType.page && p.Id == parent.ParentId, p => p.Parent, p => p.Children);
+                    }
 
-                            if (post.Parents != null)
-                            {
-                                string url = _domainName;
-                                for (int i = post.Parents.Count; i-- > 0;)
-                                {
-                                    url += "/" + post.Parents[i].PostName.ToLower();
-                                }
-                                seoObject.Permalink = url + "/" + post.PostName.ToLower();
-                            }
-                            else
-                            {
-                                string url = _domainName + "/";
-                                seoObject.Permalink = url + post.PostName;
-                            }
-                        }
-                    }
-                    else if (subSeoObjectType == SubObjectType.article)
+                    if (post.Parents != null)
                     {
-                        var post = await UnitOfWork.Posts.GetAsync(p => p.PostType == SubObjectType.article && p.Id == objectId);
-                        if (post != null)
+                        string url = _domainName;
+                        for (int i = post.Parents.Count; i-- > 0;)
                         {
-                            if (seoObjectSettingAddDto.SeoTitle == null)
-                            {
-                                seoObject.SeoTitle = post.Title;
-                            }
-                            seoObject.ObjectType = seoObjectType;
-                            seoObject.SubObjectType = subSeoObjectType;
-                            seoObject.Permalink = _domainName + "/" + post.PostName;
+                            url += "/" + post.Parents[i].PostName.ToLower();
                         }
+                        seoObject.Permalink = url + "/" + post.PostName.ToLower();
                     }
-                    else if (subSeoObjectType == SubObjectType.basepage)
+                    else
                     {
-                        var post = await UnitOfWork.Posts.GetAsync(p => p.PostType == SubObjectType.basepage && p.Id == objectId);
-                        if (post != null)
-                        {
-                            if (seoObjectSettingAddDto.SeoTitle == null)
-                            {
-                                seoObject.SeoTitle = post.Title;
-                            }
-                            seoObject.ObjectType = seoObjectType;
-                            seoObject.SubObjectType = subSeoObjectType;
-                            seoObject.Permalink = _domainName + "/" + post.PostName;
-                        }
+                        string url = _domainName + "/";
+                        seoObject.Permalink = url + post.PostName;
                     }
-                    break;
-                case ObjectType.term:
-                    if (subSeoObjectType == SubObjectType.category)
+                }
+            }
+            else if (objectType == ObjectType.article)
+            {
+                var post = await UnitOfWork.Posts.GetAsync(p => p.PostType == ObjectType.article && p.Id == objectId);
+                if (post != null)
+                {
+                    if (seoObjectSettingAddDto.SeoTitle == null)
                     {
-                        var term = await UnitOfWork.Terms.GetAsync(p => p.TermType == SubObjectType.category && p.Id == objectId);
-                        if (term != null)
-                        {
-                            if (seoObjectSettingAddDto.SeoTitle == null)
-                            {
-                                seoObject.SeoTitle = term.Name;
-                            }
-                            seoObject.ObjectType = seoObjectType;
-                            seoObject.SubObjectType = subSeoObjectType;
-                            seoObject.Permalink = _domainName + "/blog/kategori/" + term.Slug;
-                        }
+                        seoObject.SeoTitle = post.Title;
                     }
-                    else if (subSeoObjectType == SubObjectType.tag)
+                    seoObject.ObjectType = objectType;
+                    seoObject.Permalink = _domainName + "/" + post.PostName;
+                }
+            }
+            else if (objectType == ObjectType.basepage)
+            {
+                var post = await UnitOfWork.Posts.GetAsync(p => p.PostType == ObjectType.basepage && p.Id == objectId);
+                if (post != null)
+                {
+                    if (seoObjectSettingAddDto.SeoTitle == null)
                     {
-                        var term = await UnitOfWork.Terms.GetAsync(p => p.TermType == SubObjectType.tag && p.Id == objectId);
-                        if (term != null)
-                        {
-                            if (seoObjectSettingAddDto.SeoTitle == null)
-                            {
-                                seoObject.SeoTitle = term.Name;
-                            }
-                            seoObject.ObjectType = seoObjectType;
-                            seoObject.SubObjectType = subSeoObjectType;
-                            seoObject.Permalink = _domainName + "/blog/etiket/" + term.Slug;
-                        }
+                        seoObject.SeoTitle = post.Title;
                     }
-                    break;
+                    seoObject.ObjectType = objectType;
+                    seoObject.Permalink = _domainName + "/" + post.PostName;
+                }
+            }
+            else if (objectType == ObjectType.category)
+            {
+                var term = await UnitOfWork.Terms.GetAsync(p => p.TermType == ObjectType.category && p.Id == objectId);
+                if (term != null)
+                {
+                    if (seoObjectSettingAddDto.SeoTitle == null)
+                    {
+                        seoObject.SeoTitle = term.Name;
+                    }
+                    seoObject.ObjectType = objectType;
+                    seoObject.Permalink = _domainName + "/blog/kategori/" + term.Slug;
+                }
+            }
+            else
+            {
+                var term = await UnitOfWork.Terms.GetAsync(p => p.TermType == ObjectType.tag && p.Id == objectId);
+                if (term != null)
+                {
+                    if (seoObjectSettingAddDto.SeoTitle == null)
+                    {
+                        seoObject.SeoTitle = term.Name;
+                    }
+                    seoObject.ObjectType = objectType;
+                    seoObject.Permalink = _domainName + "/blog/etiket/" + term.Slug;
+                }
             }
 
-            if (seoObject == null) return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, null, new SeoObjectSettingDto { SeoObjectSetting = seoObject });
+            if (seoObject == null) return new DataResult<SeoObjectSettingDto>(ResultStatus.Error, null, new SeoObjectSettingDto
+            {
+                SeoObjectSetting = seoObject
+            });
 
             await UnitOfWork.SeoObjectSettings.AddAsync(seoObject);
             await UnitOfWork.SaveAsync();
-            return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, null, new SeoObjectSettingDto { SeoObjectSetting = seoObject });
+            return new DataResult<SeoObjectSettingDto>(ResultStatus.Success, null, new SeoObjectSettingDto
+            {
+                SeoObjectSetting = seoObject
+            });
         }
 
         #endregion

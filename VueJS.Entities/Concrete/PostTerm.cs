@@ -7,7 +7,7 @@ namespace VueJS.Entities.Concrete
     {
         public int PostId { get; set; }
         public int TermId { get; set; }
-        public SubObjectType TermType { get; set; }
+        public ObjectType TermType { get; set; }
                 
         public Post Post { get; set; }
         public Term Term { get; set; }

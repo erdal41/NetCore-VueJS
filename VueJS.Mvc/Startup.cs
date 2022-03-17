@@ -23,6 +23,8 @@ using VueJS.Mvc.Areas.Admin.Helper.Concrete;
 using System.Text;
 using VueJS.Shared.Utilities.Extensions;
 using VueJS.Entities.Concrete;
+using VueJS.Services.Helper.Abstract;
+using VueJS.Services.Helper.Concrete;
 
 namespace VueJS.Mvc
 {
@@ -77,6 +79,8 @@ namespace VueJS.Mvc
             services.AddScoped<IImageHelper, ImageHelper>();
             services.AddScoped<IFileHelper, FileHelper>();
             services.AddScoped<IJwtHelper, JwtHelper>();
+            services.AddScoped<IExtensionsHelper, ExtensionsHelper>();
+
             services.AddControllers();
 
             services.AddSpaStaticFiles(configuration =>

@@ -7,9 +7,9 @@
                 <b-form-checkbox v-if="isItemCheck"
                                  v-model="checkMenuItems"
                                  class="d-inline"
-                                 :value="{Id: el.Id, Name:menuName(el.SubObjectType, el.Object) + '(' + menuType(el.SubObjectType) + ')' }"
-                                 @change="checkChangeMenuItem"/>
-                <span class="cursor-pointer">{{ menuName(el.SubObjectType, el.Object) }}</span>
+                                 :value="{Id: el.Id, Name:el.CustomName + '(' + menuType(el.SubObjectType) + ')' }"
+                                 @change="checkChangeMenuItem" />
+                <span class="cursor-pointer">{{ el.CustomName }}</span>
                 <feather-icon v-if="isOpenCollapse == false"
                               v-b-toggle="'item_' + el.Id"
                               icon="ChevronDownIcon"
@@ -31,12 +31,12 @@
                     <b-form-group label="Menü Etiketi"
                                   :label-for="'menu-tag-' + el.Id">
                         <b-form-input :id="'menu-tag-' + el.Id"
-                                      v-model="el.Name"
+                                      :value="el.CustomName"
                                       type="text"
                                       size="sm"
                                       placeholder="Menü Etiketi" />
                     </b-form-group>
-                    <label>URL: </label> <a :href="menuURL(el.SubObjectType, el.Object)" target="_blank">{{ menuURL(el.SubObjectType, el.Object) }}</a>
+                    <label>URL: </label> <a class="small" :href="el.CustomURL" target="_blank">{{ el.CustomURL }}</a>
                 </div>
             </b-collapse>
             <nested-draggable class="item-sub" :list="el.Children" />
@@ -101,39 +101,10 @@
                     return 'Kategori';
                 } else if (type === 4) {
                     return 'Sayfa';
-                } else {
+                } else if (type === null) {
                     return 'Özel Bağlantı';
                 }
-            },
-            menuName(type, object) {
-                if (type === 0) {
-                    return object.Title;
-                } else if (type === 1) {
-                    console.log(object)
-                    return object.Title;
-                }
-                else if (type === 2) {
-                    return object.Name;
-                } else if (type === 4) {
-                    return object.Title;
-                } else {
-                    return object.CustomName;
-                }
-            },
-            menuURL(type, object) {
-                if (type === 0) {
-                    return object.PostName;
-                } else if (type === 1) {
-                    return object.PostName;
-                }
-                else if (type === 2) {
-                    return object.Slug;
-                } else if (type === 4) {
-                    return object.PostName;
-                } else {
-                    return object.CustomUrl;
-                }
-            }
+            }         
         },
         computed: {
             isItemCheck() {

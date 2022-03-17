@@ -19,13 +19,13 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     PostId = 1,
                     TermId = 1,
-                    TermType = SubObjectType.category,
+                    TermType = ObjectType.category,
                 },
                 new PostTerm
                 {
                     PostId = 1,
                     TermId = 2,
-                    TermType = SubObjectType.tag
+                    TermType = ObjectType.tag
                 }
                 );
         }

@@ -38,8 +38,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 1,
                     SeoTitle = "Örnek Makale",
-                    ObjectType= ObjectType.post,
-                    SubObjectType = SubObjectType.article,
+                    ObjectType= ObjectType.article,
                     ObjectId = 1,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -49,8 +48,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 2,
                     SeoTitle = "Örnek Sayfa",
-                    ObjectType = ObjectType.post,
-                    SubObjectType = SubObjectType.page,
+                    ObjectType = ObjectType.page,
                     ObjectId = 2,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -60,8 +58,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 3,
                     SeoTitle = "Anasayfa",
-                    ObjectType = ObjectType.post,
-                    SubObjectType = SubObjectType.basepage,
+                    ObjectType = ObjectType.basepage,
                     ObjectId = 3,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -71,8 +68,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 4,
                     SeoTitle = "Hakkımızda",
-                    ObjectType = ObjectType.post,
-                    SubObjectType = SubObjectType.basepage,
+                    ObjectType = ObjectType.basepage,
                     ObjectId = 4,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -82,8 +78,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 5,
                     SeoTitle = "Fuarlarımız",
-                    ObjectType = ObjectType.post,
-                    SubObjectType = SubObjectType.basepage,
+                    ObjectType = ObjectType.basepage,
                     ObjectId = 5,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -93,8 +88,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 6,
                     SeoTitle = "Referanslar",
-                    ObjectType = ObjectType.post,
-                    SubObjectType = SubObjectType.basepage,
+                    ObjectType = ObjectType.basepage,
                     ObjectId = 6,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -104,8 +98,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 7,
                     SeoTitle = "İletişim",
-                    ObjectType = ObjectType.post,
-                    SubObjectType = SubObjectType.basepage,
+                    ObjectType = ObjectType.basepage,
                     ObjectId = 7,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -115,8 +108,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 8,
                     SeoTitle = "Örnek Kategori",
-                    ObjectType = ObjectType.term,
-                    SubObjectType = SubObjectType.category,
+                    ObjectType = ObjectType.category,
                     ObjectId = 1,
                     UserId = 1,
                     CreatedDate = DateTime.Now,
@@ -126,8 +118,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 {
                     Id = 9,
                     SeoTitle = "Örnek Etiket",
-                    ObjectType = ObjectType.term,
-                    SubObjectType = SubObjectType.tag,
+                    ObjectType = ObjectType.tag,
                     ObjectId = 2,
                     UserId = 1,
                     CreatedDate = DateTime.Now,

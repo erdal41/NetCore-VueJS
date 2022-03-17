@@ -25,7 +25,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/term-allterms")]
-        public async Task<JsonResult> AllTerms(SubObjectType termType)
+        public async Task<JsonResult> AllTerms(ObjectType termType)
         {
             return Json(new TermViewModel { TermListDto = await _termService.GetAllAsync(termType) });
         }
@@ -49,7 +49,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             return Json(new TermViewModel
             {
                 TermDto = result,
-                SeoObjectSettingDto = await _seoService.SeoObjectSettingAddAsync(ObjectType.term, termDataModel.TermAddDto.TermType, result.Data != null ? result.Data.Term.Id : -1, termDataModel.SeoObjectSettingAddDto, LoggedInUser.Id)
+                SeoObjectSettingDto = await _seoService.SeoObjectSettingAddAsync(termDataModel.TermAddDto.TermType, result.Data != null ? result.Data.Term.Id : -1, termDataModel.SeoObjectSettingAddDto, LoggedInUser.Id)
             });
         }
 

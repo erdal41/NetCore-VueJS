@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -7,22 +7,22 @@ using System.Threading.Tasks;
 using VueJS.Data.Abstract;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
+using VueJS.Services.Helper.Abstract;
 
-namespace VueJS.Services.Extensions
+namespace VueJS.Services.Helper.Concrete
 {
-    public class IUrlExtensions
+    public class ExtensionsHelper : IExtensionsHelper
     {
-        private readonly Mapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly HttpContext _httpContext;
-        public IUrlExtensions(Mapper mapper, IUnitOfWork unitOfWork, HttpContext httpContext)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public ExtensionsHelper(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
-            _httpContext = httpContext;
+            _httpContextAccessor = httpContextAccessor;
         }
         //@Url.link @Url.FriendlyUrlHelper()
-        public string FriendlyUrlHelper(string url)
+        public string FriendlySEOPostName(string url)
         {
             if (string.IsNullOrEmpty(url)) return "";
             url = url.ToLower();
@@ -61,11 +61,11 @@ namespace VueJS.Services.Extensions
             return url;
         }
 
-        public async Task<object> GetParentsAsync(ObjectType objectType, object dto)
+        public async Task<object> GetParentsAsync(ObjectType objectType, object entity)
         {
             if (objectType == ObjectType.basepage || objectType == ObjectType.page || objectType == ObjectType.article)
             {
-                var post = _mapper.Map<Post>(dto);
+                var post = (Post)entity;
                 Post parent = post.Parent;
                 post.Parents = new List<Post>();
                 while (parent != null)
@@ -77,7 +77,7 @@ namespace VueJS.Services.Extensions
             }
             else
             {
-                var term = _mapper.Map<Term>(dto);
+                var term = (Term)entity;
                 Term parent = term.Parent;
                 term.Parents = new List<Term>();
                 while (parent != null)
@@ -89,30 +89,65 @@ namespace VueJS.Services.Extensions
             }
         }
 
-        public async Task<string> FriendlySEOUrlAsync(ObjectType objectType, object dto)
+        public async Task<string> GetParentsURLAsync(ObjectType objectType, object entity)
         {
-            string url = _httpContext.Request.Host.Value;
-
+            string url = _httpContextAccessor.HttpContext.Request.Scheme + "://" + _httpContextAccessor.HttpContext.Request.Host.Value;
             if (objectType == ObjectType.basepage || objectType == ObjectType.page || objectType == ObjectType.article)
             {
-                Post post = (Post)await GetParentsAsync(objectType, dto);
+                Post post = (Post)await GetParentsAsync(objectType, entity);
+                List<Post> parents = post.Parents;
 
-                for (int i = post.Parents.Count ; i > 0; --i)
+                for (int i = parents.Count; i > 0; --i)
                 {
-                    url += "/" + post.Parents[i].PostName;
+                    url += "/" + parents[i].PostName;
                 }
+                url += "/" + post.PostName;
+
+                if (url == _httpContextAccessor.HttpContext.Request.Scheme + "://" + _httpContextAccessor.HttpContext.Request.Host.Value) return "";
             }
             else
             {
-                Term term = (Term)await GetParentsAsync(objectType, dto);
-
-                for (int i = term.Parents.Count; i > 0; --i)
+                url += "/kategori";
+                Term term = (Term)await GetParentsAsync(objectType, entity);
+                List<Term> parents = term.Parents;
+                for (int i = parents.Count; i > 0; --i)
                 {
-                    url += "/" + term.Parents[i].Slug;
+                    url += "/" + parents[i].Slug;
                 }
+                url += "/" + term.Slug;
+
+                if (url == _httpContextAccessor.HttpContext.Request.Scheme + "://" + _httpContextAccessor.HttpContext.Request.Host.Value) return "";
+
+            }
+            return url;
+        }
+
+        public async Task<string> FriendlySEOUrlAsync(ObjectType objectType, object entity)
+        {
+            string url = _httpContextAccessor.HttpContext.Request.Scheme + "://" + _httpContextAccessor.HttpContext.Request.Host.Value;
+            if (objectType == ObjectType.basepage || objectType == ObjectType.page || objectType == ObjectType.article)
+            {
+                Post post = (Post)await GetParentsAsync(objectType, entity);
+                List<Post> parents = post.Parents;
+
+                for (int i = parents.Count; i > 0; --i)
+                {
+                    url += "/" + parents[i].PostName;
+                }
+                url += "/" + post.PostName;
+            }
+            else
+            {
+                Term term = (Term)await GetParentsAsync(objectType, entity);
+                List<Term> parents = term.Parents;
+                for (int i = parents.Count; i > 0; --i)
+                {
+                    url += "/" + parents[i].Slug;
+                }
+                url += "/" + term.Slug;
             }
 
-            if (url == _httpContext.Request.Host.Value) return "";
+            if (url == _httpContextAccessor.HttpContext.Request.Scheme + "://" + _httpContextAccessor.HttpContext.Request.Host.Value) return "";
             url = url.ToLower();
             url = url.Trim();
             if (url.Length > 100)
@@ -149,5 +184,4 @@ namespace VueJS.Services.Extensions
             return url;
         }
     }
-
 }

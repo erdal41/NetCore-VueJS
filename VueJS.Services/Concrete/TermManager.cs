@@ -12,12 +12,13 @@ using VueJS.Services.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using VueJS.Entities.ComplexTypes;
+using VueJS.Services.Helper.Abstract;
 
 namespace VueJS.Services.Concrete
 {
     public class TermManager : ManagerBase, ITermService
     {
-        public TermManager(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper) { }
+        public TermManager(IUnitOfWork unitOfWork, IMapper mapper, IExtensionsHelper extensionsHelper) : base(unitOfWork, mapper, extensionsHelper) { }
 
         public async Task<IDataResult<TermDto>> GetAsync(int termId)
         {
@@ -26,13 +27,13 @@ namespace VueJS.Services.Concrete
             return new DataResult<TermDto>(ResultStatus.Success, new TermDto { Term = term });
         }
 
-        public async Task<IDataResult<TermDto>> GetAsync(SubObjectType termType, string termSlug)
+        public async Task<IDataResult<TermDto>> GetAsync(ObjectType termType, string termSlug)
         {
             Term term = null;
             switch (termType)
             {
-                case SubObjectType.category:
-                    term = await UnitOfWork.Terms.GetAsync(c => c.TermType == SubObjectType.category && c.Slug == termSlug, c => c.Parent, c => c.Children);
+                case ObjectType.category:
+                    term = await UnitOfWork.Terms.GetAsync(c => c.TermType == ObjectType.category && c.Slug == termSlug, c => c.Parent, c => c.Children);
 
                     Term parent = term.Parent;
                     term.Parents = new List<Term>();
@@ -42,8 +43,8 @@ namespace VueJS.Services.Concrete
                         parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
                     }
                     break;
-                case SubObjectType.tag:
-                    term = await UnitOfWork.Terms.GetAsync(c => c.TermType == SubObjectType.tag && c.Slug == termSlug);
+                case ObjectType.tag:
+                    term = await UnitOfWork.Terms.GetAsync(c => c.TermType == ObjectType.tag && c.Slug == termSlug);
                     break;
             }
 
@@ -51,7 +52,7 @@ namespace VueJS.Services.Concrete
             return new DataResult<TermDto>(ResultStatus.Success, new TermDto { Term = term });
         }
 
-        public async Task<IDataResult<TermListDto>> GetAllAsync(SubObjectType termType)
+        public async Task<IDataResult<TermListDto>> GetAllAsync(ObjectType termType)
         {
             var terms = await UnitOfWork.Terms.GetAllAsync(t => t.TermType == termType, t => t.Parent, t => t.Children, t => t.PostTerms);
             if (terms.Count < 1) return new DataResult<TermListDto>(ResultStatus.Error, Messages.NotFound(termType, true), null);
@@ -74,7 +75,7 @@ namespace VueJS.Services.Concrete
             IList<Term> terms = null;
             if (termId == null)
             {
-                terms = await UnitOfWork.Terms.GetAllAsync(t => t.TermType == SubObjectType.category);
+                terms = await UnitOfWork.Terms.GetAllAsync(t => t.TermType == ObjectType.category);
             }
             else
             {
@@ -101,14 +102,14 @@ namespace VueJS.Services.Concrete
                     {
                         childIds.Add(child.Id);
                     }
-                    terms = await UnitOfWork.Terms.GetAllAsync(c => c.Id != termId.Value && c.TermType == SubObjectType.category && !childIds.Contains(c.Id));
+                    terms = await UnitOfWork.Terms.GetAllAsync(c => c.Id != termId.Value && c.TermType == ObjectType.category && !childIds.Contains(c.Id));
                 }
                 else
                 {
-                    terms = await UnitOfWork.Terms.GetAllAsync(c => c.Id != termId.Value && c.TermType == SubObjectType.category);
+                    terms = await UnitOfWork.Terms.GetAllAsync(c => c.Id != termId.Value && c.TermType == ObjectType.category);
                 }
             }
-            if (terms.Count < 1) return new DataResult<TermListDto>(ResultStatus.Error, Messages.NotFound(SubObjectType.category, true), null);
+            if (terms.Count < 1) return new DataResult<TermListDto>(ResultStatus.Error, Messages.NotFound(ObjectType.category, true), null);
 
             return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto { Terms = terms });
         }
@@ -143,7 +144,7 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<TermDto>> AddAsync(TermAddDto termAddDto)
         {
-            string slug = termAddDto.Slug == "" ? UrlExtensions.FriendlySEOUrl(termAddDto.Name) : termAddDto.Slug;
+            string slug = termAddDto.Slug == "" ?  ExtensionsHelper.FriendlySEOPostName(termAddDto.Name) : termAddDto.Slug;
             var slugCheck = await UnitOfWork.Terms.GetAllAsync(t => t.Slug == slug && t.TermType == termAddDto.TermType);
             if (slugCheck.Count != 0) return new DataResult<TermDto>(ResultStatus.Error, Messages.UrlCheck(termAddDto.TermType), null);
             var term = Mapper.Map<Term>(termAddDto);
@@ -173,10 +174,10 @@ namespace VueJS.Services.Concrete
             Term oldTerm = null;
             switch (slugCheck.FirstOrDefault().TermType)
             {
-                case SubObjectType.category:
+                case ObjectType.category:
                     oldTerm = await UnitOfWork.Terms.GetAsync(p => p.Id == termUpdateDto.Id, p => p.Parent);
                     break;
-                case SubObjectType.tag:
+                case ObjectType.tag:
                     oldTerm = await UnitOfWork.Terms.GetAsync(p => p.Id == termUpdateDto.Id);
                     break;
             }
@@ -200,7 +201,7 @@ namespace VueJS.Services.Concrete
             var term = await UnitOfWork.Terms.GetAsync(t => t.Id == termId);
             if (term == null) return new Result(ResultStatus.Error, Messages.NotFound(term.TermType, false));
 
-            var seo = await UnitOfWork.SeoObjectSettings.GetAsync(sos => sos.ObjectId == termId && sos.SubObjectType == term.TermType);
+            var seo = await UnitOfWork.SeoObjectSettings.GetAsync(sos => sos.ObjectId == termId && sos.ObjectType == term.TermType);
             await UnitOfWork.Terms.DeleteAsync(term);
             await UnitOfWork.SeoObjectSettings.DeleteAsync(seo);
             await UnitOfWork.SaveAsync();

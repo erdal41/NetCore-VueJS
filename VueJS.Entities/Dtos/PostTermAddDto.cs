@@ -12,6 +12,6 @@ namespace VueJS.Entities.Dtos
         public int TermId { get; set; }
 
         [Required]
-        public SubObjectType TermType { get; set; }
+        public ObjectType TermType { get; set; }
     }
 }

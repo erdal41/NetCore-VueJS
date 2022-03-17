@@ -9,18 +9,18 @@ namespace VueJS.Services.Abstract
 {
     public interface IPostService
     {
-        Task<IDataResult<PostDto>> GetAsync(int postId, SubObjectType postType);
+        Task<IDataResult<PostDto>> GetAsync(int postId, ObjectType postType);
         Task<IDataResult<PostDto>> GetAsync(string postName);
         Task<IDataResult<PostDto>> GetByIdAsync(int postId, bool includeCategories, bool includeTags, bool includeComments, bool includeGalleries, bool includeUser);
         Task<IDataResult<PostUpdateDto>> GetBasePageUpdateDtoAsync(string pageName);
-        Task<IDataResult<PostListDto>> GetAllAsync(SubObjectType postType, PostStatus? postStatus);
-        Task<IDataResult<PostListDto>> GetAllPostStatusAsync(SubObjectType postType, PostStatus postStatus);
-        Task<IDataResult<PostListDto>> GetAllTopPostsAsync(SubObjectType postType, int? postId);
-        Task<IDataResult<PostListDto>> GetAllSubPostsAsync(SubObjectType postType, int? postId);
+        Task<IDataResult<PostListDto>> GetAllAsync(ObjectType postType, PostStatus? postStatus);
+        Task<IDataResult<PostListDto>> GetAllPostStatusAsync(ObjectType postType, PostStatus postStatus);
+        Task<IDataResult<PostListDto>> GetAllTopPostsAsync(int? postId);
+        Task<IDataResult<PostListDto>> GetAllSubPostsAsync(int? postId);
         Task<IDataResult<PostListDto>> GetSubPostUpdateDtoAsync(int parentId);
         Task<IDataResult<PostListDto>> GetAllSubPostDetailsAsync(int postId);
         Task<IDataResult<PostUpdateDto>> GetPostUpdateDtoAsync(int postId);
-        Task<IDataResult<PostDto>> AddAsync(PostAddDto postAddDto, int userId, SubObjectType postType);
+        Task<IDataResult<PostDto>> AddAsync(PostAddDto postAddDto, int userId);
         Task<IDataResult<PostDto>> UpdateAsync(PostUpdateDto postUpdateDto, int userId);
         Task<IDataResult<PostDto>> TopPostUpdateAsync(int postId, int parentId);
         Task<IResult> SubPostUpdateAsync(int subPostId, int? subPostParentId);

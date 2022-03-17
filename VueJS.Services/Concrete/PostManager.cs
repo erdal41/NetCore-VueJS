@@ -14,23 +14,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VueJS.Services.Helper.Abstract;
 
 namespace VueJS.Services.Concrete
 {
     public class PostManager : ManagerBase, IPostService
     {
-        public PostManager(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
+        public PostManager(IUnitOfWork unitOfWork, IMapper mapper, IExtensionsHelper extensionsHelper) : base(unitOfWork, mapper, extensionsHelper)
         {
         }
 
         #region AP
 
-        public async Task<IDataResult<PostDto>> GetAsync(int postId, SubObjectType postType)
+        public async Task<IDataResult<PostDto>> GetAsync(int postId, ObjectType postType)
         {
             var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId && p.PostType == postType, p => p.Parent, p => p.Children, p => p.Galleries, p => p.User);
             if (post == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.NotFound(postType, false), null);
 
-            if (postType == SubObjectType.article)
+            if (postType == ObjectType.article)
             {
                 post.PostTerms = await UnitOfWork.PostTerms.GetAllAsync(p => p.PostId == postId);
             }
@@ -44,7 +45,7 @@ namespace VueJS.Services.Concrete
             if (postResult == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.NotFound(postResult.PostType, false), null);
 
             Post post = null;
-            if (postResult.PostType == SubObjectType.article)
+            if (postResult.PostType == ObjectType.article)
             {
                 post = await UnitOfWork.Posts.GetIncludeAsync(p => p.PostName == postName, p => p
            .Include(p => p.PostTerms)
@@ -54,7 +55,7 @@ namespace VueJS.Services.Concrete
            .Include(p => p.Comments.Where(c => c.CommentStatus == CommentStatus.approved)).ThenInclude(c => c.User)
            .Include(p => p.User));
             }
-            else if (postResult.PostType == SubObjectType.page || postResult.PostType == SubObjectType.basepage)
+            else if (postResult.PostType == ObjectType.page || postResult.PostType == ObjectType.basepage)
             {
                 post = await UnitOfWork.Posts.GetIncludeAsync(p => p.PostName == postName, p => p
            .Include(p => p.FeaturedImage)
@@ -68,16 +69,16 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<PostUpdateDto>> GetBasePageUpdateDtoAsync(string postName)
         {
-            var basePage = await UnitOfWork.Posts.GetAsync(p => p.PostName == postName && p.PostType == SubObjectType.basepage);
+            var basePage = await UnitOfWork.Posts.GetAsync(p => p.PostName == postName && p.PostType == ObjectType.basepage);
             var basePageUpdateDto = Mapper.Map<PostUpdateDto>(basePage);
             return new DataResult<PostUpdateDto>(ResultStatus.Success, basePageUpdateDto);
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllAsync(SubObjectType postType, PostStatus? postStatus)
+        public async Task<IDataResult<PostListDto>> GetAllAsync(ObjectType postType, PostStatus? postStatus)
         {
             if (postStatus == null)
             {
-                var posts = postType == SubObjectType.page
+                var posts = postType == ObjectType.page
                 ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
                 .Include(x => x.Parents).ThenInclude(x => x.Parent)
                 .Include(x => x.Parent)
@@ -85,13 +86,13 @@ namespace VueJS.Services.Concrete
                 .Include(x => x.FeaturedImage)
                 .Include(x => x.Galleries).ThenInclude(x => x.Upload)
                 .Include(x => x.User))
-                : postType == SubObjectType.article
+                : postType == ObjectType.article
                 ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
                 .Include(x => x.PostTerms).ThenInclude(x => x.Term)
                 .Include(x => x.FeaturedImage)
                 .Include(x => x.Comments)
                 .Include(x => x.User))
-                : postType == SubObjectType.basepage
+                : postType == ObjectType.basepage
                 ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
                 .Include(x => x.FeaturedImage)
                 .Include(x => x.User)) :
@@ -101,7 +102,7 @@ namespace VueJS.Services.Concrete
             }
             else
             {
-                var posts = postType == SubObjectType.page
+                var posts = postType == ObjectType.page
                 ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
                 .Include(x => x.Parents).ThenInclude(x => x.Parent)
                 .Include(x => x.Parent)
@@ -109,13 +110,13 @@ namespace VueJS.Services.Concrete
                 .Include(x => x.FeaturedImage)
                 .Include(x => x.Galleries).ThenInclude(x => x.Upload)
                 .Include(x => x.User))
-                : postType == SubObjectType.article
+                : postType == ObjectType.article
                 ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
                 .Include(x => x.PostTerms).ThenInclude(x => x.Term)
                 .Include(x => x.FeaturedImage)
                 .Include(x => x.Comments)
                 .Include(x => x.User))
-                : postType == SubObjectType.basepage
+                : postType == ObjectType.basepage
                 ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
                 .Include(x => x.FeaturedImage)
                 .Include(x => x.User))
@@ -125,11 +126,11 @@ namespace VueJS.Services.Concrete
             }
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllPostStatusAsync(SubObjectType postType, PostStatus postStatus)
+        public async Task<IDataResult<PostListDto>> GetAllPostStatusAsync(ObjectType postType, PostStatus postStatus)
         {
-            var posts = postType == SubObjectType.page
+            var posts = postType == ObjectType.page
                 ? await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p.Parent, p => p.Children, p => p.FeaturedImage, p => p.Galleries, p => p.User)
-                : postType == SubObjectType.article
+                : postType == ObjectType.article
                 ? await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p.FeaturedImage, p => p.PostTerms, p => p.Comments, p => p.User)
                 : null;
 
@@ -137,84 +138,75 @@ namespace VueJS.Services.Concrete
             return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllTopPostsAsync(SubObjectType postType, int? postId)
+        public async Task<IDataResult<PostListDto>> GetAllTopPostsAsync(int? postId)
         {
-            if (postType == SubObjectType.page)
-            {
-                IList<Post> posts = null;
+            IList<Post> posts = null;
 
-                if (postId == null)
+            if (postId == null)
+            {
+                posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostType == ObjectType.page);
+            }
+            else
+            {
+                var currentPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postId.Value, p => p.Children);
+                if (currentPost != null && currentPost.Children != null)
                 {
-                    posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType);
+                    List<int> childIds = new List<int>();
+                    foreach (var child in currentPost.Children)
+                    {
+                        childIds.Add(child.Id);
+                    }
+                    posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == ObjectType.page && c.Id != postId.Value && !childIds.Contains(c.Id));
                 }
                 else
                 {
-                    var currentPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postId.Value, p => p.Children);
-                    if (currentPost != null && currentPost.Children != null)
-                    {
-                        List<int> childIds = new List<int>();
-                        foreach (var child in currentPost.Children)
-                        {
-                            childIds.Add(child.Id);
-                        }
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value && !childIds.Contains(c.Id));
-                    }
-                    else
-                    {
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value);
-                    }
-                }
-
-                if (posts != null)
-                {
-                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                    posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == ObjectType.page && c.Id != postId.Value);
                 }
             }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.NotFound(postType, true), null);
+
+            if (posts == null) return new DataResult<PostListDto>(ResultStatus.Error, Messages.NotFound(ObjectType.page, true), null);
+            return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllSubPostsAsync(SubObjectType postType, int? postId)
+        public async Task<IDataResult<PostListDto>> GetAllSubPostsAsync(int? postId)
         {
-            if (postType == SubObjectType.page)
-            {
-                IList<Post> posts = null;
+            IList<Post> posts = null;
 
-                if (postId == null)
+            if (postId == null)
+            {
+                posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostType == ObjectType.page);
+            }
+            else
+            {
+                var currentPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postId.Value, p => p.Parent);
+                if (currentPost != null && currentPost.Parent != null)
                 {
-                    posts = await UnitOfWork.Posts.GetAllAsync(p => p.PostType == postType);
+                    //Post parent = currentPost.Parent;
+                    //currentPost.Parents = new List<Post>();
+                    //while (parent != null)
+                    //{
+                    //    currentPost.Parents.Add(parent);
+                    //    parent = await UnitOfWork.Posts.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
+                    //}
+
+                    Post postParent = (Post)await ExtensionsHelper.GetParentsAsync(ObjectType.page, currentPost);
+                    currentPost.Parents = postParent.Parents;
+
+                    List<int> parentIds = new List<int>();
+                    foreach (var par in currentPost.Parents)
+                    {
+                        parentIds.Add(par.Id);
+                    }
+                    posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == ObjectType.page && c.Id != postId.Value && !parentIds.Contains(c.Id));
                 }
                 else
                 {
-                    var currentPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postId.Value, p => p.Parent);
-                    if (currentPost != null && currentPost.Parent != null)
-                    {
-                        Post parent = currentPost.Parent;
-                        currentPost.Parents = new List<Post>();
-                        while (parent != null)
-                        {
-                            currentPost.Parents.Add(parent);
-                            parent = await UnitOfWork.Posts.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                        }
-
-                        List<int> parentIds = new List<int>();
-                        foreach (var par in currentPost.Parents)
-                        {
-                            parentIds.Add(par.Id);
-                        }
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value && !parentIds.Contains(c.Id));
-                    }
-                    else
-                    {
-                        posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == postType && c.Id != postId.Value);
-                    }
-                }
-
-                if (posts != null)
-                {
-                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                    posts = await UnitOfWork.Posts.GetAllAsync(c => c.PostType == ObjectType.page && c.Id != postId.Value);
                 }
             }
-            return new DataResult<PostListDto>(ResultStatus.Error, Messages.NotFound(postType, true), null);
+
+            if (posts == null) return new DataResult<PostListDto>(ResultStatus.Error, Messages.NotFound(ObjectType.page, true), null);
+            return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
         }
 
         public Task<IDataResult<PostListDto>> GetAllByPagingAsync(string categoryGuid, string tagGuid, int currentPage = 1, int pageSize = 5, bool isAscending = false)
@@ -241,7 +233,7 @@ namespace VueJS.Services.Concrete
         {
             var posts = await UnitOfWork.Posts.GetAllIncludeAsync(p => p.ParentId == postId, p => p
                         .Include(x => x.FeaturedImage));
-            if (posts.Count < 1) return new DataResult<PostListDto>(ResultStatus.Error, Messages.NotFound(SubObjectType.page, true), null);
+            if (posts.Count < 1) return new DataResult<PostListDto>(ResultStatus.Error, Messages.NotFound(ObjectType.page, true), null);
             return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
         }
 
@@ -258,8 +250,8 @@ namespace VueJS.Services.Concrete
             Post post = null;
             switch (postResult.PostType)
             {
-                case SubObjectType.page:
-                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.page, p => p
+                case ObjectType.page:
+                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == ObjectType.page, p => p
                             .Include(x => x.Parent)
                             .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
                             .Include(x => x.FeaturedImage)
@@ -274,14 +266,14 @@ namespace VueJS.Services.Concrete
                         parent = await UnitOfWork.Posts.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
                     }
                     break;
-                case SubObjectType.article:
-                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.article, p => p
+                case ObjectType.article:
+                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == ObjectType.article, p => p
                             .Include(x => x.PostTerms).ThenInclude(x => x.Term)
                             .Include(x => x.FeaturedImage)
                             .Include(x => x.User));
                     break;
-                case SubObjectType.basepage:
-                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == SubObjectType.basepage, p => p
+                case ObjectType.basepage:
+                    post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == ObjectType.basepage, p => p
                             .Include(x => x.FeaturedImage)
                             .Include(x => x.User));
                     break;
@@ -295,21 +287,20 @@ namespace VueJS.Services.Concrete
             throw new NotImplementedException();
         }
 
-        public async Task<IDataResult<PostDto>> AddAsync(PostAddDto postAddDto, int userId, SubObjectType postType)
+        public async Task<IDataResult<PostDto>> AddAsync(PostAddDto postAddDto, int userId)
         {
-            string postName = postAddDto.PostName == null ? UrlExtensions.FriendlySEOUrl(postAddDto.Title) : postAddDto.PostName;
+            string postName = postAddDto.PostName == null ? ExtensionsHelper.FriendlySEOPostName(postAddDto.Title) : postAddDto.PostName;
             var postNameCheck = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == postName);
-            if (postNameCheck.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.UrlCheck(postType), null);
+            if (postNameCheck.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.UrlCheck(postAddDto.PostType), null);
 
             var post = Mapper.Map<Post>(postAddDto);
             post.PostStatus = PostStatus.publish;
             post.UserId = userId;
             post.PostName = postName;
-            post.PostType = postType;
             post.CommentCount = 0;
             await UnitOfWork.Posts.AddAsync(post);
             await UnitOfWork.SaveAsync();
-            return new DataResult<PostDto>(ResultStatus.Success, Messages.Add(postType, post.Title), new PostDto { Post = post });
+            return new DataResult<PostDto>(ResultStatus.Success, Messages.Add(post.PostType, post.Title), new PostDto { Post = post });
         }
 
         public async Task<IDataResult<PostDto>> UpdateAsync(PostUpdateDto postUpdateDto, int userId)
@@ -322,6 +313,19 @@ namespace VueJS.Services.Concrete
 
             var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
             post.UserId = userId;
+
+            var menuDetails = await UnitOfWork.MenuDetails.GetAllAsync(md => md.ObjectId == post.Id && md.SubObjectType == post.PostType);
+
+            if (menuDetails.Count > 0)
+            {
+                foreach (var menuDetail in menuDetails)
+                {
+                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(post.PostType, post);
+                    await UnitOfWork.MenuDetails.UpdateAsync(menuDetail);
+                }
+            }
+
+
             await UnitOfWork.Posts.UpdateAsync(post);
             await UnitOfWork.SaveAsync();
             return new DataResult<PostDto>(ResultStatus.Success, Messages.Update(postUpdateDto.PostType, post.Title), new PostDto { Post = post });
@@ -331,7 +335,7 @@ namespace VueJS.Services.Concrete
         {
             var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId);
             if (post == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.NotFound(post.PostType, false), null);
-            if (post.PostType == SubObjectType.basepage && postStatus == PostStatus.trash) return new DataResult<PostDto>(ResultStatus.Error, Messages.BasePage.NoDelete(), null);
+            if (post.PostType == ObjectType.basepage && postStatus == PostStatus.trash) return new DataResult<PostDto>(ResultStatus.Error, Messages.BasePage.NoDelete(), null);
 
             post.PostStatus = postStatus;
             post.UserId = userId;
@@ -345,7 +349,7 @@ namespace VueJS.Services.Concrete
         {
             var post = await UnitOfWork.Posts.GetAsync(p => p.Id == postId && p.PostStatus == PostStatus.trash);
             if (post == null) return new DataResult<PostDto>(ResultStatus.Error, Messages.NotFound(post.PostType, false), null);
-            if (post.PostType == SubObjectType.basepage) return new DataResult<PostDto>(ResultStatus.Error, Messages.BasePage.NoDelete(), null);
+            if (post.PostType == ObjectType.basepage) return new DataResult<PostDto>(ResultStatus.Error, Messages.BasePage.NoDelete(), null);
 
             if (post.Galleries != null)
             {

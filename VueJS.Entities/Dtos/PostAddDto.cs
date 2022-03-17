@@ -15,7 +15,7 @@ namespace VueJS.Entities.Dtos
         public string PostName { get; set; }
 
         [Required]
-        public SubObjectType PostType { get; set; }
+        public ObjectType PostType { get; set; }
 
         [DataType(DataType.DateTime)]
         public DateTime CreatedDate { get; set; }

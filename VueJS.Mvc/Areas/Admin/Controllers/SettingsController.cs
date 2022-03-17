@@ -277,8 +277,8 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpGet("/admin/settings-widget")]
         public async Task<JsonResult> ArticleRightSideBarWidgetSettings()
         {
-            var categories = await _termService.GetAllAsync(SubObjectType.category);
-            var tags = await _termService.GetAllAsync(SubObjectType.tag);
+            var categories = await _termService.GetAllAsync(ObjectType.category);
+            var tags = await _termService.GetAllAsync(ObjectType.tag);
             if (categories.ResultStatus != ResultStatus.Success && tags.ResultStatus != ResultStatus.Success) return Json(new SettingsViewModel { ArticleRightSideBarWidgetOptionsDto = null });
 
             var articleRightSideBarWidgetOptionsDto = Mapper.Map<ArticleRightSideBarWidgetOptionsDto>(_articleRightSideBarWidgetOptions);
@@ -290,8 +290,8 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/settings-widget")]
         public async Task<JsonResult> ArticleRightSideBarWidgetSettings(SettingsViewModel settingsViewModel)
         {
-            var categories = await _termService.GetAllAsync(SubObjectType.category);
-            var tags = await _termService.GetAllAsync(SubObjectType.tag);
+            var categories = await _termService.GetAllAsync(ObjectType.category);
+            var tags = await _termService.GetAllAsync(ObjectType.tag);
             if (categories.ResultStatus != ResultStatus.Success && tags.ResultStatus != ResultStatus.Success && settingsViewModel.ArticleRightSideBarWidgetOptions == null) return Json(settingsViewModel);
             settingsViewModel.ArticleRightSideBarWidgetOptionsDto.Categories = categories.Data.Terms;
             settingsViewModel.ArticleRightSideBarWidgetOptionsDto.Tags = tags.Data.Terms;

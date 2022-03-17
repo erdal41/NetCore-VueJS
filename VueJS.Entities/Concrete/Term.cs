@@ -11,7 +11,7 @@ namespace VueJS.Entities.Concrete
         public string Name { get; set; }
         public string Description { get; set; }
         public int? ParentId { get; set; }
-        public SubObjectType TermType { get; set; }
+        public ObjectType TermType { get; set; }
         public int Count { get; set; }
 
         public Term Parent { get; set; }

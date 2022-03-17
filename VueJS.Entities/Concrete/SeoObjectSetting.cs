@@ -31,7 +31,6 @@ namespace VueJS.Entities.Concrete
         public SchemaPageType SchemaPageType { get; set; } = SchemaPageType.Default;
         public SchemaArticleType SchemaArticleType { get; set; } = SchemaArticleType.Default;
         public ObjectType ObjectType { get; set; }
-        public SubObjectType SubObjectType { get; set; }
 
         public User User { get; set; }
         public Upload OpenGraphImage { get; set; }

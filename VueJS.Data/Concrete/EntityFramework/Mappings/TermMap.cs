@@ -26,7 +26,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                     Slug = "ornek-kategori",
                     Name = "Örnek Kategori",
                     Description = "Kategori Açıklaması",
-                    TermType = SubObjectType.category,
+                    TermType = ObjectType.category,
                     Count = 1
                 },
                 new Term
@@ -35,7 +35,7 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                     Slug = "ornek-etiket",
                     Name = "Örnek Etiket",
                     Description = "Etiket Açıklaması",
-                    TermType = SubObjectType.tag,
+                    TermType = ObjectType.tag,
                     Count = 1
                 }
             );

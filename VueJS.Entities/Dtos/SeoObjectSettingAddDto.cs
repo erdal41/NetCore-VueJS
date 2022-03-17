@@ -80,7 +80,7 @@ namespace VueJS.Entities.Dtos
         public ObjectType ObjectType { get; set; }
 
         [Required]
-        public SubObjectType SubObjectType { get; set; }
+        public ObjectType SubObjectType { get; set; }
 
 
         public Post Post { get; set; }
