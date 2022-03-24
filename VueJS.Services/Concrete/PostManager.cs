@@ -5,7 +5,6 @@ using VueJS.Entities.ComplexTypes;
 using VueJS.Entities.Concrete;
 using VueJS.Entities.Dtos;
 using VueJS.Services.Abstract;
-using VueJS.Services.Extensions;
 using VueJS.Services.Utilities;
 using VueJS.Shared.Utilities.Results.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
@@ -181,14 +180,6 @@ namespace VueJS.Services.Concrete
                 var currentPost = await UnitOfWork.Posts.GetAsync(p => p.Id == postId.Value, p => p.Parent);
                 if (currentPost != null && currentPost.Parent != null)
                 {
-                    //Post parent = currentPost.Parent;
-                    //currentPost.Parents = new List<Post>();
-                    //while (parent != null)
-                    //{
-                    //    currentPost.Parents.Add(parent);
-                    //    parent = await UnitOfWork.Posts.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                    //}
-
                     Post postParent = (Post)await ExtensionsHelper.GetParentsAsync(ObjectType.page, currentPost);
                     currentPost.Parents = postParent.Parents;
 
@@ -254,17 +245,13 @@ namespace VueJS.Services.Concrete
                     post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == ObjectType.page, p => p
                             .Include(x => x.Parent)
                             .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                            .Include(x => x.Children).ThenInclude(x => x.Children).ThenInclude(x => x.Children)
                             .Include(x => x.FeaturedImage)
                             .Include(x => x.Galleries).ThenInclude(x => x.Upload)
                             .Include(x => x.User));
 
-                    Post parent = post.Parent;
-                    post.Parents = new List<Post>();
-                    while (parent != null)
-                    {
-                        post.Parents.Add(parent);
-                        parent = await UnitOfWork.Posts.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                    }
+                    Post postParent = (Post)await ExtensionsHelper.GetParentsAsync(postResult.PostType, post);
+                    post.Parents = postParent.Parents;
                     break;
                 case ObjectType.article:
                     post = await UnitOfWork.Posts.GetIncludeAsync(p => p.Id == postId && p.PostType == ObjectType.article, p => p
@@ -289,7 +276,7 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<PostDto>> AddAsync(PostAddDto postAddDto, int userId)
         {
-            string postName = postAddDto.PostName == null ? ExtensionsHelper.FriendlySEOPostName(postAddDto.Title) : postAddDto.PostName;
+            string postName = postAddDto.PostName == null ? ExtensionsHelper.FriendlySEOString(postAddDto.Title) : postAddDto.PostName;
             var postNameCheck = await UnitOfWork.Posts.GetAllAsync(p => p.PostName == postName);
             if (postNameCheck.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.UrlCheck(postAddDto.PostType), null);
 
@@ -314,7 +301,7 @@ namespace VueJS.Services.Concrete
             var post = Mapper.Map<PostUpdateDto, Post>(postUpdateDto, oldPost);
             post.UserId = userId;
 
-            var menuDetails = await UnitOfWork.MenuDetails.GetAllAsync(md => md.ObjectId == post.Id && md.SubObjectType == post.PostType);
+            var menuDetails = await UnitOfWork.MenuDetails.GetAllAsync(md => md.ObjectId == post.Id && md.ObjectType == post.PostType);
 
             if (menuDetails.Count > 0)
             {
@@ -449,14 +436,8 @@ namespace VueJS.Services.Concrete
 
                 foreach (var pterm in post.PostTerms)
                 {
-
-                    Term parent = pterm.Term.Parent;
-                    pterm.Term.Parents = new List<Term>();
-                    while (parent != null)
-                    {
-                        pterm.Term.Parents.Add(parent);
-                        parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                    }
+                    Term term = (Term)await ExtensionsHelper.GetParentsAsync(pterm.TermType, pterm.Term);
+                    pterm.Term.Parents = term.Parents;
                 }
             }
 

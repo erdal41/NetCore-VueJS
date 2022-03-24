@@ -38,7 +38,7 @@
                 </b-button>
                 <b-button v-if="$can('create', 'Otherpage')"
                           variant="primary"
-                          @click.prevent="addMenu">
+                          @click.prevent="addOrUpdateData">
                     Kaydet
                 </b-button>
             </b-col>
@@ -104,6 +104,41 @@
                 <app-collapse id="menu-items"
                               type="margin"
                               accordion>
+                    <app-collapse-item title="Temel Sayfalar"
+                                       visible>
+                        <div class="menu-item-search">
+                            <b-form-input v-model="basePageFilterText"
+                                          size="sm"
+                                          placeholder="Ara.."></b-form-input>
+                        </div>
+                        <div class="menu-item-list">
+                            <span v-if="filteredBasePage.length < 1">Temel Sayfa bulunamadı.</span>
+                            <b-form-checkbox v-else
+                                             v-for="basePage in filteredBasePage"
+                                             :key="basePage.Id"
+                                             v-model="selectedPostItems"
+                                             :value="basePage"
+                                             name="basePage.Title"
+                                             class="check-basepage"
+                                             @change="postCheckChange">
+                                {{ basePage.Title }}
+                            </b-form-checkbox>
+                        </div>
+                        <div class="menu-items-action">
+                            <b-form-checkbox v-model="allBasePagesCheck"
+                                             :value="true"
+                                             @change="allBasePageCheckChange">
+                                Tümünü Seç
+                            </b-form-checkbox>
+                            <b-button 
+                                      variant="outline-primary"
+                                      size="sm"
+                                      class="float-right menu-add-basepage"
+                                      @click.prevent="menuAddPost">
+                                Menüye Ekle
+                            </b-button>
+                        </div>
+                    </app-collapse-item>
                     <app-collapse-item title="Sayfalar"
                                        visible>
                         <div class="menu-item-search">
@@ -116,11 +151,11 @@
                             <b-form-checkbox v-else
                                              v-for="page in filteredPage"
                                              :key="page.Id"
-                                             v-model="selectedPageItem"
+                                             v-model="selectedPostItems"
                                              :value="page"
                                              name="page.Title"
                                              class="check-page"
-                                             @change="pageCheckChange">
+                                             @change="postCheckChange">
                                 {{ page.Title }}
                             </b-form-checkbox>
                         </div>
@@ -132,8 +167,8 @@
                             </b-form-checkbox>
                             <b-button variant="outline-primary"
                                       size="sm"
-                                      class="float-right"
-                                      @click.prevent="menuAddPage">
+                                      class="float-right menu-add-page"
+                                      @click.prevent="menuAddPost">
                                 Menüye Ekle
                             </b-button>
                         </div>
@@ -149,11 +184,11 @@
                             <b-form-checkbox v-else
                                              v-for="article in filteredArticle"
                                              :key="article.Id"
-                                             v-model="selectedArticleItem"
+                                             v-model="selectedPostItems"
                                              :value="article"
                                              name="article.Title"
                                              class="check-article"
-                                             @change="articleCheckChange">
+                                             @change="postCheckChange">
                                 {{ article.Title }}
                             </b-form-checkbox>
                         </div>
@@ -165,8 +200,8 @@
                             </b-form-checkbox>
                             <b-button variant="outline-primary"
                                       size="sm"
-                                      class="float-right"
-                                      @click.prevent="menuAddArticle">
+                                      class="float-right menu-add-article"
+                                      @click.prevent="menuAddPost">
                                 Menüye Ekle
                             </b-button>
                         </div>
@@ -182,24 +217,57 @@
                             <b-form-checkbox v-else
                                              v-for="category in filteredCategory"
                                              :key="category.Id"
-                                             v-model="selectedCategoryItem"
+                                             v-model="selectedTermItems"
                                              :value="category"
                                              name="category.Name"
                                              class="check-category"
-                                             @change="categoryCheckChange">
+                                             @change="termCheckChange">
                                 {{ category.Name }}
                             </b-form-checkbox>
                         </div>
                         <div class="menu-items-action">
-                            <b-form-checkbox v-model="allCategoriesCheck"  
+                            <b-form-checkbox v-model="allCategoriesCheck"
                                              :value="true"
                                              @change="allCategoryCheckChange">
                                 Tümünü Seç
                             </b-form-checkbox>
                             <b-button variant="outline-primary"
                                       size="sm"
-                                      class="float-right"
-                                      @click.prevent="menuAddCategory">
+                                      class="float-right menu-add-category"
+                                      @click.prevent="menuAddTerm">
+                                Menüye Ekle
+                            </b-button>
+                        </div>
+                    </app-collapse-item>
+                    <app-collapse-item title="Etiketler">
+                        <div class="menu-item-search">
+                            <b-form-input v-model="tagFilterText"
+                                          size="sm"
+                                          placeholder="Ara.."></b-form-input>
+                        </div>
+                        <div class="menu-item-list">
+                            <span v-if="filteredTag.length < 1">Etiket bulunamadı.</span>
+                            <b-form-checkbox v-else
+                                             v-for="tag in filteredTag"
+                                             :key="tag.Id"
+                                             v-model="selectedTermItems"
+                                             :value="tag"
+                                             name="tag.Name"
+                                             class="check-tag"
+                                             @change="termCheckChange">
+                                {{ tag.Name }}
+                            </b-form-checkbox>
+                        </div>
+                        <div class="menu-items-action">
+                            <b-form-checkbox v-model="allTagsCheck"
+                                             :value="true"
+                                             @change="allTagCheckChange">
+                                Tümünü Seç
+                            </b-form-checkbox>
+                            <b-button variant="outline-primary"
+                                      size="sm"
+                                      class="float-right menu-add-tag"
+                                      @click.prevent="menuAddTerm">
                                 Menüye Ekle
                             </b-button>
                         </div>
@@ -211,14 +279,14 @@
                                 <b-form-input v-model="customName"
                                               id="custom-name"
                                               size="sm"
-                                              placeholder="Ara.."></b-form-input>
+                                              placeholder="Menü adını giriniz"></b-form-input>
                             </b-form-group>
                             <b-form-group label="URL"
                                           label-for="custom-url">
                                 <b-form-input v-model="customURL"
                                               id="custom-url"
                                               size="sm"
-                                              placeholder="Ara.."></b-form-input>
+                                              placeholder="URL giriniz"></b-form-input>
                             </b-form-group>
                             <b-button variant="outline-primary"
                                       size="sm"
@@ -248,28 +316,9 @@
                     </b-form-group>
 
                     <nested-draggable v-if="menuDetails.length > 0"
-                                      class="col-8" v-model="menuDetails"
-                                      :list="menuDetails"
-                                      :isMenuItemCheck="isAllCheckMenuItem"
-                                      @menuItemDeleted="deleteMenuItem"
-                                      @deleteMenuItem="deleteMenuItems" />
-
-                    <b-form-group v-if="menuDetails.length > 0"
-                                  class="mt-1">
-                        <b-button variant="flat-danger"
-                                  size="sm"
-                                  class="ml-1"
-                                  :disabled="deleteMenuItemList.length < 1"
-                                  @click.prevent="multiMenuItemDelete">
-                            Seçili Öğeleri Kaldır
-                        </b-button>
-                    </b-form-group>
-                    <span v-if="deleteMenuItemList.length > 0">
-                        Silme için seçilen menü öğeleri listesi:
-                    </span>
-                    <p v-if="deleteMenuItemList.length > 0">
-                        {{ deleteMenuItemDisplay.toString() }}
-                    </p>
+                                      class="col-8" 
+                                      :menuDetails="menuDetails"
+                                      @updateMenuItem="getNewMenuDetailList"/>
                     <pre>
                         {{ menuDetails }}
                     </pre>
@@ -337,99 +386,128 @@
                 updateMenuName: '',
                 menus: [],
                 menuDetails: [],
+                basePages: [],
                 pages: [],
                 articles: [],
                 categories: [],
+                tags: [],
+                basePageFilterText: '',
                 pageFilterText: '',
                 articleFilterText: '',
                 categoryFilterText: '',
-                selectedPageItem: [],
-                selectedArticleItem: [],
-                selectedCategoryItem: [],
+                tagFilterText: '',
+                selectedPostItems: [],
+                selectedTermItems: [],
+                allBasePagesCheck: false,
                 allPagesCheck: false,
                 allArticlesCheck: false,
                 allCategoriesCheck: false,
-                dataNullMessage: '',
+                allTagsCheck: false,
                 selectAllCheck: false,
                 isAllCheckMenuItem: false,
                 checkedRows: [],
                 checkedRowsCount: '',
-                menuDetailUpdateDto: {
-                    Id: '',
-                    Name: "",
-                },
                 customName: '',
                 customURL: '',
                 deleteMenuItemList: [],
-                deleteMenuItemDisplay: []
+                deleteMenuItemDisplay: [],
+                newMenuDetailList: [],
             }
         },
-        methods: {
-            deleteMenuItems(checkMenuItems) {
-                this.deleteMenuItemList = checkMenuItems;
-                this.deleteMenuItemDisplay = [];
-                if (checkMenuItems.length > 0) {
-                    checkMenuItems.forEach(item => {
-                        this.deleteMenuItemDisplay.push(item.Name)
-                    });
+        methods: {            
+            postCheckChange() {
+                var selectedBasePages = this.selectedPostItems.filter(post => post.PostType === 4);
+                var selectedPages = this.selectedPostItems.filter(post => post.PostType === 0);
+                var selectedArticles = this.selectedPostItems.filter(post => post.PostType === 1);
+
+                if (this.basePages.length == selectedBasePages.length) {
+                    this.allBasePageCheck = 'true';
                 }
                 else {
-                    this.deleteMenuItemList = [];
-                    this.deleteMenuItemDisplay = [];
+                    this.allBasePageCheck = 'false';
                 }
-            },
-            pageCheckChange() {
-                if (this.pages.length == this.selectedPageItem.length) {
-                    this.allPagesCheck = true;
+
+                if (this.pages.length == selectedPages.length) {
+                    this.allPagesCheck = 'true';
                 }
                 else {
-                    this.allPagesCheck = false;
+                    this.allPagesCheck = 'false';
                 }
-            },
-            articleCheckChange() {
-                if (this.articles.length == this.selectedArticleItem.length) {
+
+                if (this.articles.length == selectedArticles.length) {
                     this.allArticlesCheck = 'true';
                 }
                 else {
                     this.allArticlesCheck = 'false';
                 }
             },
-            categoryCheckChange() {
-                if (this.categories.length == this.selectedCategoryItem.length) {
+            termCheckChange() {
+                var selectedCategories = this.selectedTermItems.filter(term => term.TermType === 2);
+                var selectedTags = this.selectedTermItems.filter(term => term.TermType === 3);
+
+                if (this.categories.length == selectedCategories.length) {
                     this.allCategoriesCheck = 'true';
                 }
                 else {
                     this.allCategoriesCheck = 'false';
                 }
+
+                if (this.tags.length == selectedTags.length) {
+                    this.allTagsCheck = 'true';
+                }
+                else {
+                    this.allTagsCheck = 'false';
+                }
+            },
+            allBasePageCheckChange(value) {
+                if (value === true) {
+                    this.basePages.forEach(basePage => {
+                        this.selectedPostItems.push(basePage);
+                    });
+                } else {
+                    this.selectedPostItems = [];
+                }
             },
             allPageCheckChange(value) {
                 if (value === true) {
                     this.pages.forEach(page => {
-                        this.selectedPageItem.push(page);
+                        this.selectedPostItems.push(page);
                     });
                 } else {
-                    this.selectedPageItem = [];
+                    this.selectedPostItems = [];
                 }
             },
             allArticleCheckChange(value) {
                 if (value === true) {
                     this.articles.forEach(article => {
-                        this.selectedArticleItem.push(article);
+                        this.selectedPostItems.push(article);
                     });
                 } else {
-                    this.selectedArticleItem = [];
+                    this.selectedPostItems = [];
                 }
             },
             allCategoryCheckChange(value) {
                 if (value === true) {
                     this.categories.forEach(category => {
-                        this.selectedCategoryItem.push(category);
+                        this.selectedTermItems.push(category);
                     });
                 } else {
-                    this.selectedCategoryItem = [];
+                    this.selectedTermItems = [];
                 }
             },
-            addMenu() {
+            allTagCheckChange(value) {
+                if (value === true) {
+                    this.tags.forEach(tag => {
+                        this.selectedTermItems.push(tag);
+                    });
+                } else {
+                    this.selectedTermItems = [];
+                }
+            },
+            getNewMenuDetailList(newList) {
+                this.newMenuDetailList = newList;
+            },
+            addOrUpdateData() {
                 if (this.menuId === '') {
                     this.$refs.addMenuValidation.validate().then(success => {
                         if (success) {
@@ -468,24 +546,15 @@
                     }).then((response) => {
                         if (response.data.MenuDto.ResultStatus === 0) {
 
-                            for (var i = 0; i < this.menuDetails.length; i++) {
+                            if (this.newMenuDetailList.length < 1) {
+                                this.newMenuDetailList = this.menuDetails;
+                            }
 
-                                var menuDetailUpdateDto = {
-                                    Id: this.menuDetails[i].Id,
-                                    CustomName: this.menuDetails[i].CustomName,
-                                    CustomURL: this.menuDetails[i].CustomURL,
-                                    ParentId: this.menuDetails[i].ParentId,
-                                    MenuId: this.menuId,
-                                    ObjectId: this.menuDetails[i].ObjectId,
-                                    SubObjectType: this.menuDetails[i].SubObjectType,
-                                    MenuOrder: i + 1,
-                                    Children: this.menuDetails[i].Children,
-                                    Parent: this.menuDetails[i].Parent,
-                                    Parents: this.menuDetails[i].Parents,
-                                }
+                            for (var i = 0; i < this.newMenuDetailList.length; i++) {                                                               
+                                this.newMenuDetailList[i].MenuOrder = i + 1;
 
                                 axios.post('/admin/menu-editmenudetail', {
-                                    MenuDetailUpdateDto: menuDetailUpdateDto
+                                    MenuDetailUpdateDto: this.newMenuDetailList[i]
                                 }).then((res) => {
                                     if (res.data.MenuDetailDto.ResultStatus === 0) {
                                         console.log('OLEYYYYYYYYYYYYYY')
@@ -501,7 +570,7 @@
                                             ParentId: this.menuDetails[i].Id,
                                             MenuId: this.menuId,
                                             ObjectId: this.menuDetails[i].Children[j].ObjectId,
-                                            SubObjectType: this.menuDetails[i].Children[j].SubObjectType,
+                                            ObjectType: this.menuDetails[i].Children[j].ObjectType,
                                             MenuOrder: j + 1,
                                             Children: this.menuDetails[i].Children[j].Children,
                                             Parent: this.menuDetails[i].Children[j].Parent,
@@ -519,7 +588,7 @@
 
                                 }
 
-                            }                         
+                            }
 
                             this.getAllMenus();
                             this.$toast({
@@ -535,7 +604,8 @@
                     });
                 }
             },
-            menuAddPage() {
+            menuAddPost(event) {
+                console.log(event);
                 if (this.menuId == '') {
                     this.$toast({
                         component: ToastificationContent,
@@ -548,14 +618,23 @@
                     });
                 }
                 else {
-                    this.selectedPageItem.forEach(item => {
+                    let selectedPostItems = [];
+                    if (event.target.className.includes('menu-add-basepage')) {
+                        selectedPostItems = this.selectedPostItems.filter(post => post.PostType === 4);
+                    } else if (event.target.className.includes('menu-add-page')) {
+                        selectedPostItems = this.selectedPostItems.filter(post => post.PostType === 0);
+                    } else if (event.target.className.includes('menu-add-article')) {
+                        selectedPostItems = this.selectedPostItems.filter(post => post.PostType === 1);
+                    }
+
+                    selectedPostItems.forEach(item => {
                         var menuDetailAddDto = {
                             CustomName: item.Title,
                             CustomURL: item.PostName,
                             ParentId: null,
                             MenuId: this.menuId,
                             ObjectId: item.Id,
-                            SubObjectType: 0,
+                            ObjectType: item.PostType,
                             MenuOrder: this.menuDetails.length + 1
                         };
 
@@ -563,8 +642,15 @@
                             MenuDetailAddDto: menuDetailAddDto
                         }).then((response) => {
                             if (response.data.MenuDetailDto.ResultStatus === 0) {
-                                this.selectedPageItem = [];
-                                this.allPagesCheck =false;
+                                this.selectedPostItems = this.selectedPostItems.filter(post => post.PostType !== response.data.MenuDetailDto.Data.MenuDetail.ObjectType);
+                                if (response.data.MenuDetailDto.Data.MenuDetail.ObjectType === 4) {
+                                    this.allBasePagesCheck = false;
+                                } else if (response.data.MenuDetailDto.Data.MenuDetail.ObjectType === 0) {
+                                    this.allPagesCheck = false;
+                                } else if (response.data.MenuDetailDto.Data.MenuDetail.ObjectType === 1) {
+                                    this.allArticlesCheck = false;
+                                }
+
 
                                 this.menuDetails.push({
                                     Id: response.data.MenuDetailDto.Data.MenuDetail.Id,
@@ -573,18 +659,19 @@
                                     MenuId: this.menuId,
                                     ObjectId: response.data.MenuDetailDto.Data.MenuDetail.ObjectId,
                                     MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                    SubObjectType: 0,
+                                    ObjectType: response.data.MenuDetailDto.Data.MenuDetail.ObjectType,
                                     Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
                                     Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
                                     ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
                                     Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
                                 });
+                                this.menuDetails = this.getChild(this.menuDetails);
                             }
                         });
                     });
                 }
             },
-            menuAddArticle() {
+            menuAddTerm(event) {
                 if (this.menuId == '') {
                     this.$toast({
                         component: ToastificationContent,
@@ -597,63 +684,21 @@
                     });
                 }
                 else {
-                    this.selectedArticleItem.forEach(item => {
-                        var menuDetailAddDto = {
-                            CustomName: item.Title,
-                            CustomURL: item.PostName,
-                            ParentId: null,
-                            MenuId: this.menuId,
-                            ObjectId: item.Id,
-                            SubObjectType: 1,
-                            MenuOrder: this.menuDetails.length + 1
-                        };
+                    let selectedTermItems = [];
+                    if (event.target.className.includes('menu-add-category')) {
+                        selectedTermItems = this.selectedTermItems.filter(term => term.TermType === 2);
+                    } else if (event.target.className.includes('menu-add-tag')) {
+                        selectedTermItems = this.selectedTermItems.filter(term => term.TermType === 3);
+                    }
 
-                        axios.post('/admin/menu-newmenudetail', {
-                            MenuDetailAddDto: menuDetailAddDto
-                        }).then((response) => {
-                            if (response.data.MenuDetailDto.ResultStatus === 0) {
-                                this.selectedArticleItem = [];
-                                this.allArticlesCheck = false;
-
-                                this.menuDetails.push({
-                                    Id: response.data.MenuDetailDto.Data.MenuDetail.Id,
-                                    CustomName: response.data.MenuDetailDto.Data.MenuDetail.CustomName,
-                                    CustomURL: response.data.MenuDetailDto.Data.MenuDetail.CustomURL,
-                                    MenuId: this.menuId,
-                                    ObjectId: response.data.MenuDetailDto.Data.MenuDetail.ObjectId,
-                                    MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                    SubObjectType: 1,
-                                    Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
-                                    Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
-                                    ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
-                                    Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
-                                });
-                            }
-                        });
-                    });
-                }
-            },
-            menuAddCategory() {
-                if (this.menuId == '') {
-                    this.$toast({
-                        component: ToastificationContent,
-                        props: {
-                            variant: 'warning',
-                            title: 'Uyarı!',
-                            icon: 'AlertTriangleIcon',
-                            text: 'Lütfen bir menü seçiniz.'
-                        }
-                    });
-                }
-                else {
-                    this.selectedCategoryItem.forEach(item => {
+                    selectedTermItems.forEach(item => {
                         var menuDetailAddDto = {
                             CustomName: item.Name,
                             CustomURL: item.Slug,
                             ParentId: null,
                             MenuId: this.menuId,
                             ObjectId: item.Id,
-                            SubObjectType: 2,
+                            ObjectType: item.TermType,
                             MenuOrder: this.menuDetails.length + 1
                         };
 
@@ -661,8 +706,12 @@
                             MenuDetailAddDto: menuDetailAddDto
                         }).then((response) => {
                             if (response.data.MenuDetailDto.ResultStatus === 0) {
-                                this.selectedCategoryItem = [];
-                                this.allCategoriesCheck = false;
+                                this.selectedTermItems = this.selectedTermItems.filter(term => term.TermType !== response.data.MenuDetailDto.Data.MenuDetail.ObjectType);
+                                if (response.data.MenuDetailDto.Data.MenuDetail.ObjectType === 2) {
+                                    this.allCategoriesCheck = false;
+                                } else if (response.data.MenuDetailDto.Data.MenuDetail.ObjectType === 3) {
+                                    this.allTagsCheck = false;
+                                }
 
                                 this.menuDetails.push({
                                     Id: response.data.MenuDetailDto.Data.MenuDetail.Id,
@@ -671,12 +720,13 @@
                                     MenuId: this.menuId,
                                     ObjectId: response.data.MenuDetailDto.Data.MenuDetail.ObjectId,
                                     MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                    SubObjectType: 2,
+                                    ObjectType: response.data.MenuDetailDto.Data.MenuDetail.ObjectType,
                                     Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
                                     Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
                                     ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
                                     Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
-                                });                                                               
+                                });
+                                this.menuDetails = this.getChild(this.menuDetails);
                             }
                         });
                     });
@@ -701,7 +751,7 @@
                         ParentId: null,
                         MenuId: this.menuId,
                         ObjectId: null,
-                        SubObjectType: null,
+                        ObjectType: null,
                         MenuOrder: this.menuDetails.length + 1
                     };
                     axios.post('/admin/menu-newmenudetail', {
@@ -715,14 +765,14 @@
                                 MenuId: this.menuId,
                                 ObjectId: '',
                                 MenuOrder: response.data.MenuDetailDto.Data.MenuDetail.MenuOrder,
-                                SubObjectType: null,
+                                ObjectType: null,
                                 Children: response.data.MenuDetailDto.Data.MenuDetail.Children,
                                 Parent: response.data.MenuDetailDto.Data.MenuDetail.Parent,
                                 ParentId: response.data.MenuDetailDto.Data.MenuDetail.ParentId,
                                 Parents: response.data.MenuDetailDto.Data.MenuDetail.Parents,
                             });
                             this.customURL = '';
-                            this.customName = '';                            
+                            this.customName = '';
                         }
                     }).catch((error) => {
                         console.log(error)
@@ -759,9 +809,8 @@
                                     })
                                     this.getAllMenus();
                                     this.menuDetails = [];
-                                    this.selectedPageItem = [];
-                                    this.selectedArticleItem = [];
-                                    this.selectedCategoryItem = [];
+                                    this.selectedPostItems = [];
+                                    this.selectedTermItems = [];
                                     this.CustomURL = '';
                                     this.customName = '';
                                     this.menuId = '';
@@ -806,10 +855,7 @@
                             }
                         });
                     })
-                }                
-            },
-            deleteMenuItem(id) {
-                this.menuDetails = this.menuDetails.filter(item => item.Id != id)
+                }
             },
             getAllMenus() {
                 this.menus = [];
@@ -841,6 +887,16 @@
                         })
                     });
             },
+            getChild(list) {
+                list.forEach(item => {
+                    if (item.Children == null) {
+                        item.Children = [];
+                    } else {
+                        this.getChild(item.Children);
+                    }
+                });
+                return list;
+            },
             getAllMenuDetails(id) {
                 this.updateMenuName = this.menus.filter(menu => menu.Id == id)[0].Name;
                 axios.get('/admin/menu-allmenudetails', {
@@ -852,6 +908,7 @@
                         console.log(response.data)
                         if (response.data.MenuDetailListDto.ResultStatus === 0) {
                             this.menuDetails = response.data.MenuDetailListDto.Data.MenuDetails;
+                            this.menuDetails = this.getChild(this.menuDetails);
                             this.deleteMenuItemList = [];
                             this.isAllCheckMenuItem = false;
                         }
@@ -869,6 +926,32 @@
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
                                 text: 'Menü içeriği listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getAllBasePages() {
+                axios.get('/admin/post-allposts', {
+                    params: {
+                        postType: 'basepage',
+                        postStatus: 'publish'
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.basePages = response.data.PostListDto.Data.Posts;
+                        } else {
+                            this.basePages = [];
+                        }
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });
@@ -951,6 +1034,40 @@
                         })
                     });
             },
+            getAllTags() {
+                axios.get('/admin/term-allterms', {
+                    params: {
+                        termType: "tag"
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.tags = response.data.TermListDto.Data.Terms;
+                        }
+                        else {
+                            this.tags = [];
+                        }
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            basePagesFilterByTitle: function (data) {
+                // no search, don't filter :
+                if (this.basePageFilterText.length === 0) {
+                    return true;
+                }
+
+                return (data.Title.toLowerCase().indexOf(this.basePageFilterText.toLowerCase()) > -1);
+            },
             pagesFilterByTitle: function (data) {
                 // no search, don't filter :
                 if (this.pageFilterText.length === 0) {
@@ -975,8 +1092,20 @@
 
                 return (data.Name.toLowerCase().indexOf(this.categoryFilterText.toLowerCase()) > -1);
             },
+            tagsFilterByName: function (data) {
+                // no search, don't filter :
+                if (this.tagFilterText.length === 0) {
+                    return true;
+                }
+
+                return (data.Name.toLowerCase().indexOf(this.tagFilterText.toLowerCase()) > -1);
+            },
         },
         computed: {
+            filteredBasePage: function () {
+                return this.basePages
+                    .filter(this.basePagesFilterByTitle);
+            },
             filteredPage: function () {
                 return this.pages
                     .filter(this.pagesFilterByTitle);
@@ -988,13 +1117,19 @@
             filteredCategory: function () {
                 return this.categories
                     .filter(this.categoriesFilterByName);
+            },
+            filteredTag: function () {
+                return this.tags
+                    .filter(this.tagsFilterByName);
             }
         },
         mounted() {
             this.getAllMenus();
+            this.getAllBasePages();
             this.getAllPages();
             this.getAllArticles();
             this.getAllCategories();
+            this.getAllTags();
         }
     }
 </script>

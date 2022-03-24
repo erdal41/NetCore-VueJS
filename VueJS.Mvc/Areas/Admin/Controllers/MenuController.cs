@@ -6,7 +6,6 @@ using VueJS.Services.Abstract;
 using VueJS.Entities.Concrete;
 using VueJS.Mvc.Areas.Admin.Models.Data;
 using VueJS.Mvc.Areas.Admin.Models.View;
-using VueJS.Shared.Utilities.Results.ComplexTypes;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {

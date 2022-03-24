@@ -12,7 +12,7 @@ namespace VueJS.Entities.Concrete
         public int? ParentId { get; set; }
         public int MenuId { get; set; }
         public int? ObjectId { get; set; }
-        public ObjectType? SubObjectType { get; set; }
+        public ObjectType? ObjectType { get; set; }
         public int MenuOrder { get; set; }
 
         public Menu Menu { get; set; }

@@ -59,7 +59,7 @@ namespace VueJS.Mvc.Helpers.Concrete
 
                 string timeFormat = DateTime.Now.ToString("yyMMddHHmmss");
 
-                string newFileNameAndExtension = _extensionsHelper.FriendlySEOPostName(newFileNameNotExtension) + "-" + timeFormat + fileExtension;
+                string newFileNameAndExtension = _extensionsHelper.FriendlySEOString(newFileNameNotExtension) + "-" + timeFormat + fileExtension;
 
                 var path = Path.Combine(dosyaYolu, newFileNameAndExtension);
 

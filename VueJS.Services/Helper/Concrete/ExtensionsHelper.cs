@@ -22,7 +22,7 @@ namespace VueJS.Services.Helper.Concrete
             _httpContextAccessor = httpContextAccessor;
         }
         //@Url.link @Url.FriendlyUrlHelper()
-        public string FriendlySEOPostName(string url)
+        public string FriendlySEOString(string url)
         {
             if (string.IsNullOrEmpty(url)) return "";
             url = url.ToLower();
@@ -182,6 +182,24 @@ namespace VueJS.Services.Helper.Concrete
             while (url.IndexOf("--", StringComparison.Ordinal) > -1)
                 url = url.Replace("--", "-");
             return url;
+        }
+
+        public async Task<ICollection<MenuDetail>> GetChildAsync(ICollection<MenuDetail> menuDetails)
+        {
+            foreach (var item in menuDetails)
+            {
+                var children = await _unitOfWork.MenuDetails.GetAllAsync(x => x.ParentId == item.Id);
+                if (children.Count > 0 || children != null)
+                {
+                    item.Children = children;
+                    await GetChildAsync(item.Children);
+                }
+                else
+                {
+                    item.Children = null;
+                }
+            }
+            return menuDetails;
         }
     }
 }

@@ -8,7 +8,6 @@ using VueJS.Shared.Utilities.Results.Concrete;
 using VueJS.Shared.Utilities.Results.Abstract;
 using VueJS.Shared.Utilities.Results.ComplexTypes;
 using System.Threading.Tasks;
-using VueJS.Services.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using VueJS.Entities.ComplexTypes;
@@ -34,14 +33,9 @@ namespace VueJS.Services.Concrete
             {
                 case ObjectType.category:
                     term = await UnitOfWork.Terms.GetAsync(c => c.TermType == ObjectType.category && c.Slug == termSlug, c => c.Parent, c => c.Children);
-
-                    Term parent = term.Parent;
-                    term.Parents = new List<Term>();
-                    while (parent != null)
-                    {
-                        term.Parents.Add(parent);
-                        parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                    }
+                    
+                    Term termParent = (Term)await ExtensionsHelper.GetParentsAsync(termType, term);
+                    term.Parents = termParent.Parents;
                     break;
                 case ObjectType.tag:
                     term = await UnitOfWork.Terms.GetAsync(c => c.TermType == ObjectType.tag && c.Slug == termSlug);
@@ -59,13 +53,8 @@ namespace VueJS.Services.Concrete
 
             foreach (var term in terms)
             {
-                Term parent = term.Parent;
-                term.Parents = new List<Term>();
-                while (parent != null)
-                {
-                    term.Parents.Add(parent);
-                    parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                }
+                Term termParent = (Term)await ExtensionsHelper.GetParentsAsync(termType, term);
+                term.Parents = termParent.Parents;
             }
             return new DataResult<TermListDto>(ResultStatus.Success, new TermListDto { Terms = terms });
         }
@@ -83,13 +72,8 @@ namespace VueJS.Services.Concrete
 
                 if (currentTerm != null)
                 {
-                    Term parent = currentTerm.Parent;
-                    currentTerm.Parents = new List<Term>();
-                    while (parent != null)
-                    {
-                        currentTerm.Parents.Add(parent);
-                        parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                    }
+                    Term termParent = (Term)await ExtensionsHelper.GetParentsAsync(currentTerm.TermType, currentTerm);
+                    currentTerm.Parents = termParent.Parents;
 
                     List<int> parentIds = new List<int>();
                     foreach (var par in currentTerm.Parents)
@@ -131,20 +115,16 @@ namespace VueJS.Services.Concrete
             var term = await UnitOfWork.Terms.GetAsync(c => c.Id == termId, c => c.Parent, c => c.Children);
             if (term == null) return new DataResult<TermUpdateDto>(ResultStatus.Error, null);
 
-            Term parent = term.Parent;
-            term.Parents = new List<Term>();
-            while (parent != null)
-            {
-                term.Parents.Add(parent);
-                parent = await UnitOfWork.Terms.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-            }
+            Term termParent = (Term)await ExtensionsHelper.GetParentsAsync(term.TermType, term);
+            term.Parents = termParent.Parents;
+
             var termUpdateDto = Mapper.Map<TermUpdateDto>(term);
             return new DataResult<TermUpdateDto>(ResultStatus.Success, termUpdateDto);
         }
 
         public async Task<IDataResult<TermDto>> AddAsync(TermAddDto termAddDto)
         {
-            string slug = termAddDto.Slug == "" ?  ExtensionsHelper.FriendlySEOPostName(termAddDto.Name) : termAddDto.Slug;
+            string slug = termAddDto.Slug == "" ?  ExtensionsHelper.FriendlySEOString(termAddDto.Name) : termAddDto.Slug;
             var slugCheck = await UnitOfWork.Terms.GetAllAsync(t => t.Slug == slug && t.TermType == termAddDto.TermType);
             if (slugCheck.Count != 0) return new DataResult<TermDto>(ResultStatus.Error, Messages.UrlCheck(termAddDto.TermType), null);
             var term = Mapper.Map<Term>(termAddDto);
@@ -171,17 +151,20 @@ namespace VueJS.Services.Concrete
             var slugCheck = await UnitOfWork.Terms.GetAllAsync(t => (t.Slug == termUpdateDto.Slug && t.Id == termUpdateDto.Id) || (t.Slug != termUpdateDto.Slug && t.Id == termUpdateDto.Id));
             if (slugCheck.Count != 1) return new DataResult<TermDto>(ResultStatus.Error, Messages.UrlCheck(termUpdateDto.TermType), null);
 
-            Term oldTerm = null;
-            switch (slugCheck.FirstOrDefault().TermType)
-            {
-                case ObjectType.category:
-                    oldTerm = await UnitOfWork.Terms.GetAsync(p => p.Id == termUpdateDto.Id, p => p.Parent);
-                    break;
-                case ObjectType.tag:
-                    oldTerm = await UnitOfWork.Terms.GetAsync(p => p.Id == termUpdateDto.Id);
-                    break;
-            }
+            Term oldTerm = await UnitOfWork.Terms.GetAsync(p => p.Id == termUpdateDto.Id, p => p.Parent);
             var term = Mapper.Map<TermUpdateDto, Term>(termUpdateDto, oldTerm);
+
+            var menuDetails = await UnitOfWork.MenuDetails.GetAllAsync(md => md.ObjectId == term.Id && md.ObjectType == term.TermType);
+
+            if (menuDetails.Count > 0)
+            {
+                foreach (var menuDetail in menuDetails)
+                {
+                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(term.TermType, term);
+                    await UnitOfWork.MenuDetails.UpdateAsync(menuDetail);
+                }
+            }
+
             var updatedTerm = await UnitOfWork.Terms.UpdateAsync(term);
             await UnitOfWork.SaveAsync();
             return new DataResult<TermDto>(ResultStatus.Success, Messages.Update(termUpdateDto.TermType, term.Name), new TermDto { Term = term });

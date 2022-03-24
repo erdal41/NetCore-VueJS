@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using VueJS.Entities.ComplexTypes;
 using VueJS.Services.Helper.Abstract;
+using System.Linq;
 
 namespace VueJS.Services.Concrete
 {
@@ -98,18 +99,13 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<MenuDetailListDto>> MenuDetailGetAllAsync(int menuId)
         {
             var menuDetails = await UnitOfWork.MenuDetails.GetAllAsync(md => md.MenuId == menuId && md.ParentId == null, t => t.Parent, t => t.Children, t => t.Menu);
-            if (menuDetails.Count < 1) return new DataResult<MenuDetailListDto>(ResultStatus.Error, Messages.MenuDetail.NotFound(true), null);
 
             foreach (var menuDetail in menuDetails)
-            {              
-                MenuDetail parent = menuDetail.Parent;
-                menuDetail.Parents = new List<MenuDetail>();
-                while (parent != null)
-                {
-                    menuDetail.Parents.Add(parent);
-                    parent = await UnitOfWork.MenuDetails.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                }
+            {
+                menuDetail.Children = await ExtensionsHelper.GetChildAsync(menuDetail.Children);
             }
+
+            if (menuDetails.Count < 1) return new DataResult<MenuDetailListDto>(ResultStatus.Error, Messages.MenuDetail.NotFound(true), null);
             return new DataResult<MenuDetailListDto>(ResultStatus.Success, new MenuDetailListDto { MenuDetails = menuDetails });
         }
 
@@ -126,13 +122,8 @@ namespace VueJS.Services.Concrete
 
                 if (currentMenuDetail != null)
                 {
-                    MenuDetail parent = currentMenuDetail.Parent;
-                    currentMenuDetail.Parents = new List<MenuDetail>();
-                    while (parent != null)
-                    {
-                        currentMenuDetail.Parents.Add(parent);
-                        parent = await UnitOfWork.MenuDetails.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-                    }
+                    MenuDetail menuDetailParent = (MenuDetail)await ExtensionsHelper.GetParentsAsync(currentMenuDetail.ObjectType.Value, currentMenuDetail);
+                    currentMenuDetail.Parents = menuDetailParent.Parents;
 
                     List<int> parentIds = new List<int>();
                     foreach (var par in currentMenuDetail.Parents)
@@ -161,13 +152,10 @@ namespace VueJS.Services.Concrete
             if (!result) return new DataResult<MenuDetailUpdateDto>(ResultStatus.Error, Messages.MenuDetail.NotFound(false), null);
 
             var menuDetail = await UnitOfWork.MenuDetails.GetAsync(c => c.Id == menuDetailId, c => c.Parent, c => c.Children);
-            MenuDetail parent = menuDetail.Parent;
-            menuDetail.Parents = new List<MenuDetail>();
-            while (parent != null)
-            {
-                menuDetail.Parents.Add(parent);
-                parent = await UnitOfWork.MenuDetails.GetAsync(p => p.Id == parent.ParentId, p => p.Parent, p => p.Children);
-            }
+
+            MenuDetail menuDetailParent = (MenuDetail)await ExtensionsHelper.GetParentsAsync(menuDetail.ObjectType.Value, menuDetail);
+            menuDetail.Parents = menuDetailParent.Parents;
+
             var menuDetailUpdateDto = Mapper.Map<MenuDetailUpdateDto>(menuDetail);
             return new DataResult<MenuDetailUpdateDto>(ResultStatus.Success, menuDetailUpdateDto);
         }
@@ -178,17 +166,17 @@ namespace VueJS.Services.Concrete
 
             if (menuDetail.ObjectId != null)
             {
-                if (menuDetail.SubObjectType == ObjectType.basepage || menuDetail.SubObjectType == ObjectType.page || menuDetail.SubObjectType == ObjectType.article)
+                if (menuDetail.ObjectType == ObjectType.basepage || menuDetail.ObjectType == ObjectType.page || menuDetail.ObjectType == ObjectType.article)
                 {
-                    var post = await UnitOfWork.Posts.GetAsync(p => p.Id == menuDetail.ObjectId && p.PostType == menuDetail.SubObjectType);
-                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(menuDetailAddDto.SubObjectType.Value, post);
+                    var post = await UnitOfWork.Posts.GetAsync(p => p.Id == menuDetail.ObjectId && p.PostType == menuDetail.ObjectType);
+                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(menuDetailAddDto.ObjectType.Value, post);
                 }
                 else
                 {
-                    var term = await UnitOfWork.Terms.GetAsync(t => t.Id == menuDetail.ObjectId && t.TermType == menuDetail.SubObjectType);
-                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(menuDetailAddDto.SubObjectType.Value, term);
+                    var term = await UnitOfWork.Terms.GetAsync(t => t.Id == menuDetail.ObjectId && t.TermType == menuDetail.ObjectType);
+                    menuDetail.CustomURL = await ExtensionsHelper.GetParentsURLAsync(menuDetailAddDto.ObjectType.Value, term);
                 }
-            }           
+            }
 
             var addedMenuDetail = await UnitOfWork.MenuDetails.AddAsync(menuDetail);
             await UnitOfWork.SaveAsync();
@@ -208,8 +196,15 @@ namespace VueJS.Services.Concrete
 
         public async Task<IResult> MenuDetailDeleteAsync(int menuId)
         {
-            var menuDetail = await UnitOfWork.MenuDetails.GetAsync(t => t.Id == menuId);
+            var menuDetail = await UnitOfWork.MenuDetails.GetAsync(md => md.Id == menuId, md => md.Children);
             if (menuDetail == null) return new Result(ResultStatus.Error, Messages.MenuDetail.NotFound(false));
+            var pId = menuDetail.ParentId;
+            var children = await UnitOfWork.MenuDetails.GetAllAsync(md => md.ParentId == menuId);
+            foreach (var child in menuDetail.Children)
+            {
+                child.ParentId = pId;
+                await UnitOfWork.MenuDetails.UpdateAsync(child);
+            }
 
             await UnitOfWork.MenuDetails.DeleteAsync(menuDetail);
             await UnitOfWork.SaveAsync();

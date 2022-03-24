@@ -14,7 +14,7 @@ namespace VueJS.Entities.Dtos
         public int? ParentId { get; set; }
         public int MenuId { get; set; }
         public int? ObjectId { get; set; }
-        public ObjectType? SubObjectType { get; set; }
+        public ObjectType? ObjectType { get; set; }
         public int MenuOrder { get; set; }
         public MenuDetail Parent { get; set; }
         public List<MenuDetail> Parents { get; set; }
