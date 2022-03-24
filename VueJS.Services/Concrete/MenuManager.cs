@@ -198,13 +198,13 @@ namespace VueJS.Services.Concrete
         {
             var menuDetail = await UnitOfWork.MenuDetails.GetAsync(md => md.Id == menuId, md => md.Children);
             if (menuDetail == null) return new Result(ResultStatus.Error, Messages.MenuDetail.NotFound(false));
-            var pId = menuDetail.ParentId;
-            var children = await UnitOfWork.MenuDetails.GetAllAsync(md => md.ParentId == menuId);
-            foreach (var child in menuDetail.Children)
-            {
-                child.ParentId = pId;
-                await UnitOfWork.MenuDetails.UpdateAsync(child);
-            }
+            menuDetail.Children = null;
+            await UnitOfWork.MenuDetails.MultiUpdateAsync(c => c.ParentId == menuId, c => c.ParentId = 28);
+            //foreach (var child in menuDetail.Children)
+            //{
+            //    child.ParentId = pId;
+            //    await UnitOfWork.MenuDetails.UpdateAsync(child);
+            //}
 
             await UnitOfWork.MenuDetails.DeleteAsync(menuDetail);
             await UnitOfWork.SaveAsync();

@@ -84,47 +84,28 @@
             updateMenuItems() {
                 this.$emit('updateMenuItem', this.menuDetails);
             },
-            getChild(list) {
-                list.forEach(item => {
-                    if (item.Children == null) {
-                        item.Children = [];
-                    } else {
-                        this.getChild(item.Children);
-                    }
-                });
-                return list;
-            },
-            menuItemDelete(item) {
-                axios.post('/admin/menu-deletemenudetail?menuId=' + item.Id).then((response) => {
-                    let index = this.menuDetails.indexOf(item);
-
+            menuItemDelete(menuDetailItem) {
+                axios.post('/admin/menu-deletemenudetail?menuId=' + menuDetailItem.Id).then((response) => {
+                    let index = this.menuDetails.indexOf(menuDetailItem);
+                    let children = [];
                     if (response.data.ResultStatus === 0) {
-                        //var deletedItemChildren = this.menuDetails.forEach(el => {
-                        //    if (item.Id == el.ParentId) {
-                        //        this.menuDetails.splice(index, 0, "Lene");
-                        //    }
-                        //});
-                        //console.log(index)
-                        //console.log(item)
-                        //console.log(deletedItemChildren)
-                        this.menuDetails = [];
-                        axios.get('/admin/menu-allmenudetails', {
-                            params: {
-                                menuId: item.MenuId
+                        this.menuDetails.forEach(el => {
+                            if (menuDetailItem.Id == el.Id) {
+                                if (menuDetailItem.Children.length > 0) {
+                                    for (var i = 0; i < menuDetailItem.Children.length; i++) {
+                                        children.push(menuDetailItem.Children[i]);
+                                    }
+                                } 
                             }
-                        })
-                            .then((response) => {
-                                console.log(response.data)
-                                if (response.data.MenuDetailListDto.ResultStatus === 0) {
-                                    this.menuDetails = response.data.MenuDetailListDto.Data.MenuDetails;
-                                    this.menuDetails = this.getChild(this.menuDetails);
-                                    this.deleteMenuItemList = [];
-                                    this.isAllCheckMenuItem = false;
-                                }
-                                else {
-                                    this.menuDetails = [];
-                                }
-                            })
+                        });
+                        this.menuDetails.splice(index, 1);
+                        for (var i = 0; i < children.length; i++) {
+                            this.menuDetails.splice(index + i, 0, children[i]);
+                        }
+
+                        console.log(index);
+                        console.log(menuDetailItem);
+                        console.log(this.menuDetails);
                     }
                 }).catch((error) => {
                     console.log(error)

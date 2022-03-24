@@ -18,6 +18,7 @@ namespace VueJS.Shared.Data.Abstract
         Task<T> AddAsync(T entity);
         Task<T> UpdateAsync(T entity);
         Task<IList<T>> MultiUpdateAsync(IList<T> entity);
+        Task MultiUpdateAsync(Expression<Func<T, bool>> predicate, Action<T> setProperty);
         Task DeleteAsync(T entity);
         Task<IList<T>> MultiDeleteAsync(IList<T> entity);
         Task<IList<T>> SearchAsync(IList<Expression<Func<T, bool>>> predicates, params Expression<Func<T, object>>[] includeProperties);

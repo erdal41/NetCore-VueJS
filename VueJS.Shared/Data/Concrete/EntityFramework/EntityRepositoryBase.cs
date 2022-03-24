@@ -159,6 +159,17 @@ namespace VueJS.Shared.Data.Concrete.EntityFramework
             return entity;
         }
 
+        public async Task MultiUpdateAsync(Expression<Func<TEntity, bool>> predicate, Action<TEntity> setProperty)
+        {
+            var recordsToBeUpdated = _context.Set<TEntity>().Where(predicate).ToList();
+            // Update the selected records
+            recordsToBeUpdated.ForEach(setProperty);
+            foreach (var entity in recordsToBeUpdated)
+            {
+                await Task.Run(() => { _context.Set<TEntity>().Update(entity); });
+            }
+        }
+
         public async Task<IList<TEntity>> MultiUpdateAsync(IList<TEntity> entities)
         {
             foreach (var entity in entities)
@@ -188,5 +199,6 @@ namespace VueJS.Shared.Data.Concrete.EntityFramework
             }
             return await query.AsNoTracking().SingleOrDefaultAsync();
         }
+
     }
 }
