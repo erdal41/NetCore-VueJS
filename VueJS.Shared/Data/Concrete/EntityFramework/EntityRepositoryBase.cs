@@ -161,13 +161,13 @@ namespace VueJS.Shared.Data.Concrete.EntityFramework
 
         public async Task MultiUpdateAsync(Expression<Func<TEntity, bool>> predicate, Action<TEntity> setProperty)
         {
-            var recordsToBeUpdated = _context.Set<TEntity>().Where(predicate).ToList();
-            // Update the selected records
-            recordsToBeUpdated.ForEach(setProperty);
-            foreach (var entity in recordsToBeUpdated)
+            var entities = _context.Set<TEntity>().Where(predicate).ToList();
+            entities.ForEach(setProperty);
+            foreach (var entity in entities)
             {
                 await Task.Run(() => { _context.Set<TEntity>().Update(entity); });
             }
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IList<TEntity>> MultiUpdateAsync(IList<TEntity> entities)

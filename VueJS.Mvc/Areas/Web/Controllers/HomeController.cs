@@ -71,7 +71,7 @@ namespace VueJS.Mvc.Areas.Web.Controllers
                 var generalSetting = await _settingService.GetGeneralSettingAsync();
                 if (postResult.Data.Post.PostType == ObjectType.article)
                 {
-                    var posts = await _postService.GetAllAsync(ObjectType.article, null);
+                    var posts = await _postService.GetAllAsync(ObjectType.article, null, null);
 
                     return Json(new PostDetailViewModel
                     {

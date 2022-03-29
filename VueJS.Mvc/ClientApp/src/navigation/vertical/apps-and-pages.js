@@ -74,7 +74,14 @@
         ],
     },
     {
-        title: 'Menu',
+        title: 'Yorumlar',
+        icon: 'MessageCircleIcon',
+        route: 'pages-comment-list',
+        resource: 'Urlredirect',
+        action: 'read',
+    },
+    {
+        title: 'Menü',
         icon: 'MenuIcon',
         route: 'pages-menu',
         resource: 'Urlredirect',

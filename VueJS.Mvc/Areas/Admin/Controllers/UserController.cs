@@ -18,19 +18,21 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
     {
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly IPostService _postService;
         private readonly IUploadService _uploadService;
 
-        public UserController(SignInManager<User> signInManager, RoleManager<Role> roleManager, IUploadService uploadService, UserManager<User> userManager, IMapper mapper) : base(userManager, mapper)
+        public UserController(SignInManager<User> signInManager, RoleManager<Role> roleManager, IUploadService uploadService, IPostService postService, UserManager<User> userManager, IMapper mapper) : base(userManager, mapper)
         {
-            _uploadService = uploadService;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _postService = postService;
+            _uploadService = uploadService;
         }
 
         [HttpGet("/admin/user-allusers")]
         public async Task<JsonResult> GetAllUsers()
         {
-            var allUsers = await UserManager.Users.ToListAsync();
+            var allUsers = await UserManager.Users.Include(u => u.ProfileImage).Include(u => u.Posts).ToListAsync();
             if (allUsers.Count > 0)
             {
                 List<User> users = new List<User>();

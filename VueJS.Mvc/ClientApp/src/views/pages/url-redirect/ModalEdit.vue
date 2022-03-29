@@ -8,8 +8,8 @@
                  title="Yönlendirme Düzenle"
                  :no-close-on-backdrop="true"
                  @show="getData"
-                 @hidden="urlRedirectPageGetAllData"
-                 @ok.prevent="validationForm">
+                 @hidden="getAllData"
+                 @ok="validationForm">
             <validation-observer ref="simpleRules">
                 <b-form>
                     <b-row>
@@ -20,7 +20,7 @@
                                                      name="oldurl"
                                                      rules="required">
                                     <b-form-input id="oldurl"
-                                                  v-model="oldUrl"
+                                                  v-model="urlRedirectUpdateDto.OldUrl"
                                                   :state="errors.length > 0 ? false:null"
                                                   type="text"
                                                   placeholder="Eski Url" />
@@ -34,7 +34,7 @@
                                                      name="newurl"
                                                      rules="required">
                                     <b-form-input id="newurl"
-                                                  v-model="newUrl"
+                                                  v-model="urlRedirectUpdateDto.NewUrl"
                                                   :state="errors.length > 0 ? false:null"
                                                   type="text"
                                                   placeholder="Yeni Url" />
@@ -43,7 +43,7 @@
                             </b-form-group>
 
                             <b-form-textarea id="description"
-                                             v-model="description"
+                                             v-model="urlRedirectUpdateDto.Description"
                                              placeholder="Açıklama"
                                              rows="2" />
                         </b-col>
@@ -91,14 +91,17 @@
         data() {
             return {
                 required,
-                oldUrl: '',
-                newUrl: '',
-                description: '',
+                urlRedirectUpdateDto: {
+                    Id: this.urlredirectId,
+                    OldUrl: '',
+                    NewUrl: '',
+                    Description: '',
+                },                
             }
         },
         methods: {
-            urlRedirectPageGetAllData() {
-                this.$emit('urlRedirectGetAllData', this.urlredirectId, this.oldUrl, this.newUrl, this.description);
+            getAllData() {
+                this.$emit('getAllData');
             },
             getData() {
                 console.log('Number');
@@ -108,15 +111,15 @@
                     }
                 }).then((response) => {
                     console.log(response.data);
-                    this.oldUrl = response.data.UrlRedirectUpdateDto.Data.OldUrl;
-                    this.newUrl = response.data.UrlRedirectUpdateDto.Data.NewUrl;
-                    this.description = response.data.UrlRedirectUpdateDto.Data.Description;
+                    this.urlRedirectUpdateDto.OldUrl = response.data.UrlRedirectUpdateDto.Data.OldUrl;
+                    this.urlRedirectUpdateDto.NewUrl = response.data.UrlRedirectUpdateDto.Data.NewUrl;
+                    this.urlRedirectUpdateDto.Description = response.data.UrlRedirectUpdateDto.Data.Description;
                 })
             },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
-                        if (!this.oldUrl.includes('https://') && !this.oldUrl.includes('http://')) {
+                        if (!this.urlRedirectUpdateDto.OldUrl.includes('https://') && !this.urlRedirectUpdateDto.OldUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -126,7 +129,7 @@
                                     text: 'Eski url, "https://" veya "http://" parametresi ile beraber tam linki içermerlidir. Örnek: https://www.orneksite.com/ornek-sayfa'
                                 }
                             });
-                        } else if (!this.newUrl.includes('https://') && !this.newUrl.includes('http://')) {
+                        } else if (!this.urlRedirectUpdateDto.NewUrl.includes('https://') && !this.urlRedirectUpdateDto.NewUrl.includes('http://')) {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
@@ -139,10 +142,7 @@
                         } else {
                             axios.post('/admin/urlredirect-edit',
                                 {
-                                    Id: this.urlredirectId,
-                                    OldUrl: this.oldUrl,
-                                    NewUrl: this.newUrl,
-                                    Description: this.description,
+                                    UrlRedirectUpdateDto: this.urlRedirectUpdateDto
                                 })
                                 .then((response) => {
                                     console.log(response.data);
@@ -153,7 +153,7 @@
                                                 variant: 'success',
                                                 title: 'Başarılı İşlem!',
                                                 icon: 'CheckIcon',
-                                                text: this.oldUrl + " linki " + this.newUrl + " linkine yönlendirildi."
+                                                text: this.urlRedirectUpdateDto.OldUrl + " linki " + this.urlRedirectUpdateDto.NewUrl + " linkine yönlendirildi."
                                             }
                                         });
                                     }
@@ -186,8 +186,6 @@
                     }
                 })
             },
-        },
-        mounted() {
         }
     }
 </script>

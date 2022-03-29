@@ -196,16 +196,10 @@ namespace VueJS.Services.Concrete
 
         public async Task<IResult> MenuDetailDeleteAsync(int menuId)
         {
-            var menuDetail = await UnitOfWork.MenuDetails.GetAsync(md => md.Id == menuId, md => md.Children);
+            var menuDetail = await UnitOfWork.MenuDetails.GetAsync(md => md.Id == menuId);
             if (menuDetail == null) return new Result(ResultStatus.Error, Messages.MenuDetail.NotFound(false));
-            menuDetail.Children = null;
-            await UnitOfWork.MenuDetails.MultiUpdateAsync(c => c.ParentId == menuId, c => c.ParentId = 28);
-            //foreach (var child in menuDetail.Children)
-            //{
-            //    child.ParentId = pId;
-            //    await UnitOfWork.MenuDetails.UpdateAsync(child);
-            //}
-
+            
+            await UnitOfWork.MenuDetails.MultiUpdateAsync(c => c.ParentId == menuId, c => c.ParentId = menuDetail.ParentId);
             await UnitOfWork.MenuDetails.DeleteAsync(menuDetail);
             await UnitOfWork.SaveAsync();
             return new Result(ResultStatus.Success);

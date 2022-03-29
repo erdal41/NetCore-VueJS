@@ -31,12 +31,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/post-allposts")]
-        public async Task<JsonResult> AllPosts(ObjectType postType, PostStatus? postStatus)
+        public async Task<JsonResult> AllPosts(ObjectType? postType, PostStatus? postStatus, int? userId)
         {
-            var postListResult = await _postService.GetAllAsync(postType, postStatus);
-            var publishPosts = await _postService.GetAllAsync(postType, PostStatus.publish);
-            var draftPosts = await _postService.GetAllAsync(postType, PostStatus.draft);
-            var trashPosts = await _postService.GetAllAsync(postType, PostStatus.trash);
+            var postListResult = await _postService.GetAllAsync(postType, postStatus, userId);
+            var publishPosts = await _postService.GetAllAsync(postType, PostStatus.publish, userId);
+            var draftPosts = await _postService.GetAllAsync(postType, PostStatus.draft, userId);
+            var trashPosts = await _postService.GetAllAsync(postType, PostStatus.trash, userId);
 
             return Json(new PostViewModel
             {
@@ -81,7 +81,7 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
 
             var postResult = await _postService.AddAsync(postDataModel.PostAddDto, LoggedInUser.Id);
             //_cacheService.Clear();
-            var seoResult = await _seoService.SeoObjectSettingAddAsync(postDataModel.PostAddDto.PostType, postResult.ResultStatus == ResultStatus.Success ?  postResult.Data.Post.Id : -1, postDataModel.SeoObjectSettingAddDto, LoggedInUser.Id);
+            var seoResult = await _seoService.SeoObjectSettingAddAsync(postDataModel.PostAddDto.PostType, postResult.ResultStatus == ResultStatus.Success ? postResult.Data.Post.Id : -1, postDataModel.SeoObjectSettingAddDto, LoggedInUser.Id);
             //await _fileHelper.CreateSitemapInRootDirectoryAsync();
             return Json(new PostViewModel
             {

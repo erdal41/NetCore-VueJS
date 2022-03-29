@@ -1,7 +1,7 @@
 ﻿<template>
     <b-row>
         <modal-edit :urlredirect-id="urlRedirectId"
-                    @urlRedirectGetAllData="urlRedirectsRefreshData"></modal-edit>
+                    @getAllData="getAllData"></modal-edit>
         <b-col class="content-header-left mb-2"
                cols="12"
                md="12">
@@ -31,7 +31,6 @@
         <b-col v-if="$can('create', 'Urlredirect')"
                md="12"
                lg="12">
-
                 <b-card id="card-add"
                         header-tag="header">
                     <template #header>
@@ -91,8 +90,7 @@
                 </b-col>
         <b-col md="12"
                lg="12">
-            <b-card  
-                    id="card-list"
+            <b-card id="url-redirect-list"
                     header-tag="header"
                     no-body>
                 <template #header>
@@ -109,7 +107,7 @@
                             <b-form-input placeholder="Ara..."
                                           v-model="filterText" />
                             <b-input-group-append is-text>
-                                <feather-icon v-show="isShowSearchTextClearButton"
+                                <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
                                               title="Temizle"
@@ -217,12 +215,17 @@
                         </div>
                     </template>
                     <template #cell(ModifiedDate)="row">
-                        <span class="small">{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>
+                        <span>{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>
+                    </template>
+                    <template #cell(User.UserName)="row">
+                        <b-link :to="{ name: 'pages-user-edit', query: { edit: row.item.User.Id } }">
+                            <span class="font-weight-bold">{{ row.item.User.UserName }}</span>
+                        </b-link>
                     </template>
                     <template v-if="filteredData.length <= 0"
                               slot="bottom-row">
                         <td colspan="5"
-                            class="pt-3 pb-3">
+                            class="text-center">
                             {{ dataNullMessage  }}
                         </td>
                     </template>
@@ -341,7 +344,6 @@
                 dataNullMessage: 'Hiçbir yönlendirme bulunamadı.',
                 isShowSearchTextClearButton: false,
                 filterText: '',
-                filterOnData: [],
                 urlRedirects: [],
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
@@ -351,10 +353,11 @@
                     { key: 'OldUrl', label: 'Url', sortable: true, thStyle: { width: "200px" } },
                     { key: 'Description', label: 'Açıklama', sortable: true, thStyle: { width: "200px" } },
                     { key: 'ModifiedDate', label: 'Tarih', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }
+                    { key: 'User.UserName', label: 'İşlem Yapan', sortable: true, thStyle: { width: "100px" } }
                 ],
                 selectAllCheck: false,
                 checkedRows: [],
+                checkedRowsCount: '',
                 hoveredRow: null,
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],
@@ -432,15 +435,20 @@
                                 idList.push(this.urlRedirects[i].Id);
                             }
                         }
-                        this.checkedRows = idList;
                     } else if (this.pageColumnQuantity === this.perPage) {
                         for (var i = 0; i < this.pageColumnQuantity; i++) {
                             if (this.urlRedirects[i] != null) {
                                 idList.push(this.urlRedirects[i].Id);
                             }
                         }
-                        this.checkedRows = idList;
+                    } else if (this.perPage > this.pageColumnQuantity) {
+                        for (var i = 0; i < this.perPage; i++) {
+                            if (this.urlRedirects[i] != undefined) {
+                                idList.push(this.urlRedirects[i].Id);
+                            }
+                        }
                     }
+                    this.checkedRows = idList;
                 }
                 else {
                     this.checkedRows = [];
@@ -612,13 +620,13 @@
                         if (response.data.UrlRedirectListDto.ResultStatus === 0) {
                             this.urlRedirects = response.data.UrlRedirectListDto.Data.UrlRedirects;
                             this.pageColumnQuantity = this.perPage;
-                            this.isBusy = false;
                             this.totalRows = response.data.UrlRedirectListDto.Data.UrlRedirects.length;
                         } else {
                             this.urlRedirects = [];
-                            this.isBusy = false;
                             this.dataNullMessage = response.data.UrlRedirectListDto.Message;
                         }
+
+                        this.isBusy = false;
                         this.filterText = "";
                         this.checkedRows = [];
                         this.checkChange();
@@ -648,9 +656,6 @@
                 return this.urlRedirects
                     .filter(this.filterByName);
             },
-            isSave() {
-
-            }
         },
         mounted() {
             this.getAllData();
@@ -665,16 +670,12 @@
         margin-bottom: 20px;
     }
 
-    #card-list.card .card-header {
+    #url-redirect-list.card .card-header {
         padding: 8px 8px 8px 20px;
     }
 
     #urlredirect-table.table th, #urlredirect-table.table td {
         padding: 0.72rem !important;
-    }
-
-    #urlredirect-table.table th:last-child, #urlredirect-table.table td:last-child {
-        text-align: center;
     }
 
     #urlredirect-table > tbody > tr.b-table-bottom-row td {

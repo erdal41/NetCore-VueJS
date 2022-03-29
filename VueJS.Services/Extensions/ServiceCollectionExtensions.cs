@@ -26,6 +26,7 @@ namespace VueJS.Services.Extensions
             services.AddScoped<IUrlRedirectService, UrlRedirectManager>();
             services.AddScoped<IMailService, MailManager>();           
             services.AddScoped<IMenuService, MenuManager>();
+            services.AddScoped<ICommentService, CommentManager>();
 
             return services;
         }

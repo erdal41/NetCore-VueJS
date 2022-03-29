@@ -1,48 +1,51 @@
 ﻿<template>
     <draggable v-bind="dragOptions"
-               tag="ul"
-               class="item-container"
+               class="item-container list-group list-group-flush"
                :list="menuDetails"
-               :group="{ name: 'g1' }">
-        <li class="item-group" :key="el.Id" v-for="el in menuDetails">
-            <div class="item cursor-move">
-                <span
-                      class="cursor-pointer">
-                    {{ el.CustomName }}
-                </span>
-                <feather-icon v-if="isOpenCollapse == false"
-                              v-b-toggle="'item_' + el.Id"
-                              icon="ChevronDownIcon"
-                              size="16"
-                              class="float-right"
-                              @click="isOpenCollapse = !isOpenCollapse" />
-                <feather-icon v-if="isOpenCollapse == true"
-                              v-b-toggle="'item_' + el.Id"
-                              icon="ChevronUpIcon"
-                              size="16"
-                              class="float-right"
-                              @click="isOpenCollapse = !isOpenCollapse" />
-                <small class="text-muted float-right"> {{ menuType(el.ObjectType) }}</small>
-                <small class="float-right mr-1 cursor-pointer text-danger"
-                       @click.prevent="menuItemDelete(el)">Sil</small>
-            </div>
-            <b-collapse :id="'item_' + el.Id">
-                <div class="menu-item-collapse">
-                    <b-form-group label="Menü Etiketi"
-                                  :label-for="'menu-tag-' + el.Id">
-                        <b-form-input :id="'menu-tag-' + el.Id"
-                                      v-model="el.CustomName"
-                                      type="text"
-                                      size="sm"
-                                      placeholder="Menü Etiketi"
-                                      @blur="updateMenuItems" />
-                    </b-form-group>
-                    <label>URL: </label> <a class="small" :href="el.CustomURL" target="_blank">{{ el.CustomURL }}</a>
+               tag="ul"
+               :move="checkMove">
+            <b-list-group-item v-for="el in menuDetails"
+                               :key="el.Id"
+                               class="item-group list-unstyled p-0 border-0"
+                               tag="li">
+                <div class="item cursor-move">
+                    <span class="cursor-pointer">
+                        {{ el.CustomName }}
+                    </span>
+                    <feather-icon v-if="isOpenCollapse == false"
+                                  v-b-toggle="'item_' + el.Id"
+                                  icon="ChevronDownIcon"
+                                  size="16"
+                                  class="float-right"
+                                  @click="isOpenCollapse = !isOpenCollapse" />
+                    <feather-icon v-if="isOpenCollapse == true"
+                                  v-b-toggle="'item_' + el.Id"
+                                  icon="ChevronUpIcon"
+                                  size="16"
+                                  class="float-right"
+                                  @click="isOpenCollapse = !isOpenCollapse" />
+                    <small class="text-muted float-right"> {{ menuType(el.ObjectType) }}</small>
+                    <small class="float-right mr-1 cursor-pointer text-danger"
+                           @click.prevent="menuItemDelete(el)">Sil</small>
                 </div>
-            </b-collapse>
-            <nested-draggable class="item-sub"
-                              :menuDetails="el.Children" />
-        </li>
+                <b-collapse :id="'item_' + el.Id">
+                    <div class="menu-item-collapse">
+                        <b-form-group label="Menü Etiketi"
+                                      :label-for="'menu-tag-' + el.Id">
+                            <b-form-input :id="'menu-tag-' + el.Id"
+                                          v-model="el.CustomName"
+                                          type="text"
+                                          size="sm"
+                                          placeholder="Menü Etiketi"
+                                          @blur="updateMenuItems" />
+                        </b-form-group>
+                        <label>URL: </label> <a class="small" :href="el.CustomURL" target="_blank">{{ el.CustomURL }}</a>
+                    </div>
+                </b-collapse>
+                <nested-draggable class="item-sub item-container list-group list-group-flush"
+                                  :menuDetails="el.Children"
+                                  v-bind="dragOptions"/>
+            </b-list-group-item>
     </draggable>
 </template>
 
@@ -50,7 +53,7 @@
     import draggable from "vuedraggable";
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue'
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue'
-    import { BCollapse, VBToggle, BFormCheckbox, BFormGroup, BFormInput } from 'bootstrap-vue';
+    import { BCollapse, VBToggle, BListGroupItem, BFormGroup, BFormInput } from 'bootstrap-vue';
     import axios from 'axios'
     export default {
         name: "nested-draggable",
@@ -59,7 +62,7 @@
             AppCollapse,
             AppCollapseItem,
             BCollapse,
-            BFormCheckbox,
+            BListGroupItem,
             BFormGroup,
             BFormInput
         },
@@ -75,6 +78,7 @@
             return {
                 menuItemsText: [],
                 isOpenCollapse: false,
+                drag: false
             }
         },
         methods: {
@@ -95,7 +99,7 @@
                                     for (var i = 0; i < menuDetailItem.Children.length; i++) {
                                         children.push(menuDetailItem.Children[i]);
                                     }
-                                } 
+                                }
                             }
                         });
                         this.menuDetails.splice(index, 1);
@@ -129,12 +133,16 @@
                 } else if (type === null) {
                     return 'Özel Bağlantı';
                 }
+            },
+            checkMove: function (event) {
+                console.log(event)
+                console.log(this)
             }
         },
         computed: {
             dragOptions() {
                 return {
-                    animation: 0,
+                    animation: 200,
                     group: "description",
                     disabled: false,
                     ghostClass: "ghost"
@@ -166,5 +174,19 @@
     .menu-item-collapse {
         padding: 10px;
         border: 1px solid #b7b7b7;
+    }
+
+    .flip-list-move {
+        transition: transform 0.5s;
+        border-top-color:red;
+    }
+
+    .no-move {
+        transition: transform 0s;
+    }
+
+    .ghost {
+        opacity: 0.5;
+        background: red;
     }
 </style>

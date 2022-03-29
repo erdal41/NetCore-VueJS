@@ -43,8 +43,8 @@ namespace VueJS.Mvc.Helpers.Concrete
 
         public async Task<string> CreateSitemapInRootDirectoryAsync()
         {
-            var pages = await _postService.GetAllAsync(ObjectType.page, null);
-            var articles = await _postService.GetAllAsync(ObjectType.article, null);
+            var pages = await _postService.GetAllAsync(ObjectType.page, null, null);
+            var articles = await _postService.GetAllAsync(ObjectType.article, null, null);
             var categories = await _termService.GetAllAsync(ObjectType.category);
             var tags = await _termService.GetAllAsync(ObjectType.tag);
             var seoGeneraSetting = await _seoService.GetSeoGeneralSettingDtoAsync();

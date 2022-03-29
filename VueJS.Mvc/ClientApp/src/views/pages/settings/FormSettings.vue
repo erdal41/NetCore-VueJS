@@ -82,6 +82,7 @@
                                                           label-for="port">
                                                 <b-form-input id="port"
                                                               v-model="smtpSettings.Port"
+                                                              :value="smtpSettings.IsEnableSsl == true ? '465' : '587'"
                                                               placeholder="Port bilgisini giriniz" />
                                             </b-form-group>
                                         </b-col>

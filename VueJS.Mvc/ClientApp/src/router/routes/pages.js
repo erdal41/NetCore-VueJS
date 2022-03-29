@@ -263,6 +263,17 @@ export default [
         },
     },
 
+    //Comment
+    {
+        path: '/admin/comment',
+        name: 'pages-comment-list',
+        component: () => import('@/views/pages/comment/Comment.vue'),
+        meta: {
+            resource: 'User',
+            action: 'update',
+        },
+    },
+
     //Menu
     {
         path: '/admin/menu',

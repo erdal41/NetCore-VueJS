@@ -307,13 +307,6 @@
                                       v-model="updateMenuName"></b-form-input>
                         <hr />
                     </b-form-group>
-                    <b-form-group v-if="menuDetails.length > 0">
-                        <b-form-checkbox v-model="isAllCheckMenuItem"
-                                         :value="true"
-                                         @change="deleteMenuItemList = []; deleteMenuItemDisplay = []">
-                            Toplu Seçim
-                        </b-form-checkbox>
-                    </b-form-group>
 
                     <nested-draggable v-if="menuDetails.length > 0"
                                       class="col-8" 
@@ -412,6 +405,7 @@
                 deleteMenuItemList: [],
                 deleteMenuItemDisplay: [],
                 newMenuDetailList: [],
+                parentId: '',
             }
         },
         methods: {            
@@ -507,6 +501,26 @@
             getNewMenuDetailList(newList) {
                 this.newMenuDetailList = newList;
             },
+            updateChild(list) {
+                list.forEach((item, index) => {
+                    item.MenuOrder = index + 1;
+                    item.ParentId = this.parentId;
+                    axios.post('/admin/menu-editmenudetail', {
+                        MenuDetailUpdateDto: item
+                    }).then((res) => {
+                        if (res.data.MenuDetailDto.ResultStatus === 0) {
+                            if (item.Children == null) {
+                                item.Children = [];
+                            } else {
+                                this.parentId = item.Id;
+                                this.updateChild(item.Children);
+                            }
+                        }
+                    });
+                });
+                this.parentId = '';
+                return list;
+            },
             addOrUpdateData() {
                 if (this.menuId === '') {
                     this.$refs.addMenuValidation.validate().then(success => {
@@ -549,48 +563,8 @@
                             if (this.newMenuDetailList.length < 1) {
                                 this.newMenuDetailList = this.menuDetails;
                             }
+                            this.updateChild(this.menuDetails);                           
 
-                            for (var i = 0; i < this.newMenuDetailList.length; i++) {                                                               
-                                this.newMenuDetailList[i].MenuOrder = i + 1;
-
-                                axios.post('/admin/menu-editmenudetail', {
-                                    MenuDetailUpdateDto: this.newMenuDetailList[i]
-                                }).then((res) => {
-                                    if (res.data.MenuDetailDto.ResultStatus === 0) {
-                                        console.log('OLEYYYYYYYYYYYYYY')
-                                    }
-                                });
-
-                                if (this.menuDetails[i].Children.length > 0) {
-                                    for (var j = 0; j < this.menuDetails[i].Children.length; j++) {
-                                        var menuDetailChildrenUpdateDto = {
-                                            Id: this.menuDetails[i].Children[j].Id,
-                                            CustomName: this.menuDetails[i].Children[j].CustomName,
-                                            CustomURL: this.menuDetails[i].Children[j].CustomURL,
-                                            ParentId: this.menuDetails[i].Id,
-                                            MenuId: this.menuId,
-                                            ObjectId: this.menuDetails[i].Children[j].ObjectId,
-                                            ObjectType: this.menuDetails[i].Children[j].ObjectType,
-                                            MenuOrder: j + 1,
-                                            Children: this.menuDetails[i].Children[j].Children,
-                                            Parent: this.menuDetails[i].Children[j].Parent,
-                                            Parents: this.menuDetails[i].Children[j].Parents,
-                                        }
-
-                                        axios.post('/admin/menu-editmenudetail', {
-                                            MenuDetailUpdateDto: menuDetailChildrenUpdateDto
-                                        }).then((res) => {
-                                            if (res.data.MenuDetailDto.ResultStatus === 0) {
-                                                console.log('OLEYYYYYYYYYYYYYY 2 ')
-                                            }
-                                        });
-                                    }
-
-                                }
-
-                            }
-
-                            this.getAllMenus();
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {

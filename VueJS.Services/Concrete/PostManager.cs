@@ -73,55 +73,139 @@ namespace VueJS.Services.Concrete
             return new DataResult<PostUpdateDto>(ResultStatus.Success, basePageUpdateDto);
         }
 
-        public async Task<IDataResult<PostListDto>> GetAllAsync(ObjectType postType, PostStatus? postStatus)
+        public async Task<IDataResult<PostListDto>> GetAllAsync(ObjectType? postType, PostStatus? postStatus, int? userId)
         {
-            if (postStatus == null)
+            if (userId == null)
             {
-                var posts = postType == ObjectType.page
-                ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
-                .Include(x => x.Parents).ThenInclude(x => x.Parent)
-                .Include(x => x.Parent)
-                .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
-                .Include(x => x.FeaturedImage)
-                .Include(x => x.Galleries).ThenInclude(x => x.Upload)
-                .Include(x => x.User))
-                : postType == ObjectType.article
-                ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
-                .Include(x => x.PostTerms).ThenInclude(x => x.Term)
-                .Include(x => x.FeaturedImage)
-                .Include(x => x.Comments)
-                .Include(x => x.User))
-                : postType == ObjectType.basepage
-                ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
-                .Include(x => x.FeaturedImage)
-                .Include(x => x.User)) :
-                null;
+                if (postStatus == null)
+                {
+                    if (postType == null)
+                    {
+                        var posts = await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostStatus != PostStatus.trash, p => p
+                        .Include(x => x.Parents).ThenInclude(x => x.Parent)
+                        .Include(x => x.Parent)
+                        .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                        .Include(x => x.FeaturedImage)
+                        .Include(x => x.Galleries).ThenInclude(x => x.Upload)
+                        .Include(x => x.User));
 
-                return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                        return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                    }
+                    else
+                    {
+                        var posts = postType == ObjectType.page
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
+                    .Include(x => x.Parents).ThenInclude(x => x.Parent)
+                    .Include(x => x.Parent)
+                    .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Galleries).ThenInclude(x => x.Upload)
+                    .Include(x => x.User))
+                    : postType == ObjectType.article
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
+                    .Include(x => x.PostTerms).ThenInclude(x => x.Term)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Comments)
+                    .Include(x => x.User))
+                    : postType == ObjectType.basepage
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.User)) :
+                    null;
+
+                        return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                    }
+                }
+                else
+                {
+                    var posts = postType == ObjectType.page
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
+                    .Include(x => x.Parents).ThenInclude(x => x.Parent)
+                    .Include(x => x.Parent)
+                    .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Galleries).ThenInclude(x => x.Upload)
+                    .Include(x => x.User))
+                    : postType == ObjectType.article
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
+                    .Include(x => x.PostTerms).ThenInclude(x => x.Term)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Comments)
+                    .Include(x => x.User))
+                    : postType == ObjectType.basepage
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.User))
+                    : null;
+
+                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                }
             }
             else
             {
-                var posts = postType == ObjectType.page
-                ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
-                .Include(x => x.Parents).ThenInclude(x => x.Parent)
-                .Include(x => x.Parent)
-                .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
-                .Include(x => x.FeaturedImage)
-                .Include(x => x.Galleries).ThenInclude(x => x.Upload)
-                .Include(x => x.User))
-                : postType == ObjectType.article
-                ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
-                .Include(x => x.PostTerms).ThenInclude(x => x.Term)
-                .Include(x => x.FeaturedImage)
-                .Include(x => x.Comments)
-                .Include(x => x.User))
-                : postType == ObjectType.basepage
-                ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.PostType == postType && p.PostStatus == postStatus, p => p
-                .Include(x => x.FeaturedImage)
-                .Include(x => x.User))
-                : null;
+                if (postStatus == null)
+                {
+                    if (postType == null)
+                    {
+                        var posts = await UnitOfWork.Posts.GetAllIncludeAsync(p => p.UserId == userId.Value && p.PostStatus != PostStatus.trash, p => p
+                        .Include(x => x.Parents).ThenInclude(x => x.Parent)
+                        .Include(x => x.Parent)
+                        .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                        .Include(x => x.FeaturedImage)
+                        .Include(x => x.Galleries).ThenInclude(x => x.Upload)
+                        .Include(x => x.User));
 
-                return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                        return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                    }
+                    else
+                    {
+                        var posts = postType == ObjectType.page
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.UserId == userId.Value && p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
+                    .Include(x => x.Parents).ThenInclude(x => x.Parent)
+                    .Include(x => x.Parent)
+                    .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Galleries).ThenInclude(x => x.Upload)
+                    .Include(x => x.User))
+                    : postType == ObjectType.article
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.UserId == userId.Value && p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
+                    .Include(x => x.PostTerms).ThenInclude(x => x.Term)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Comments)
+                    .Include(x => x.User))
+                    : postType == ObjectType.basepage
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.UserId == userId.Value && p.PostType == postType && p.PostStatus != PostStatus.trash, p => p
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.User)) :
+                    null;
+
+                        return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                    }
+                }
+                else
+                {
+                    var posts = postType == ObjectType.page
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.UserId == userId.Value && p.PostType == postType && p.PostStatus == postStatus, p => p
+                    .Include(x => x.Parents).ThenInclude(x => x.Parent)
+                    .Include(x => x.Parent)
+                    .Include(x => x.Children).ThenInclude(x => x.FeaturedImage)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Galleries).ThenInclude(x => x.Upload)
+                    .Include(x => x.User))
+                    : postType == ObjectType.article
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.UserId == userId.Value && p.PostType == postType && p.PostStatus == postStatus, p => p
+                    .Include(x => x.PostTerms).ThenInclude(x => x.Term)
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.Comments)
+                    .Include(x => x.User))
+                    : postType == ObjectType.basepage
+                    ? await UnitOfWork.Posts.GetAllIncludeAsync(p => p.UserId == userId.Value && p.PostType == postType && p.PostStatus == postStatus, p => p
+                    .Include(x => x.FeaturedImage)
+                    .Include(x => x.User))
+                    : null;
+
+                    return new DataResult<PostListDto>(ResultStatus.Success, new PostListDto { Posts = posts });
+                }                
             }
         }
 

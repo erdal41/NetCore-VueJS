@@ -30,7 +30,7 @@ namespace VueJS.Services.Concrete
         public async Task<IDataResult<CommentUpdateDto>> GetCommentUpdateDtoAsync(int commentId)
         {
             var result = await UnitOfWork.Comments.AnyAsync(c => c.Id == commentId);
-            if (result) return new DataResult<CommentUpdateDto>(ResultStatus.Error, Messages.Comment.NotFound(false), null);
+            if (!result) return new DataResult<CommentUpdateDto>(ResultStatus.Error, Messages.Comment.NotFound(false), null);
 
             var comment = await UnitOfWork.Comments.GetAsync(c => c.Id == commentId);
             var commentUpdateDto = Mapper.Map<CommentUpdateDto>(comment);
@@ -54,7 +54,7 @@ namespace VueJS.Services.Concrete
                 }
                 else
                 {
-                    var comments = await UnitOfWork.Comments.GetAllAsync(c => c.UserId == userId.Value, c => c.Post, c => c.User);
+                    var comments = await UnitOfWork.Comments.GetAllAsync(c => c.UserId == userId.Value && c.CommentStatus != CommentStatus.trash, c => c.Post, c => c.User);
                     if (comments.Count > 0)
                     {
                         return new DataResult<CommentListDto>(ResultStatus.Success, new CommentListDto
@@ -91,14 +91,14 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<CommentDto>> CommentStatusChangeAsync(int commentId, CommentStatus commentStatus, int userId)
         {
-            var comment = await UnitOfWork.Comments.GetAsync(p => p.Id == commentId);
+            var comment = await UnitOfWork.Comments.GetAsync(c => c.Id == commentId, c => c.Post);
             if (comment == null) return new DataResult<CommentDto>(ResultStatus.Error, Messages.Comment.NotFound(false), null);
 
             var post = comment.Post;
             comment.CommentStatus = commentStatus;
             comment.UserId = userId;
-            await UnitOfWork.Comments.UpdateAsync(comment);
             post.CommentCount = await UnitOfWork.Comments.CountAsync(c => c.PostId == post.Id && c.CommentStatus == CommentStatus.approved);
+            await UnitOfWork.Comments.UpdateAsync(comment);
             await UnitOfWork.Posts.UpdateAsync(post);
             await UnitOfWork.SaveAsync();
 

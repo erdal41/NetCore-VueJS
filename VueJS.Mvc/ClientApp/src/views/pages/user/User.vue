@@ -64,7 +64,7 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body v-show="isHiddenMultiDeleteButton === true">
+                <b-card-body v-if="isHiddenMultiDeleteButton === true">
                     <div class="d-flex justify-content-between flex-wrap">
                         <b-form-group class="mb-0">
                             <b-button variant="danger"
@@ -85,12 +85,9 @@
                         </b-form-group>
                     </div>
                 </b-card-body>
-                <div v-if="isSpinnerShow == true"
-                     class="text-center mt-2 mb-2">
-                    <b-spinner variant="primary" />
-                </div>
                 <div v-else-if="isSpinnerShow == false && users.length > 0">
                     <b-table id="user-table"
+                             :busy="isBusy"
                              :items="filteredData"
                              :fields="fields"
                              :per-page="perPage"
@@ -98,6 +95,11 @@
                              class="mb-0"
                              @row-hovered="rowHovered"
                              @row-unhovered="rowUnHovered">
+                        <template #table-busy>
+                            <div class="text-center text-dark my-2">
+                                <b-spinner class="align-middle"></b-spinner>
+                            </div>
+                        </template>
                         <template #head(Id)="slot">
                             <b-form-checkbox :checked="selectMultiCheck"
                                              @change="selectAllRows"></b-form-checkbox>
@@ -140,6 +142,14 @@
                                             @click="singleDeleteData(row.item.Id, row.item.UserName)">Sil</b-link>
                                 </div>
                             </div>
+                        </template>
+                        <template #cell(Email)="row">
+                            <b-link :href="'mailto:' + row.item.Email"><span> {{ row.item.Email }}</span></b-link>
+                        </template>
+                        <template #cell(Posts)="row">
+                         <b-link :to="{ name: 'pages-basepage-list', query: { user: row.item.Id } }"><small> {{ row.item.Posts.filter(page => page.PostType === 4).length }} Temel Sayfa</small></b-link> <br />
+                         <b-link :to="{ name: 'pages-page-list', query: { user: row.item.Id }  }"><small> {{ row.item.Posts.filter(page => page.PostType === 0).length }} Sayfa</small></b-link> <br />
+                         <b-link :to="{ name: 'pages-article-list', query: { user: row.item.Id }  }"><small> {{ row.item.Posts.filter(page => page.PostType === 1).length }} Makale</small></b-link>
                         </template>
                     </b-table>
                 </div>
@@ -248,7 +258,9 @@
                     { key: 'ProfileImage', label: 'Resim', sortable: false, thStyle: { width: "20px" } },
                     { key: 'UserName', label: 'Kullanıcı Adı', sortable: true, thStyle: { width: "200px" } },
                     { key: 'FirstName', label: 'Ad Soyad', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'Email', label: 'E-Posta Adresi', sortable: true, thStyle: { width: "100px" } }],
+                    { key: 'Email', label: 'E-Posta Adresi', sortable: true, thStyle: { width: "100px" } },
+                    { key: 'Posts', label: 'GÖNDERİLER', sortable: true, thStyle: { width: "100px" } }
+                ],
                 selectMultiCheck: false,
                 checkedRows: [],
                 checkedRowsCount: '',

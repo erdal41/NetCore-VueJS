@@ -1,12 +1,15 @@
 ﻿<template>
     <b-row>
+        <modal-edit :comment-id="commentId"
+                    @commentGetAllData="getAllData"></modal-edit>
+        <modal-view :comment="viewComment"></modal-view>
         <b-col class="content-header-left mb-2"
                cols="12"
                md="6">
             <b-row class="breadcrumbs-top">
                 <b-col cols="12">
                     <h2 class="content-header-title float-left pr-1 mb-0">
-                        Sayfalar
+                        Yorumlar
                     </h2>
                     <div class="breadcrumb-wrapper">
                         <b-breadcrumb>
@@ -26,20 +29,9 @@
                 </b-col>
             </b-row>
         </b-col>
-        <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
-               md="6"
-               cols="12">
-            <b-button v-if="$can('create', 'Otherpage')"
-                      v-b-tooltip.hover
-                      title="Yeni sayfa ekle"
-                      v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                      variant="primary"
-                      :to="{ name:'pages-page-add'}"
-                      class=" ml-1">Yeni Ekle</b-button>
-        </b-col>
         <b-col md="12"
                lg="12">
-            <b-card id="page-list"
+            <b-card id="comment-list"
                     header-tag="header"
                     no-body>
                 <template #header>
@@ -54,7 +46,7 @@
                             <b-form-input placeholder="Ara..."
                                           v-model="filterText" />
                             <b-input-group-append is-text>
-                                <feather-icon v-show="isShowSearchTextClearButton"
+                                <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
                                               title="Temizle"
@@ -65,32 +57,39 @@
                     </div>
                     <div class="ml-auto">
                         <b-link v-b-tooltip.hover
-                                title="Yayında ve taslak olan sayfalar"
+                                title="Onaylanmış ve onay bekleyen yorumlar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list'}"
-                                class="text-primary small mr-1">Tümü ( {{ publishPostsCount + draftPostsCount  }} )</b-link>
-                        <b-link v-show="publishPostsCount > 0"
+                                :to="{ name:'pages-comment-list'}"
+                                class="text-primary small mr-1">Tümü ( {{ approvedCommentsCount + moderatedCommentsCount  }} )</b-link>
+                        <b-link v-if="mineCommentsCount > 0"
                                 v-b-tooltip.hover
-                                title="Yayında olan sayfalar"
+                                title="Onaylanmış yorumlar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list', query: { status : 'publish' } }"
-                                class="text-primary small mr-1">Yayında ( {{ publishPostsCount }} )</b-link>
-                        <b-link v-show="draftPostsCount > 0"
+                                :to="{ name:'pages-comment-list', query: { '' : 'mycomments' } , params: { userId : currentUser.Id } }"
+                                class="text-primary small mr-1">Benim ( {{ mineCommentsCount }} )</b-link>
+                        <b-link v-if="approvedCommentsCount > 0"
                                 v-b-tooltip.hover
-                                title="Taslak olan sayfalar"
+                                title="Onaylanmış yorumlar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list', query: { status : 'draft' } }"
-                                class="text-warning small mr-1">Taslak ( {{ draftPostsCount }} )</b-link>
-                        <b-link v-show="trashPostsCount > 0"
+                                :to="{ name:'pages-comment-list', query: { status : 'approved' } }"
+                                class="text-primary small mr-1">Onaylandı ( {{ approvedCommentsCount }} )</b-link>
+                        <b-link v-if="moderatedCommentsCount > 0"
                                 v-b-tooltip.hover
-                                title="Çöp kutusunda olan sayfalar"
+                                title="Onay bekleyen yorumlar"
                                 v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                 variant="fade-secondary"
-                                :to="{ name:'pages-page-list', query: { status : 'trash' } }"
-                                class="text-danger small mr-1">Çöp ( {{ trashPostsCount }} )</b-link>
+                                :to="{ name:'pages-comment-list', query: { status : 'moderated' } }"
+                                class="text-warning small mr-1">İnceleme Bekliyor ( {{ moderatedCommentsCount }} )</b-link>
+                        <b-link v-if="trashCommentsCount > 0"
+                                v-b-tooltip.hover
+                                title="Çöp kutusunda olan yorumlar"
+                                v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                variant="fade-secondary"
+                                :to="{ name:'pages-comment-list', query: { status : 'trash' } }"
+                                class="text-danger small mr-1">Çöp ( {{ trashCommentsCount }} )</b-link>
                         <b-button v-b-tooltip.hover
                                   title="Tabloyu Yenile"
                                   v-ripple.400="'rgba(113, 102, 240, 0.15)'"
@@ -102,7 +101,7 @@
                         </b-button>
                     </div>
                 </template>
-                <b-card-body v-show="isHiddenStatusButton === true && (($can('update', 'Otherpage') && $route.query.status !== 'trash') || ($can('delete', 'Otherpage') && $route.query.status === 'trash'))">
+                <b-card-body v-if="isHiddenStatusButton === true && (($can('update', 'Comment') && $route.query.status !== 'trash') || ($can('delete', 'Comment') && $route.query.status === 'trash'))">
                     <div class="d-flex justify-content-between flex-wrap">
                         <b-form-group class="mb-0">
                             <b-dropdown id="dropdown-left"
@@ -121,9 +120,9 @@
                                         <span>{{ checkedRowsCount }}</span>
 
                                     </b-button>
-                                    <b-button v-if="$can('update', 'Otherpage') && $can('delete', 'Otherpage')"
+                                    <b-button v-if="$can('update', 'Comment') && $can('delete', 'Comment')"
                                               v-b-tooltip.hover
-                                              title="Seçili sayfaların durumlarını değiştirmenizi sağlar."
+                                              title="Seçili yorumların durumlarını değiştirmenizi sağlar."
                                               v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                               variant="flat-secondary"
                                               size="sm"
@@ -131,151 +130,165 @@
                                         <feather-icon icon="InfoIcon" />
                                     </b-button>
                                 </template>
-                                <b-dropdown-item v-if="$can('update', 'Otherpage') && $route.query.status !== 'publish'"
-                                                 v-show="$route.query.status != 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Comment') && $route.query.status !== 'trash' && $route.query.status !== 'approved'"
                                                  href="javascript:;"
-                                                 id="multi-publish"
+                                                 id="multi-approved"
                                                  variant="success"
-                                                 @click="multiPostStatusChange">
-                                    Yayınla
+                                                 @click="multiCommentStatusChange">
+                                    Onayla
                                 </b-dropdown-item>
-                                <b-dropdown-item v-if="$can('update', 'Otherpage') && $route.query.status !== 'draft'"
-                                                 v-show="$route.query.status != 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Comment') && $route.query.status !== 'trash' && $route.query.status !== 'moderated'"
                                                  href="javascript:;"
-                                                 id="multi-draft"
+                                                 id="multi-moderated"
                                                  variant="warning"
-                                                 @click="multiPostStatusChange">
-                                    Taslak Olarak Kaydet
+                                                 @click="multiCommentStatusChange">
+                                    Beklemeye Al
                                 </b-dropdown-item>
 
-                                <b-dropdown-item v-if="$can('update', 'Otherpage')"
-                                                 v-show="$route.query.status != 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Comment') && $route.query.status !== 'trash'"
                                                  href="javascript:;"
                                                  id="multi-trash"
                                                  variant="danger"
-                                                 @click="multiPostStatusChange">
+                                                 @click="multiCommentStatusChange">
                                     Çöp Kutusuna Taşı
                                 </b-dropdown-item>
-                                <b-dropdown-item v-if="$can('update', 'Otherpage')"
-                                                 v-show="$route.query.status == 'trash'"
+                                <b-dropdown-item v-if="$can('update', 'Comment') && $route.query.status === 'trash'"
                                                  href="javascript:;"
                                                  id="multi-untrash"
                                                  variant="warning"
-                                                 @click="multiPostStatusChange">
+                                                 @click="multiCommentStatusChange">
                                     Geri Al
                                 </b-dropdown-item>
-                                <b-dropdown-item v-if="$can('delete', 'Otherpage')"
-                                                 v-show="$route.query.status == 'trash'"
+                                <b-dropdown-item v-if="$can('delete', 'Comment') && $route.query.status === 'trash'"
                                                  href="javascript:;"
-                                                 id="multi-untrash"
                                                  variant="danger"
-                                                 @click="multiPostStatusChange">
+                                                 @click="multiDeleteData">
                                     Kalıcı Olarak Sil
                                 </b-dropdown-item>
                             </b-dropdown>
                         </b-form-group>
                     </div>
                 </b-card-body>
-                <div v-if="isSpinnerShow == true"
-                     class="text-center mt-2 mb-2">
-                    <b-spinner variant="primary" />
-                </div>
-                <div v-else-if="isSpinnerShow == false && posts.length > 0">
-                    <b-table :items="filteredData"
-                             :fields="fields"
-                             :per-page="perPage"
-                             :current-page="currentPage"
-                             class="mb-0"
-                             foot-clone
-                             @row-hovered="rowHovered"
-                             @row-unhovered="rowUnHovered">
-                        <template #head(Id)="slot">
-                            <b-form-checkbox :disabled="((!$can('update', 'Otherpage') && $route.query.status !== 'trash') || (!$can('delete', 'Otherpage') && $route.query.status === 'trash'))"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #foot(Id)="slot">
-                            <b-form-checkbox :disabled="((!$can('update', 'Otherpage') && $route.query.status !== 'trash') || (!$can('delete', 'Otherpage') && $route.query.status === 'trash'))"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(Id)="row">
-                            <b-form-checkbox :disabled="((!$can('update', 'Otherpage') && $route.query.status !== 'trash') || (!$can('delete', 'Otherpage') && $route.query.status === 'trash'))"
-                                             :value="row.item.Id.toString()"
-                                             :id="row.item.Id.toString()"
-                                             v-model="checkedRows"
-                                             @change="checkChange($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(FeaturedImage)="row">
-                            <div class="image-icon">
-                                <b-img rounded
-                                       v-bind:src="row.item.FeaturedImage == null ? noImage : require('@/assets/images/media/' + row.item.FeaturedImage.FileName)"
-                                       :alt="row.item.FeaturedImage == null ? '' : row.item.FeaturedImage.AltText" />
+                <b-table id="comment-table"
+                         :busy="isBusy"
+                         :items="filteredData"
+                         :fields="fields"
+                         :per-page="perPage"
+                         :current-page="currentPage"
+                         class="mb-0"
+                         foot-clone
+                         @row-hovered="rowHovered"
+                         @row-unhovered="rowUnHovered">
+                    <template #table-busy>
+                        <div class="text-center text-dark my-2">
+                            <b-spinner class="align-middle"></b-spinner>
+                        </div>
+                    </template>
+                    <template #head(Id)="slot">
+                        <b-form-checkbox :disabled="((!$can('update', 'Comment') && $route.query.status !== 'trash') || (!$can('delete', 'Comment') && $route.query.status === 'trash'))"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #foot(Id)="slot">
+                        <b-form-checkbox :disabled="((!$can('update', 'Comment') && $route.query.status !== 'trash') || (!$can('delete', 'Comment') && $route.query.status === 'trash'))"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Id)="row">
+                        <b-form-checkbox :disabled="((!$can('update', 'Comment') && $route.query.status !== 'trash') || (!$can('delete', 'Comment') && $route.query.status === 'trash'))"
+                                         :value="row.item.Id.toString()"
+                                         :id="row.item.Id.toString()"
+                                         v-model="checkedRows"
+                                         @change="checkChange($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Name)="row">
+                        <span class="font-weight-bolder"> {{ row.item.Name }}</span>
+                        <br />
+                        <b-link :href="'mailto:' + row.item.Email"><span> {{ row.item.Email }}</span></b-link>
+                    </template>
+                    <template #cell(Text)="row">
+                        <small>{{row.item.Text}}</small>
+                        <div class="row-actions">
+                            <div v-if="isHovered(row.item) && isHiddenRowActions">
+                                <b-link v-if="row.item.CommentStatus == 0 || row.item.CommentStatus == 1"
+                                        v-b-modal.modal-view
+                                        class="small"
+                                        @click.prevent="viewClick(row.item.Name, row.item.Email, row.item.Text, row.item.CommentStatus)">Görüntüle</b-link>
+                                <small v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
+                                        id="approved"
+                                        class="text-success small"
+                                        variant="flat-danger"
+                                        @click.prevent="commentStatusChange($event, row.item.Id, row.item.Text)">Onayla</b-link>
+                                <small v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
+                                        v-b-modal.modal-edit
+                                        class="text-secondary small"
+                                        variant="flat-danger"
+                                        @click.prevent=updateClick(row.item.Id)>Düzenle</b-link>
+                                <small v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
+                                        id="trash"
+                                        href="javascript:;"
+                                        no-prefetch
+                                        class="text-danger small"
+                                        @click.prevent="commentStatusChange($event, row.item.Id, row.item.Text)">Çöp</b-link>
+                                <b-link v-if="row.item.CommentStatus === 2 && $can('update', 'Comment')"
+                                        id="untrash"
+                                        href="javascript:;"
+                                        no-prefetch
+                                        class="text-warning small"
+                                        @click="commentStatusChange($event, row.item.Id, row.item.Title)">Geri Al</b-link>
+                                <small v-if="row.item.CommentStatus === 2 && $can('update', 'Comment') && $can('delete', 'Comment')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="row.item.CommentStatus === 2 && $can('delete', 'Comment')"
+                                        href="javascript:;"
+                                        no-prefetch
+                                        class="text-danger small"
+                                        @click="singleDeleteData(row.item.Id, row.item.Text)">Kalıcı Sil</b-link>
                             </div>
-                        </template>
-                        <template #cell(Title)="row">
-                            <b v-if="row.item.PostStatus == 2 || !$can('update', 'Otherpage')">{{row.item.Title}}</b>
-                            <b-link v-else
-                                    :to="{ name:'pages-page-edit', query: { edit : row.item.Id } }">
-                                <b>{{row.item.Title}}</b>
-                            </b-link>
-                            <div class="row-actions">
-                                <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link v-show="row.item.PostStatus != 0 && row.item.PostStatus != 2 && $can('update', 'Otherpage')"
-                                            :to="{ name:'pages-post-preview', query: { preview : row.item.Id } }"
-                                            class="text-primary small">Önizle</b-link>
-                                    <b-link v-show="row.item.PostStatus == 0"
-                                            :to="{ name:'pages-page-view', params: { postName : row.item.PostName } }"
-                                            class="text-primary small">Görüntüle</b-link>
-                                    <small v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
-                                            :to="{ name:'pages-page-edit', query: { edit : row.item.Id } }"
-                                            class="text-success small"
-                                            variant="flat-danger">Düzenle</b-link>
-                                    <small v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-show="row.item.PostStatus !== 2 && $can('update', 'Otherpage')"
-                                            id="trash"
-                                            href="javascript:;"
-                                            no-prefetch
-                                            class="text-danger small"
-                                            @click="postStatusChange($event, row.item.Id, row.item.Title)">Çöp</b-link>
-                                    <b-link v-show="row.item.PostStatus === 2 && $can('update', 'Otherpage')"
-                                            id="untrash"
-                                            href="javascript:;"
-                                            no-prefetch
-                                            class="text-warning small"
-                                            @click="postStatusChange($event, row.item.Id, row.item.Title)">Geri Al</b-link>
-                                    <small v-show="row.item.PostStatus === 2 && $can('update', 'Otherpage') && $can('delete', 'Otherpage')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-show="row.item.PostStatus === 2 && $can('delete', 'Otherpage')"
-                                            href="javascript:;"
-                                            no-prefetch
-                                            class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.Title)">Kalıcı Sil</b-link>
-                                </div>
-                            </div>
-                        </template>
-                        <template #cell(ModifiedDate)="row">
-                            <b-badge v-if="row.item.PostStatus == 0"
-                                     variant="success">
-                                Yayında
-                            </b-badge>
-                            <b-badge v-if="row.item.PostStatus == 1"
-                                     variant="warning">
-                                Taslak
-                            </b-badge>
-                            <br />
-                            <span class="small">{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>
-                        </template>
-                    </b-table>
-                </div>
-                <div v-else-if="isSpinnerShow == false && posts.length <= 0"
-                     class="text-center mt-1">Hiç bir sayfa bulunamadı.</div>
-                <b-card-body>
+                        </div>
+                    </template>
+                    <template #cell(Post.Title)="row">
+                        <b-link :to="{ name: 'pages-article-edit', query: { edit: row.item.Post.Id } }">
+                            <span class="font-weight-bold">{{ row.item.Post.Title }}</span>
+                        </b-link>
+                        <br />
+                        <b-link :to="{ name: 'pages-page-view', params: { postName : row.item.Post.PostName } }">
+                            <small>Gönderiyi Görüntüle</small>
+                        </b-link>
+                    </template>
+                    <template #cell(ModifiedDate)="row">
+                        <b-badge v-if="row.item.CommentStatus == 1"
+                                 variant="success">
+                            Onaylandı
+                        </b-badge>
+                        <b-badge v-if="row.item.CommentStatus == 0"
+                                 variant="warning">
+                            İnceleme Bekliyor
+                        </b-badge>
+                        <br />
+                        <span class="small">{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>
+                    </template>
+                    <template #cell(User.UserName)="row">
+                        <b-link :to="{ name: 'pages-user-edit', query: { edit: row.item.User.Id } }">
+                            <span class="font-weight-bold">{{ row.item.User.UserName }}</span>
+                        </b-link>
+                    </template>
+                    <template v-if="filteredData.length <= 0"
+                              slot="bottom-row">
+                        <td colspan="6"
+                            class="text-center">
+                            {{ dataNullMessage  }}
+                        </td>
+                    </template>
+                </b-table>                
+                <b-card-body v-if="comments.length > 0">
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
                         <b-form-group label="Kayıt Sayısı: "
@@ -319,33 +332,34 @@
 </template>
 
 <script>
+    import ModalView from './ModalView.vue';
+    import ModalEdit from './ModalEdit.vue';
     import moment from 'moment'
-    import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import {
-        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BSpinner, BBadge, BTable, BFormCheckbox, BImg, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BSpinner, BBadge, BTable, BFormCheckbox, BButton, BCard, BCardBody, BRow, BCol, BFormSelect, BFormGroup, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
     } from 'bootstrap-vue'
     //import { codeRowDetailsSupport } from './code'
     import axios from 'axios'
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import vSelect from 'vue-select'
+
     import Ripple from 'vue-ripple-directive'
 
     export default {
         components: {
+            ModalView,
+            ModalEdit,
+            moment,
+            ToastificationContent,
             BBreadcrumb,
             BBreadcrumbItem,
             BDropdown,
             BDropdownItem,
             BSpinner,
             BBadge,
-            BCardTitle,
-            BForm,
             BFormSelect,
             BTable,
             BButton,
             BFormCheckbox,
-            BImg,
-            BFormTextarea,
             BCard,
             BRow,
             BCol,
@@ -356,12 +370,7 @@
             BFormInput,
             BInputGroupPrepend,
             BInputGroupAppend,
-            ToastificationContent,
-            ValidationProvider,
-            ValidationObserver,
-            vSelect,
             BLink,
-            moment
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -371,49 +380,65 @@
             return {
                 breadcrumbs: [
                     {
-                        text: 'Sayfalar',
+                        text: 'Yorumlar',
                         active: true,
                     }
                 ],
-                noImage: require('@/assets/images/default/default-post-image.jpg'),
-                isSpinnerShow: true,
-                perPage: 10,
-                pageOptions: [10, 20, 50, 100],
-                totalRows: 1,
-                currentPage: 1,
+                isBusy: true,
+                dataNullMessage: 'Hiçbir yorum bulunamadı.',
+                
                 isShowSearchTextClearButton: false,
                 filterText: '',
-                posts: [],
+                comments: [],
                 selected: '',
                 selectedValue: null,
                 isHiddenStatusButton: false,
                 isHiddenRowActions: false,
                 pageColumnQuantity: '',
-                name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
-                    { key: 'FeaturedImage', label: 'Resim', sortable: false, thStyle: { width: "50px" } },
-                    { key: 'Title', label: 'Başlık', sortable: true, thStyle: { width: "200px" } },
-                    { key: 'ModifiedDate', label: 'Tarih', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'User.UserName', label: 'Yazar', sortable: true, thStyle: { width: "100px" } }
+                    { key: 'Name', label: 'Yorum Yapan', sortable: true, thStyle: { width: "150px" } },
+                    { key: 'Text', label: 'Yorum', sortable: true, thStyle: { width: "250px" } },
+                    { key: 'Post.Title', label: 'Makale', sortable: true, thStyle: { width: "150px" } },
+                    { key: 'ModifiedDate', label: 'Durum', sortable: true, thStyle: { width: "150px" } },
+                    { key: 'User.UserName', label: 'Son Düzenleyen', sortable: true, thStyle: { width: "150px" } }
                 ],
                 selectAllCheck: false,
                 checkedRows: [],
                 checkedRowsCount: '',
-                publishPostsCount: '',
-                draftPostsCount: '',
-                trashPostsCount: '',
+                mineCommentsCount: '',
+                approvedCommentsCount: '',
+                moderatedCommentsCount: '',
+                trashCommentsCount: '',
                 hoveredRow: null,
+                currentUser: '',                
+                perPage: 10,
+                pageOptions: [10, 20, 50, 100],
+                totalRows: 1,
+                currentPage: 1,
+                commentId: 0,
+                viewComment: {
+                    Name: '',
+                    Email: '',
+                    Text: '',
+                    CommentStatus: ''
+                },
             }
         },
         methods: {
+            viewClick(name, mail, text, status) {
+                this.viewComment.Name = name;
+                this.viewComment.Email = mail;
+                this.viewComment.Text = text;
+                this.viewComment.CommentStatus = status;
+            },
+            updateClick(id) {
+                this.commentId = id;
+            },
             changePage(e, pageNumber) {
-                this.isHiddenStatusButton = false;
                 this.checkedRows = [];
-                this.checkedRowsCount = '';
-                this.selectAllCheck = 'false';
+                this.checkChange();
                 this.pageColumnQuantity = this.perPage * pageNumber;
-                console.log(this.pageColumnQuantity);
             },
             rowHovered(item) {
                 this.hoveredRow = item;
@@ -425,15 +450,12 @@
             rowUnHovered() {
                 this.isHiddenRowActions = false
             },
-            onChangeMethod(value) {
-                this.termAddDto.ParentId = value;
-            },
             checkChange() {
                 if (this.checkedRows.length > 0) {
                     this.isHiddenStatusButton = true;
                     this.checkedRowsCount = "( " + this.checkedRows.length + " )";
 
-                    var pageDataQuantity = this.posts.length - (this.pageColumnQuantity - this.perPage);
+                    var pageDataQuantity = this.comments.length - (this.pageColumnQuantity - this.perPage);
                     if (this.pageColumnQuantity > this.perPage) {
                         if (this.checkedRows.length === this.perPage) {
                             this.selectAllCheck = 'true';
@@ -448,7 +470,7 @@
                         if (this.checkedRows.length === this.perPage) {
                             this.selectAllCheck = 'true';
                         }
-                        else if (this.checkedRows.length < this.perPage && this.posts.length === this.checkedRows.length) {
+                        else if (this.checkedRows.length < this.perPage && this.comments.length === this.checkedRows.length) {
                             this.selectAllCheck = 'true';
                         }
                         else {
@@ -463,23 +485,30 @@
             },
             selectAllRows(value) {
                 if (value === true) {
+                    console.log(value)
+                    console.log(this.pageColumnQuantity)
+                    console.log(this.perPage)
                     var idList = [];
                     if (this.pageColumnQuantity > this.perPage) {
                         for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
-                            if (this.posts[i] != null) {
-                                idList.push(this.posts[i].Id);
+                            if (this.comments[i] != null) {
+                                idList.push(this.comments[i].Id);
                             }
                         }
-                        this.checkedRows = idList;
                     } else if (this.pageColumnQuantity === this.perPage) {
                         for (var i = 0; i < this.pageColumnQuantity; i++) {
-                            if (this.posts[i] != null) {
-                                idList.push(this.posts[i].Id);
+                            if (this.comments[i] != null) {
+                                idList.push(this.comments[i].Id);
                             }
                         }
-                        this.checkedRows = idList;
+                    } else if (this.perPage > this.pageColumnQuantity) {
+                        for (var i = 0; i < this.perPage; i++) {
+                            if (this.comments[i] != undefined) {
+                                idList.push(this.comments[i].Id);
+                            }
+                        }
                     }
-
+                    this.checkedRows = idList;
                 }
                 else {
                     this.checkedRows = [];
@@ -487,29 +516,32 @@
                 }
                 this.checkChange();
             },
-            postStatusChange: function (event, id, name) {
-                var postStatus = "";
+            commentStatusChange: function (event, id, text) {
+                var commentStatus = "";
                 if (event.target.id == "trash") {
-                    postStatus = "trash";
-                    console.log(postStatus);
+                    commentStatus = "trash";
+                    console.log(commentStatus);
+                } else if (event.target.id == "approved") {
+                    commentStatus = "approved";
+                    console.log(commentStatus);
                 } else {
-                    postStatus = "draft";
-                    console.log(postStatus);
+                    commentStatus = "moderated";
+                    console.log(commentStatus);
                 }
 
-                axios.post('/admin/post-poststatuschange?postId=' + id + "&status=" + postStatus)
+                axios.post('/admin/comment-commentstatuschange?commentId=' + id + "&commentStatus=" + commentStatus)
                     .then((response) => {
-                        if (response.data.PostDto.ResultStatus === 0) {
+                        if (response.data.CommentDto.ResultStatus === 0) {
+                            this.getAllData();
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
                                     variant: 'success',
                                     title: 'Başarılı İşlem!',
                                     icon: 'CheckIcon',
-                                    text: response.data.PostDto.Message
+                                    text: response.data.CommentDto.Message
                                 }
-                            })
-                            this.getAllData();
+                            });
                         }
                         else {
                             this.$toast({
@@ -518,12 +550,13 @@
                                     variant: 'danger',
                                     title: 'Başarısız İşlem!',
                                     icon: 'AlertOctagonIcon',
-                                    text: response.data.PostDto.Message
+                                    text: response.data.CommentDto.Message
                                 },
                             })
                         }
                     })
                     .catch((error) => {
+                        console.log(error.request)
                         this.$toast({
                             component: ToastificationContent,
                             props: {
@@ -538,7 +571,7 @@
             singleDeleteData(id, name) {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " adlı sayfa kalıcı olarak silinecektir?",
+                    text: name + " içerlikli yorum kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -550,16 +583,16 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
-                        axios.post('/admin/post-delete?postId=' + id)
+                        axios.post('/admin/comment-delete?commentId=' + id)
                             .then((response) => {
-                                if (response.data.PostDto.ResultStatus === 0) {
+                                if (response.data.ResultStatus === 0) {
                                     this.$toast({
                                         component: ToastificationContent,
                                         props: {
                                             variant: 'success',
                                             title: 'Başarılı İşlem!',
                                             icon: 'CheckIcon',
-                                            text: response.data.PostDto.Message
+                                            text: response.data.Message
                                         }
                                     })
                                     this.getAllData();
@@ -571,7 +604,7 @@
                                             variant: 'danger',
                                             title: 'Başarısız İşlem!',
                                             icon: 'AlertOctagonIcon',
-                                            text: response.data.PostDto.Message
+                                            text: response.data.Message
                                         },
                                     })
                                 }
@@ -590,23 +623,22 @@
                     }
                 })
             },
-            multiPostStatusChange: function (event) {
-                var postStatus = "";
-                if (event.target.id == "multi-publish") {
-                    postStatus = "publish";
-                } else if (event.target.id == "multi-draft") {
-                    postStatus = "draft";
+            multiCommentStatusChange: function (event) {
+                var commentStatus = "";
+                if (event.target.id == "multi-approved") {
+                    commentStatus = "approved";
+                } else if (event.target.id == "multi-moderated") {
+                    commentStatus = "moderated";
                 } else if (event.target.id == "multi-untrash") {
-                    postStatus = "draft";
+                    commentStatus = "moderated";
                 } else {
-                    postStatus = "trash";
+                    commentStatus = "trash";
                 }
 
-
                 this.checkedRows.forEach((id, index) => {
-                    axios.post('/admin/post-poststatuschange?postId=' + id + "&status=" + postStatus)
+                    axios.post('/admin/comment-commentstatuschange?commentId=' + id + "&commentStatus=" + commentStatus)
                         .then((response) => {
-                            if (response.data.PostDto.ResultStatus === 0) {
+                            if (response.data.CommentDto.ResultStatus === 0) {
                                 this.getAllData();
                             }
                         });
@@ -616,7 +648,7 @@
             multiDeleteData() {
                 this.$swal({
                     title: 'Toplu olarak silmek istediğinizden emin misiniz?',
-                    text: this.checkedRowsCount + " adet sayfa kalıcı olarak silinecektir?",
+                    text: this.checkedRowsCount + " adet yorum kalıcı olarak silinecektir?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -629,9 +661,9 @@
                 }).then(result => {
                     if (result.value) {
                         this.checkedRows.forEach((id, index) => {
-                            axios.post('/admin/post-delete?postId=' + id)
+                            axios.post('/admin/comment-delete?commentId=' + id)
                                 .then((response) => {
-                                    if (response.data.PostDto.ResultStatus === 0) {
+                                    if (response.data.ResultStatus === 0) {
                                         this.getAllData();
                                     }
                                 });
@@ -640,40 +672,44 @@
                 })
             },
             getAllData() {
-                this.isSpinnerShow = true;
-                axios.get('/admin/post-allposts', {
+                this.isBusy = true;
+                axios.get('/admin/comment-allcomments', {
                     params: {
-                        postType: 'page',
-                        postStatus: this.$route.query.status,
-                        userId: this.$route.query.user
+                        status: this.$route.query.status,
+                        userId: this.$route.params.userId
                     }
                 })
                     .then((response) => {
-                        if (response.data.PostListDto.ResultStatus === 0) {
-                            this.posts = response.data.PostListDto.Data.Posts;
-                            this.publishPostsCount = response.data.PublishPostsCount;
-                            this.draftPostsCount = response.data.DraftPostsCount;
-                            this.trashPostsCount = response.data.TrashPostsCount;
-                            this.totalRows = response.data.PostListDto.Data.Posts.length;
+                        console.log(response.data)
+                        if (response.data.CommentListDto.ResultStatus === 0) {
+                            this.comments = response.data.CommentListDto.Data.Comments;
+                            this.totalRows = response.data.CommentListDto.Data.Comments.length;
                             this.pageColumnQuantity = this.perPage;
+                            this.currentUser = JSON.parse(localStorage.getItem('userData'));
                         } else {
-
-                            this.posts = [];
+                            this.comments = [];
+                            this.dataNullMessage = response.data.CommentListDto.Message;
                         }
+                        this.mineCommentsCount = response.data.MineCommentsCount;
+                        this.approvedCommentsCount = response.data.ApprovedCommentsCount;
+                        this.moderatedCommentsCount = response.data.ModeratedCommentsCount;
+                        this.trashCommentsCount = response.data.TrashCommentsCount;
+
+                        this.isBusy = false;
                         this.filterText = "";
-                        this.isSpinnerShow = false;
-                        this.checkedRowsCount = "";
                         this.checkedRows = [];
-                        this.isHiddenStatusButton = false;
+                        this.checkChange();
                     })
                     .catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
                         this.$toast({
                             component: ToastificationContent,
                             props: {
                                 variant: 'danger',
                                 title: 'Hata Oluştu!',
                                 icon: 'AlertOctagonIcon',
-                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: 'Yorumlar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
                             }
                         })
                     });
@@ -682,8 +718,7 @@
                 if (this.filterText.length === 0) {
                     return true;
                 }
-
-                return (data.Title.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
         watch: {
@@ -693,7 +728,7 @@
         },
         computed: {
             filteredData: function () {
-                return this.posts
+                return this.comments
                     .filter(this.filterByName);
             }
         },
@@ -704,29 +739,15 @@
 </script>
 
 <style>
-    [dir] .table th, [dir] .table td {
+    #comment-list.card .card-header {
+        padding: 8px 8px 8px 8px;
+    }
+
+    #comment-table.table th, #comment-table.table td {
         padding: 0.72rem !important;
     }
 
-    #page-list .card-header {
-        padding: 15px 0px 15px 10px !important;
+    #comment-table > tbody > tr.b-table-bottom-row td {
+        padding: 30px 0px 30px 0 !important;
     }
-
-    .image-icon {
-        width: 50px;
-        height: 50px;
-        position: relative;
-    }
-
-        .image-icon img {
-            max-height: 100%;
-            max-width: 100%;
-            border-radius: 5px;
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            margin: auto;
-        }
 </style>

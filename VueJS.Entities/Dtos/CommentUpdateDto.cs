@@ -1,45 +1,19 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using VueJS.Entities.ComplexTypes;
 
 namespace VueJS.Entities.Dtos
 {
     public class CommentUpdateDto
     {
-        [Required(ErrorMessage = "{0} alanı boş geçilemez.")]
         public int Id { get; set; }
-
-        [DisplayName("Ad Soyad")]
-        [Required(ErrorMessage = "{0} alanı boş geçilemez.")]
-        [MaxLength(50, ErrorMessage = "{0} {1} karakterden büyük olmamalıdır.")]
-        [MinLength(3, ErrorMessage = "{0} {1} karakterden az olmamalıdır.")]
         public string Name { get; set; }
-
-        [DisplayName("Yorum")]
-        [Required(ErrorMessage = "{0} alanı boş geçilemez.")]
-        [MaxLength(1000, ErrorMessage = "{0} {1} karakterden büyük olmamalıdır.")]
-        [MinLength(2, ErrorMessage = "{0} {1} karakterden az olmamalıdır.")]
         public string Text { get; set; }
-
-        [DisplayName("E-Posta Adresi")]
-        [Required(ErrorMessage = "{0} alanı boş geçilemez.")]
-        [MaxLength(100, ErrorMessage = "{0} {1} karakterden büyük olmamalıdır.")]
-        [MinLength(10, ErrorMessage = "{0} {1} karakterden az olmamalıdır.")]
         public string Email { get; set; }
-
-        [Required]
-        public bool IsPersonalInformationsSharing { get; set; }
-
         public int? ParentId { get; set; }
-
-        [DisplayName("Aktif Mi?")]
-        [Required]
-        public bool IsActive { get; set; }
-
-        [DisplayName("Silinsin Mi?")]
-        [Required(ErrorMessage = "{0} alanı boş geçilmemelidir.")]
-        public bool IsDeleted { get; set; }
-
-        [Required]
+        public bool IsPersonalInformationsSharing { get; set; }
+        public DateTime ModifiedDate { get; set; } = DateTime.Now;
+        public int? UserId { get; set; }
+        public CommentStatus CommentStatus { get; set; }
         public int PostId { get; set; }
     }
 }

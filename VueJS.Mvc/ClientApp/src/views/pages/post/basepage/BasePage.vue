@@ -587,7 +587,7 @@
                         this.filterText = "";
                         this.isSpinnerShow = false;
                         this.checkedRowsCount = "";
-                        this.checkedRows = "";
+                        this.checkedRows = [];
                         this.isHiddenStatusButton = false;
                     })
                     .catch((error) => {

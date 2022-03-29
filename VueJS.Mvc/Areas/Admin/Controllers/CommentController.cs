@@ -8,6 +8,7 @@ using VueJS.Mvc.Areas.Admin.Models.Data;
 using VueJS.Mvc.Areas.Admin.Models.View;
 using VueJS.Services.Abstract;
 using System.Threading.Tasks;
+using VueJS.Shared.Utilities.Results.ComplexTypes;
 
 namespace VueJS.Mvc.Areas.Admin.Controllers
 {
@@ -23,9 +24,9 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/comment-allcomments")]
-        public async Task<JsonResult> AllComments(CommentStatus? commentStatus)
+        public async Task<JsonResult> AllComments(CommentStatus? status, int? userId)
         {
-            var result = await _commentService.GetAllAsync(commentStatus, null);
+            var result = await _commentService.GetAllAsync(status, userId);
             var myComments = await _commentService.GetAllAsync(null, LoggedInUser.Id);
             var moderatedComments = await _commentService.GetAllAsync(CommentStatus.moderated, null);
             var approvedComments = await _commentService.GetAllAsync(CommentStatus.approved, null);
@@ -34,10 +35,10 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
             var commentListViewModel = new CommentViewModel
             {
                 CommentListDto = result,
-                MineCommentsCount = myComments.Data.Comments.Count,
-                ModeratedCommentsCount = moderatedComments.Data.Comments.Count,
-                ApprovedCommentsCount = approvedComments.Data.Comments.Count,
-                TrashCommentsCount = trashComments.Data.Comments.Count
+                MineCommentsCount = myComments.ResultStatus == ResultStatus.Success ? myComments.Data.Comments.Count : 0,
+                ModeratedCommentsCount = moderatedComments.ResultStatus == ResultStatus.Success ? moderatedComments.Data.Comments.Count : 0,
+                ApprovedCommentsCount = approvedComments.ResultStatus == ResultStatus.Success ? approvedComments.Data.Comments.Count : 0,
+                TrashCommentsCount = trashComments.ResultStatus == ResultStatus.Success ? trashComments.Data.Comments.Count : 0
             };
             return Json(commentListViewModel);
 
