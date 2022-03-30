@@ -44,14 +44,15 @@
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
-                                          v-model="filterText" />
+                                          v-model="filterText"
+                                          @input="allClear"/>
                             <b-input-group-append is-text>
                                 <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
                                               title="Temizle"
                                               class="cursor-pointer"
-                                              @click="filterText = ''" />
+                                              @click="filterText = ''; allClear();" />
                             </b-input-group-append>
                         </b-input-group>
                     </div>
@@ -185,13 +186,13 @@
                         </div>
                     </template>
                     <template #head(Id)="slot">
-                        <b-form-checkbox :disabled="((!$can('update', 'Comment') && $route.query.status !== 'trash') || (!$can('delete', 'Comment') && $route.query.status === 'trash'))"
+                        <b-form-checkbox :disabled="((!$can('update', 'Comment') && $route.query.status !== 'trash') || (!$can('delete', 'Comment') && $route.query.status === 'trash')) || filteredData.length <= 0"
                                          v-model="selectAllCheck"
                                          :value="true"
                                          @change="selectAllRows($event)"></b-form-checkbox>
                     </template>
                     <template #foot(Id)="slot">
-                        <b-form-checkbox :disabled="((!$can('update', 'Comment') && $route.query.status !== 'trash') || (!$can('delete', 'Comment') && $route.query.status === 'trash'))"
+                        <b-form-checkbox :disabled="((!$can('update', 'Comment') && $route.query.status !== 'trash') || (!$can('delete', 'Comment') && $route.query.status === 'trash')) || filteredData.length <= 0"
                                          v-model="selectAllCheck"
                                          :value="true"
                                          @change="selectAllRows($event)"></b-form-checkbox>
@@ -222,7 +223,7 @@
                                         id="approved"
                                         class="text-success small"
                                         variant="flat-danger"
-                                        @click.prevent="commentStatusChange($event, row.item.Id, row.item.Text)">Onayla</b-link>
+                                        @click.prevent="commentStatusChange($event, row.item.Id)">Onayla</b-link>
                                 <small v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
                                        class="text-muted"> | </small>
                                 <b-link v-if="row.item.CommentStatus !== 2 && $can('update', 'Comment')"
@@ -237,13 +238,13 @@
                                         href="javascript:;"
                                         no-prefetch
                                         class="text-danger small"
-                                        @click.prevent="commentStatusChange($event, row.item.Id, row.item.Text)">Çöp</b-link>
+                                        @click.prevent="commentStatusChange($event, row.item.Id)">Çöp</b-link>
                                 <b-link v-if="row.item.CommentStatus === 2 && $can('update', 'Comment')"
                                         id="untrash"
                                         href="javascript:;"
                                         no-prefetch
                                         class="text-warning small"
-                                        @click="commentStatusChange($event, row.item.Id, row.item.Title)">Geri Al</b-link>
+                                        @click="commentStatusChange($event, row.item.Id)">Geri Al</b-link>
                                 <small v-if="row.item.CommentStatus === 2 && $can('update', 'Comment') && $can('delete', 'Comment')"
                                        class="text-muted"> | </small>
                                 <b-link v-if="row.item.CommentStatus === 2 && $can('delete', 'Comment')"
@@ -287,7 +288,7 @@
                             {{ dataNullMessage  }}
                         </td>
                     </template>
-                </b-table>                
+                </b-table>
                 <b-card-body v-if="comments.length > 0">
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
@@ -386,7 +387,7 @@
                 ],
                 isBusy: true,
                 dataNullMessage: 'Hiçbir yorum bulunamadı.',
-                
+
                 isShowSearchTextClearButton: false,
                 filterText: '',
                 comments: [],
@@ -411,7 +412,7 @@
                 moderatedCommentsCount: '',
                 trashCommentsCount: '',
                 hoveredRow: null,
-                currentUser: '',                
+                currentUser: '',
                 perPage: 10,
                 pageOptions: [10, 20, 50, 100],
                 totalRows: 1,
@@ -426,19 +427,59 @@
             }
         },
         methods: {
-            viewClick(name, mail, text, status) {
-                this.viewComment.Name = name;
-                this.viewComment.Email = mail;
-                this.viewComment.Text = text;
-                this.viewComment.CommentStatus = status;
+            getAllData() {
+                this.isBusy = true;
+                axios.get('/admin/comment-allcomments', {
+                    params: {
+                        status: this.$route.query.status,
+                        userId: this.$route.params.userId
+                    }
+                })
+                    .then((response) => {
+                        console.log(response.data)
+                        if (response.data.CommentListDto.ResultStatus === 0) {
+                            this.comments = response.data.CommentListDto.Data.Comments;
+                            this.totalRows = response.data.CommentListDto.Data.Comments.length;
+                            this.pageColumnQuantity = this.perPage;
+                            this.currentUser = JSON.parse(localStorage.getItem('userData'));
+                        } else {
+                            this.comments = [];
+                            this.dataNullMessage = response.data.CommentListDto.Message;
+                        }
+                        this.mineCommentsCount = response.data.MineCommentsCount;
+                        this.approvedCommentsCount = response.data.ApprovedCommentsCount;
+                        this.moderatedCommentsCount = response.data.ModeratedCommentsCount;
+                        this.trashCommentsCount = response.data.TrashCommentsCount;
+
+                        this.isBusy = false;
+                        this.filterText = "";
+                        this.allClear();
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Yorumlar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
             },
-            updateClick(id) {
-                this.commentId = id;
+            filterByName: function (data) {
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
-            changePage(e, pageNumber) {
+            allClear() {
                 this.checkedRows = [];
-                this.checkChange();
-                this.pageColumnQuantity = this.perPage * pageNumber;
+                this.checkedRowsCount = '';
+                this.isHiddenMultiDeleteButton = false;
+                this.selectAllCheck = 'false';
             },
             rowHovered(item) {
                 this.hoveredRow = item;
@@ -450,12 +491,17 @@
             rowUnHovered() {
                 this.isHiddenRowActions = false
             },
+            changePage(e, pageNumber) {
+                this.checkedRows = [];
+                this.checkChange();
+                this.pageColumnQuantity = this.perPage * pageNumber;
+            },
             checkChange() {
                 if (this.checkedRows.length > 0) {
                     this.isHiddenStatusButton = true;
                     this.checkedRowsCount = "( " + this.checkedRows.length + " )";
 
-                    var pageDataQuantity = this.comments.length - (this.pageColumnQuantity - this.perPage);
+                    var pageDataQuantity = this.filteredData.length - (this.pageColumnQuantity - this.perPage);
                     if (this.pageColumnQuantity > this.perPage) {
                         if (this.checkedRows.length === this.perPage) {
                             this.selectAllCheck = 'true';
@@ -470,7 +516,7 @@
                         if (this.checkedRows.length === this.perPage) {
                             this.selectAllCheck = 'true';
                         }
-                        else if (this.checkedRows.length < this.perPage && this.comments.length === this.checkedRows.length) {
+                        else if (this.checkedRows.length < this.perPage && this.filteredData.length === this.checkedRows.length) {
                             this.selectAllCheck = 'true';
                         }
                         else {
@@ -491,20 +537,20 @@
                     var idList = [];
                     if (this.pageColumnQuantity > this.perPage) {
                         for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
-                            if (this.comments[i] != null) {
-                                idList.push(this.comments[i].Id);
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
                             }
                         }
                     } else if (this.pageColumnQuantity === this.perPage) {
                         for (var i = 0; i < this.pageColumnQuantity; i++) {
-                            if (this.comments[i] != null) {
-                                idList.push(this.comments[i].Id);
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
                             }
                         }
                     } else if (this.perPage > this.pageColumnQuantity) {
                         for (var i = 0; i < this.perPage; i++) {
-                            if (this.comments[i] != undefined) {
-                                idList.push(this.comments[i].Id);
+                            if (this.filteredData[i] != undefined) {
+                                idList.push(this.filteredData[i].Id);
                             }
                         }
                     }
@@ -516,7 +562,16 @@
                 }
                 this.checkChange();
             },
-            commentStatusChange: function (event, id, text) {
+            viewClick(name, mail, text, status) {
+                this.viewComment.Name = name;
+                this.viewComment.Email = mail;
+                this.viewComment.Text = text;
+                this.viewComment.CommentStatus = status;
+            },
+            updateClick(id) {
+                this.commentId = id;
+            },
+            commentStatusChange: function (event, id) {
                 var commentStatus = "";
                 if (event.target.id == "trash") {
                     commentStatus = "trash";
@@ -567,6 +622,28 @@
                             },
                         })
                     });
+            },
+            multiCommentStatusChange: function (event) {
+                var commentStatus = "";
+                if (event.target.id == "multi-approved") {
+                    commentStatus = "approved";
+                } else if (event.target.id == "multi-moderated") {
+                    commentStatus = "moderated";
+                } else if (event.target.id == "multi-untrash") {
+                    commentStatus = "moderated";
+                } else {
+                    commentStatus = "trash";
+                }
+
+                this.checkedRows.forEach((id, index) => {
+                    axios.post('/admin/comment-commentstatuschange?commentId=' + id + "&commentStatus=" + commentStatus)
+                        .then((response) => {
+                            if (response.data.CommentDto.ResultStatus === 0) {
+                                this.getAllData();
+                            }
+                        });
+                })
+
             },
             singleDeleteData(id, name) {
                 this.$swal({
@@ -623,28 +700,6 @@
                     }
                 })
             },
-            multiCommentStatusChange: function (event) {
-                var commentStatus = "";
-                if (event.target.id == "multi-approved") {
-                    commentStatus = "approved";
-                } else if (event.target.id == "multi-moderated") {
-                    commentStatus = "moderated";
-                } else if (event.target.id == "multi-untrash") {
-                    commentStatus = "moderated";
-                } else {
-                    commentStatus = "trash";
-                }
-
-                this.checkedRows.forEach((id, index) => {
-                    axios.post('/admin/comment-commentstatuschange?commentId=' + id + "&commentStatus=" + commentStatus)
-                        .then((response) => {
-                            if (response.data.CommentDto.ResultStatus === 0) {
-                                this.getAllData();
-                            }
-                        });
-                })
-
-            },
             multiDeleteData() {
                 this.$swal({
                     title: 'Toplu olarak silmek istediğinizden emin misiniz?',
@@ -671,55 +726,7 @@
                     }
                 })
             },
-            getAllData() {
-                this.isBusy = true;
-                axios.get('/admin/comment-allcomments', {
-                    params: {
-                        status: this.$route.query.status,
-                        userId: this.$route.params.userId
-                    }
-                })
-                    .then((response) => {
-                        console.log(response.data)
-                        if (response.data.CommentListDto.ResultStatus === 0) {
-                            this.comments = response.data.CommentListDto.Data.Comments;
-                            this.totalRows = response.data.CommentListDto.Data.Comments.length;
-                            this.pageColumnQuantity = this.perPage;
-                            this.currentUser = JSON.parse(localStorage.getItem('userData'));
-                        } else {
-                            this.comments = [];
-                            this.dataNullMessage = response.data.CommentListDto.Message;
-                        }
-                        this.mineCommentsCount = response.data.MineCommentsCount;
-                        this.approvedCommentsCount = response.data.ApprovedCommentsCount;
-                        this.moderatedCommentsCount = response.data.ModeratedCommentsCount;
-                        this.trashCommentsCount = response.data.TrashCommentsCount;
 
-                        this.isBusy = false;
-                        this.filterText = "";
-                        this.checkedRows = [];
-                        this.checkChange();
-                    })
-                    .catch((error) => {
-                        console.log(error)
-                        console.log(error.request)
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Yorumlar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            filterByName: function (data) {
-                if (this.filterText.length === 0) {
-                    return true;
-                }
-                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
-            },
         },
         watch: {
             $route(to, from) {

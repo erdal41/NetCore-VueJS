@@ -1,145 +1,146 @@
 ﻿<template>
-    <b-card>
-        <modal-media v-bind:show="modalShow"
-                     @changeImage="imageChange"
-                     ref="modalMedia"></modal-media>
-        <b-row>
-            <b-col cols="12">
-                <div class="d-flex align-items-center mb-2">
-                    <feather-icon icon="UserIcon"
-                                  size="18" />
-                    <h4 class="mb-0 ml-75">
-                        Genel Bilgiler
-                    </h4>
-                </div>
-            </b-col>
-        </b-row>
-        <!-- form -->
-        <b-form class="mt-2">
+    <b-overlay :show="showOverlay"
+               size="sm">
+        <b-card>
+            <modal-media v-bind:show="modalShow"
+                         @changeImage="imageChange"
+                         ref="modalMedia"></modal-media>
             <b-row>
-
-                <b-col lg="12"
-                       md="12"
-                       class="d-flex justify-content-center mb-3">
-                    <div class="image-thumb">
-                        <b-img id="profileImage"
-                               v-bind:src="profileImage.fileName == null ? noImage : require('@/assets/images/media/' + profileImage.fileName)"
-                               :alt="profileImage.fileName == null ? '' : profileImage.fileName.altText"
-                               rounded />
-                        <b-button id="selectImage"
-                                  v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                  variant="relief-primary"
-                                  size="sm"
-                                  class="btn-icon rounded-circle"
-                                  v-b-modal.modal-media>
-                            <feather-icon icon="Edit2Icon"
-                                          size="11" />
-
-                        </b-button>
-
-
-                        <!--/ upload button -->
-                        <!-- reset -->
-                        <b-button id="removeImage"
-                                  v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                  variant="relief-secondary"
-                                  size="sm"
-                                  class="btn-icon rounded-circle"
-                                  @click="removeImage">
-                            <feather-icon icon="XIcon"
-                                          size="11" />
-                        </b-button>
-                        <b-form-input type="text"
-                                      hidden
-                                      v-model="profileImage.fileName == null ? '' : profileImage.fileName.id"></b-form-input>
+                <b-col cols="12">
+                    <div class="d-flex align-items-center mb-2">
+                        <feather-icon icon="UserIcon"
+                                      size="18" />
+                        <h4 class="mb-0 ml-75">
+                            Genel Bilgiler
+                        </h4>
                     </div>
                 </b-col>
-
-                <b-col sm="6">
-                    <b-form-group label="Ad"
-                                  label-for="Ad">
-                        <b-form-input v-model="userUpdateDto.FirstName"
-                                      name="firstname"
-                                      placeholder="Ad" />
-                    </b-form-group>
-                </b-col>
-                <b-col sm="6">
-                    <b-form-group label="Soyad"
-                                  label-for="Soyad">
-                        <b-form-input v-model="userUpdateDto.LastName"
-                                      name="lastname"
-                                      placeholder="Soyad" />
-                    </b-form-group>
-                </b-col>
-                <b-col sm="6">
-                    <b-form-group label="Yalnızca harfler, sayılar, kısa çizgiler veya alt çizgilerden oluşabilir."
-                                  label-for="username">
-                        <validation-provider #default="{ errors }"
-                                             name="username"
-                                             rules="required|minmax|alpha-dash">
-                            <b-form-input id="username"
-                                          v-model="userUpdateDto.UserName"
-                                          :state="errors.length > 0 ? false:null"
-                                          placeholder="Kullanıcı Adı"
-                                          name="username" />
-                            <small class="text-danger">{{ errors[0] }}</small>
-                        </validation-provider>
-                    </b-form-group>
-                </b-col>
-                <b-col sm="6">
-                    <b-form-group label="E-posta Adresi"
-                                  label-for="email">
-                        <validation-provider #default="{ errors }"
-                                             name="email"
-                                             rules="required|email">
-                            <b-form-input id="email"
-                                          v-model="userUpdateDto.Email"
-                                          name="email"
-                                          :state="errors.length > 0 ? false:null"
-                                          placeholder="E-posta Adresi"
-                                          autofocus />
-                            <small class="text-danger">{{ errors[0] }}</small>
-                        </validation-provider>
-                    </b-form-group>
-                </b-col>
-
-                <b-col cols="12">
-                    <hr class="my-2">
-                </b-col>
-
-                <b-col cols="12">
-                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                              variant="primary"
-                              class="mt-1 mr-1"
-                              @click.prevent="updateData">
-                        Güncelle
-                    </b-button>
-                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                              type="reset"
-                              class="mt-1 ml-25"
-                              variant="outline-secondary"
-                              @click.prevent="resetForm">
-                        Tüm Değişiklikleri İptal Et
-                    </b-button>
-                </b-col>
             </b-row>
-        </b-form>
-    </b-card>
+            <!-- form -->
+            <b-form class="mt-2">
+                <b-row>
+                    <b-col lg="12"
+                           md="12"
+                           class="d-flex justify-content-center mb-3">
+                        <div class="image-thumb">
+                            <b-img id="profileImage"
+                                   v-bind:src="profileImage.fileName == null ? noImage : require('@/assets/images/media/' + profileImage.fileName)"
+                                   :alt="profileImage.fileName == null ? '' : profileImage.fileName.altText"
+                                   rounded />
+                            <b-button id="selectImage"
+                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                      variant="relief-primary"
+                                      size="sm"
+                                      class="btn-icon rounded-circle"
+                                      v-b-modal.modal-media>
+                                <feather-icon icon="Edit2Icon"
+                                              size="11" />
+
+                            </b-button>
+
+
+                            <!--/ upload button -->
+                            <!-- reset -->
+                            <b-button id="removeImage"
+                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                      variant="relief-secondary"
+                                      size="sm"
+                                      class="btn-icon rounded-circle"
+                                      @click="removeImage">
+                                <feather-icon icon="XIcon"
+                                              size="11" />
+                            </b-button>
+                            <b-form-input type="text"
+                                          hidden
+                                          v-model="profileImage.fileName == null ? '' : profileImage.fileName.id"></b-form-input>
+                        </div>
+                    </b-col>
+
+                    <b-col sm="6">
+                        <b-form-group label="Ad"
+                                      label-for="Ad">
+                            <b-form-input v-model="userUpdateDto.FirstName"
+                                          name="firstname"
+                                          placeholder="Ad" />
+                        </b-form-group>
+                    </b-col>
+                    <b-col sm="6">
+                        <b-form-group label="Soyad"
+                                      label-for="Soyad">
+                            <b-form-input v-model="userUpdateDto.LastName"
+                                          name="lastname"
+                                          placeholder="Soyad" />
+                        </b-form-group>
+                    </b-col>
+                    <b-col sm="6">
+                        <b-form-group label="Yalnızca harfler, sayılar, kısa çizgiler veya alt çizgilerden oluşabilir."
+                                      label-for="username">
+                            <validation-provider #default="{ errors }"
+                                                 name="username"
+                                                 rules="required|minmax|alpha-dash">
+                                <b-form-input id="username"
+                                              v-model="userUpdateDto.UserName"
+                                              :state="errors.length > 0 ? false:null"
+                                              placeholder="Kullanıcı Adı"
+                                              name="username" />
+                                <small class="text-danger">{{ errors[0] }}</small>
+                            </validation-provider>
+                        </b-form-group>
+                    </b-col>
+                    <b-col sm="6">
+                        <b-form-group label="E-posta Adresi"
+                                      label-for="email">
+                            <validation-provider #default="{ errors }"
+                                                 name="email"
+                                                 rules="required|email">
+                                <b-form-input id="email"
+                                              v-model="userUpdateDto.Email"
+                                              name="email"
+                                              :state="errors.length > 0 ? false:null"
+                                              placeholder="E-posta Adresi"
+                                              autofocus />
+                                <small class="text-danger">{{ errors[0] }}</small>
+                            </validation-provider>
+                        </b-form-group>
+                    </b-col>
+
+                    <b-col cols="12">
+                        <hr class="my-2">
+                    </b-col>
+
+                    <b-col cols="12">
+                        <b-spinner v-if="updateButtonDisabled"
+                                   variant="secondary"
+                                   class="align-middle mr-1" />
+                        <b-button :disabled="updateButtonDisabled"
+                                  :variant="updateButtonVariant"
+                                  v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                                  class="mr-1"
+                                  @click.prevent="updateData">
+                            Güncelle
+                        </b-button>
+                        <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                  type="reset"
+                                  class="ml-25"
+                                  variant="outline-secondary"
+                                  @click.prevent="resetForm">
+                            Tüm Değişiklikleri İptal Et
+                        </b-button>
+                    </b-col>
+                </b-row>
+            </b-form>
+        </b-card>
+    </b-overlay>
 </template>
 
 <script>
+    import ModalMedia from '@/views/pages/media/ModalMedia.vue';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required, alpha, email } from '@validations'
-
-    import {
-        BButton, BForm, BFormGroup, BFormInput, BInputGroup, BInputGroupPrepend, BRow, BCol, BCard, BCardText, BImg,
-    } from 'bootstrap-vue'
+    import { BOverlay, BCard, BRow, BCol, BImg, BForm, BFormGroup, BFormInput, BSpinner, BButton } from 'bootstrap-vue'
     import Ripple from 'vue-ripple-directive'
-    import ModalMedia from '@/views/pages/media/ModalMedia.vue';
-    import { useInputImageRenderer } from '@core/comp-functions/forms/form-utils'
-    import { ref } from '@vue/composition-api'
     import axios from 'axios';
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
 
     extend('required', {
         ...required,
@@ -166,19 +167,19 @@
     export default {
         components: {
             ModalMedia,
-            BButton,
-            BForm,
-            BImg,
-            BFormGroup,
-            BFormInput,
-            BInputGroup,
-            BInputGroupPrepend,
-            BRow,
-            BCol,
-            BCard,
-            BCardText,
+            ToastificationContent,
             ValidationProvider,
             ValidationObserver,
+            BOverlay,
+            BCard,
+            BRow,
+            BCol,
+            BImg,
+            BForm,
+            BFormGroup,
+            BFormInput,
+            BSpinner,
+            BButton
         },
         directives: {
             Ripple,
@@ -191,6 +192,7 @@
         },
         data() {
             return {
+                showOverlay: false,
                 localOptions: JSON.parse(JSON.stringify(this.generalData)),
                 modalShow: Boolean,
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
@@ -218,11 +220,56 @@
                     LinkedInLink: null,
                     YoutubeLink: null,
                     GitHubLink: null,
-                }
+                },
+                updateButtonDisabled: false,
+                updateButtonVariant: 'primary',
             }
         },
         methods: {
+            getData() {
+                this.showOverlay = true;
+                if (this.localOptions) {
+                    this.userUpdateDto.FirstName = this.localOptions.FirstName;
+                    this.userUpdateDto.LastName = this.localOptions.LastName;
+                    this.userUpdateDto.UserName = this.localOptions.UserName;
+                    this.userUpdateDto.Email = this.localOptions.Email;
+                    this.userUpdateDto.About = this.localOptions.About;
+                    this.userUpdateDto.WebsiteLink = this.localOptions.WebsiteLink;
+                    this.userUpdateDto.PhoneNumber = this.localOptions.PhoneNumber;
+                    this.userUpdateDto.FacebookLink = this.localOptions.FacebookLink;
+                    this.userUpdateDto.TwitterLink = this.localOptions.TwitterLink;
+                    this.userUpdateDto.InstagramLink = this.localOptions.InstagramLink;
+                    this.userUpdateDto.LinkedInLink = this.localOptions.LinkedInLink;
+                    this.userUpdateDto.YoutubeLink = this.localOptions.YoutubeLink;
+                    this.userUpdateDto.GitHubLink = this.localOptions.GitHubLink;
+
+                    if (this.localOptions.ProfileImage != null) {
+                        this.profileImage.id = this.localOptions.ProfileImage.Id;
+                        this.profileImage.fileName = this.localOptions.ProfileImage.FileName;
+                        this.profileImage.altText = this.localOptions.ProfileImage.AltText;
+                    }
+                    else {
+                        this.removeImage();
+                    }
+                    this.showOverlay = false;
+                }
+            },
+            imageChange(id, name, altText) {
+                this.profileImage.id = id;
+                this.profileImage.fileName = name;
+                this.profileImage.altText = altText;
+            },
+            selectImage: function (e) {
+                this.modalShow = true;
+            },
+            removeImage() {
+                this.profileImage.id = null;
+                this.profileImage.fileName = null;
+                this.profileImage.altText = null;
+            },
             updateData() {
+                this.updateButtonDisabled = true;
+                this.updateButtonVariant = 'outline-secondary';
                 this.userUpdateDto.ProfileImageId = this.profileImage.id;
                 axios.post('/admin/user-edit',
                     {
@@ -235,9 +282,11 @@
                                     variant: 'success',
                                     title: 'Başarılı İşlem!',
                                     icon: 'CheckIcon',
-                                    text: response.data.User.UserName + ' adlı kullanıcı güncellendi.'
+                                    text: response.data.User.UserName + ' adlı kullanıcının genel bilgileri güncellendi.'
                                 }
-                            })
+                            });
+                            this.updateButtonDisabled = false;
+                            this.updateButtonVariant = 'primary';
                         }
                         else {
                             this.$toast({
@@ -263,64 +312,13 @@
                         })
                     });
             },
-            getAllData() {
-                this.userUpdateDto.FirstName = this.localOptions.FirstName;
-                this.userUpdateDto.LastName = this.localOptions.LastName;
-                this.userUpdateDto.UserName = this.localOptions.UserName;
-                this.userUpdateDto.Email = this.localOptions.Email;
-                this.userUpdateDto.About = this.localOptions.About;
-                this.userUpdateDto.WebsiteLink = this.localOptions.WebsiteLink;
-                this.userUpdateDto.PhoneNumber = this.localOptions.PhoneNumber;
-                this.userUpdateDto.FacebookLink = this.localOptions.FacebookLink;
-                this.userUpdateDto.TwitterLink = this.localOptions.TwitterLink;
-                this.userUpdateDto.InstagramLink = this.localOptions.InstagramLink;
-                this.userUpdateDto.LinkedInLink = this.localOptions.LinkedInLink;
-                this.userUpdateDto.YoutubeLink = this.localOptions.YoutubeLink;
-                this.userUpdateDto.GitHubLink = this.localOptions.GitHubLink;
-
-                console.log(this.localOptions.ProfileImage)
-
-                if (this.localOptions.ProfileImage != null) {
-                    this.profileImage.id = this.localOptions.ProfileImage.Id;
-                    this.profileImage.fileName = this.localOptions.ProfileImage.FileName;
-                    this.profileImage.altText = this.localOptions.ProfileImage.AltText;
-                }
-                else {
-                    this.removeImage();
-                }
-            },
             resetForm() {
-                this.getAllData();
-            },
-            imageChange(id, name, altText) {
-                this.profileImage.id = id;
-                this.profileImage.fileName = name;
-                this.profileImage.altText = altText;
-            },
-            selectImage: function (e) {
-                this.modalShow = true;
-            },
-            removeImage() {
-                this.profileImage.id = null;
-                this.profileImage.fileName = null;
-                this.profileImage.altText = null;
+                this.getData();
             },
         },
         mounted() {
-            this.getAllData();
-        },
-        setup() {
-            const refInputEl = ref(null)
-            const previewEl = ref(null)
-
-            const { inputImageRenderer } = useInputImageRenderer(refInputEl, previewEl)
-
-            return {
-                refInputEl,
-                previewEl,
-                inputImageRenderer,
-            }
-        },
+            this.getData();
+        }
     }
 </script>
 

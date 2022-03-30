@@ -157,16 +157,10 @@
                         active: true,
                     }
                 ],
-                options: {},
                 users: {}
             }
         },
         beforeCreate() {
-            this.$http.get('/account-setting/data').then(res => {
-                console.log(res.data)
-                this.options = res.data
-            })
-
             this.$http.get('/admin/user-edit?userId=' + this.$route.query.edit).then(res => {
                 console.log(res.data)
                 this.users = res.data

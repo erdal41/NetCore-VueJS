@@ -99,17 +99,19 @@
 
                 <!-- buttons -->
                 <b-col cols="12">
-                    <b-button v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                              variant="primary"
-                              class="mt-1 mr-1"
-                              :disabled="disabledButton ? false : true"
+                    <b-spinner v-if="updateButtonDisabled"
+                               variant="secondary"
+                               class="align-middle mr-1" />
+                    <b-button :disabled="updateButtonDisabled || disabledButton ? false : true"
+                              :variant="updateButtonVariant"
+                              v-ripple.400="'rgba(255, 255, 255, 0.15)'"
+                              class="mr-1"
                               @click.prevent="passwordChange">
                         Güncelle
                     </b-button>
                     <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                              type="reset"
                               variant="outline-secondary"
-                              class="mt-1">
+                              @click.prevent="reset">
                         Temizle
                     </b-button>
                 </b-col>
@@ -120,26 +122,25 @@
 </template>
 
 <script>
-    import {
-        BButton, BForm, BFormGroup, BFormInput, BRow, BCol, BCard, BInputGroup, BInputGroupAppend, BFormInvalidFeedback, BFormValidFeedback
-    } from 'bootstrap-vue'
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
+    import { BCard, BRow, BCol, BForm, BFormGroup, BInputGroup, BInputGroupAppend, BFormInvalidFeedback, BFormValidFeedback, BFormInput, BSpinner, BButton } from 'bootstrap-vue'
     import Ripple from 'vue-ripple-directive'
     import axios from 'axios';
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
 
     export default {
         components: {
-            BButton,
-            BForm,
-            BFormGroup,
-            BFormInput,
+            BCard,
             BRow,
             BCol,
-            BCard,
+            BForm,
+            BFormGroup,
             BInputGroup,
             BInputGroupAppend,
             BFormInvalidFeedback,
             BFormValidFeedback,
+            BFormInput,
+            BSpinner,
+            BButton
         },
         directives: {
             Ripple,
@@ -159,7 +160,9 @@
                 containsLowercase: false,
                 containsUppercase: false,
                 containsSpecialCharacter: false,
-                validPassword: false
+                validPassword: false,
+                updateButtonDisabled: false,
+                updateButtonVariant: 'primary',
             }
         },
         computed: {
@@ -200,7 +203,7 @@
                     this.passwordErrorMessage = 'Şifreniz minimum 8, maksimum 30 karakter olmalıdır.';
                     this.containsEightCharacters = false;
                     this.validPassword = false;
-                }                
+                }
                 return this.validPassword;
             },
             newPasswordRetypeValidation() {
@@ -228,6 +231,8 @@
             },
             passwordChange() {
                 if (this.oldPasswordValidation === true && this.newPasswordValidation === true && this.newPasswordRetypeValidation === true) {
+                    this.updateButtonDisabled = true;
+                    this.updateButtonVariant = 'outline-secondary';
                     axios.post('/admin/user-passwordchange',
                         {
                             CurrentPassword: this.oldPasswordValue,
@@ -235,27 +240,43 @@
                             RepeatPassword: this.RetypePassword,
                         }).then((response) => {
                             console.log(response.data)
-                            if (response.data.UserDto.ResultStatus === 0) {
+                            if (response.data.UserDto.ErrorMessages === null) {
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
                                         variant: 'success',
                                         title: 'Başarılı İşlem!',
                                         icon: 'CheckIcon',
-                                        text: response.data.UserDto.Message
+                                        text: response.data.UserDto.User.UserName + ' adlı kullanıcının şifresi değiştirildi.'
                                     }
-                                })
+                                });
+                                this.updateButtonDisabled = false;
+                                this.updateButtonVariant = 'primary';
                             }
                             else {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Başarısız İşlem!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: response.data.UserDto.Message
-                                    },
-                                })
+                                var messages = response.data.UserDto.ErrorMessages.split('*')
+                                messages.forEach(message => {
+                                    if (message != "") {
+
+                                        if (message.includes('kullanıcı')) {
+                                            this.userErrorMessage = message;
+                                        }
+
+                                        if (message.includes('posta')) {
+                                            this.emailErrorMessage = message;
+                                        }
+
+                                        this.$toast({
+                                            component: ToastificationContent,
+                                            props: {
+                                                variant: 'danger',
+                                                title: 'Başarısız İşlem!',
+                                                icon: 'AlertOctagonIcon',
+                                                text: message,
+                                            },
+                                        })
+                                    }
+                                });
                             }
                         })
                         .catch((error) => {
@@ -272,6 +293,11 @@
                             })
                         });
                 }
+            },
+            reset() {
+                this.oldPasswordValue = '';
+                this.newPasswordValue = '';
+                this.RetypePassword = '';
             }
         },
     }

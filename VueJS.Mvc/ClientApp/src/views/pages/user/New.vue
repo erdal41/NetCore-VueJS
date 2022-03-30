@@ -39,7 +39,6 @@
                          next-button-text="Sonraki"
                          class="vertical-steps steps-transparent mb-3"
                          @on-complete="formSubmitted">
-
                 <!-- account details tab -->
                 <tab-content title="Kullanıcı Bilgileri"
                              icon="feather icon-file-text"
@@ -1009,7 +1008,8 @@
                         UserAddDto: this.userAddDto
                     })
                     .then((responseUser) => {
-                        if (responseUser.data.UserDto.ResultStatus === 0) {
+                        console.log(responseUser.data)
+                        if (responseUser.data.UserDto.ErrorMessages === null) {
 
                             axios.post('/admin/user-roleassign',
                                 {
@@ -1018,7 +1018,7 @@
 
                                 }).then((responseRole) => {
                                     console.log(responseRole.data)
-                                    if (responseRole.data.UserDto.ResultStatus === 0) {
+                                    if (responseRole.data.UserDto.ErrorMessages === null) {
                                         this.$router.push({ name: 'pages-user-edit', query: { edit: responseUser.data.UserDto.User.Id } });
                                         this.$toast({
                                             component: ToastificationContent,
@@ -1026,7 +1026,7 @@
                                                 variant: 'success',
                                                 title: 'Başarılı İşlem!',
                                                 icon: 'CheckIcon',
-                                                text: responseUser.data.UserDto.Message
+                                                text: responseUser.data.UserDto.User.UserName + ' adlı kullanıcı eklendi.'
                                             }
                                         })
                                     }
@@ -1034,7 +1034,7 @@
 
                         }
                         else {
-                            var messages = responseUser.data.UserDto.Message.split('*')
+                            var messages = responseUser.data.UserDto.ErrorMessages.split('*')
                             messages.forEach(message => {
                                 if (message != "") {
 

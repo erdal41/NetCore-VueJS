@@ -51,18 +51,14 @@
 
 <script>
     import draggable from "vuedraggable";
-    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue'
-    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue'
-    import { BCollapse, VBToggle, BListGroupItem, BFormGroup, BFormInput } from 'bootstrap-vue';
+    import { BListGroupItem, BCollapse, VBToggle , BFormGroup, BFormInput } from 'bootstrap-vue';
     import axios from 'axios'
     export default {
         name: "nested-draggable",
         components: {
             draggable,
-            AppCollapse,
-            AppCollapseItem,
-            BCollapse,
             BListGroupItem,
+            BCollapse,
             BFormGroup,
             BFormInput
         },

@@ -76,7 +76,14 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
                         errorMessages += "* Bu e-posta adresi zaten kayıtlı.\n";
                     }
                 }
-                return Json(new UserViewModel { UserDto = new UserDto { User = null } });
+                return Json(new UserViewModel
+                {
+                    UserDto = new UserDto
+                    {
+                        User = null,
+                        ErrorMessages = errorMessages
+                    }
+                });
             }
         }
 

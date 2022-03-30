@@ -1,6 +1,7 @@
 ﻿<template>
-    <div>
+    <div>        
         <b-modal id="modal-edit"
+                 :ok-disabled="showOverlay"
                  cancel-variant="outline-secondary"
                  ok-title="Güncelle"
                  cancel-title="İptal"
@@ -9,61 +10,60 @@
                  :no-close-on-backdrop="true"
                  @show="getData"
                  @hidden="getAllData"
-                 @ok="validationForm">
-            <validation-observer ref="simpleRules">
-                <b-form>
-                    <b-row>
-                        <b-col cols="12">
-                            <b-form-group label-for="oldurl"
-                                          description="Yönlendirilecek linki giriniz.">
-                                <validation-provider #default="{ errors }"
-                                                     name="oldurl"
-                                                     rules="required">
-                                    <b-form-input id="oldurl"
-                                                  v-model="urlRedirectUpdateDto.OldUrl"
-                                                  :state="errors.length > 0 ? false:null"
-                                                  type="text"
-                                                  placeholder="Eski Url" />
-                                    <small class="text-danger">{{ errors[0] }}</small>
-                                </validation-provider>
-                            </b-form-group>
+                 @ok="validationForm">           
+            <b-overlay :show="showOverlay"
+                       rounded="sm">
+                <validation-observer ref="simpleRules">
+                    <b-form>
+                        <b-row>
+                            <b-col cols="12">
+                                <b-form-group label-for="oldurl"
+                                              description="Yönlendirilecek linki giriniz.">
+                                    <validation-provider #default="{ errors }"
+                                                         name="oldurl"
+                                                         rules="required">
+                                        <b-form-input id="oldurl"
+                                                      v-model="urlRedirectUpdateDto.OldUrl"
+                                                      :state="errors.length > 0 ? false:null"
+                                                      type="text"
+                                                      placeholder="Eski Url" />
+                                        <small class="text-danger">{{ errors[0] }}</small>
+                                    </validation-provider>
+                                </b-form-group>
 
-                            <b-form-group label-for="newurl"
-                                          description="Yönelecek olan linki giriniz.">
-                                <validation-provider #default="{ errors }"
-                                                     name="newurl"
-                                                     rules="required">
-                                    <b-form-input id="newurl"
-                                                  v-model="urlRedirectUpdateDto.NewUrl"
-                                                  :state="errors.length > 0 ? false:null"
-                                                  type="text"
-                                                  placeholder="Yeni Url" />
-                                    <small class="text-danger">{{ errors[0] }}</small>
-                                </validation-provider>
-                            </b-form-group>
+                                <b-form-group label-for="newurl"
+                                              description="Yönelecek olan linki giriniz.">
+                                    <validation-provider #default="{ errors }"
+                                                         name="newurl"
+                                                         rules="required">
+                                        <b-form-input id="newurl"
+                                                      v-model="urlRedirectUpdateDto.NewUrl"
+                                                      :state="errors.length > 0 ? false:null"
+                                                      type="text"
+                                                      placeholder="Yeni Url" />
+                                        <small class="text-danger">{{ errors[0] }}</small>
+                                    </validation-provider>
+                                </b-form-group>
 
-                            <b-form-textarea id="description"
-                                             v-model="urlRedirectUpdateDto.Description"
-                                             placeholder="Açıklama"
-                                             rows="2" />
-                        </b-col>
-                    </b-row>
-                </b-form>
-            </validation-observer>
+                                <b-form-textarea id="description"
+                                                 v-model="urlRedirectUpdateDto.Description"
+                                                 placeholder="Açıklama"
+                                                 rows="2" />
+                            </b-col>
+                        </b-row>
+                    </b-form>
+                </validation-observer>
+            </b-overlay>
         </b-modal>
     </div>
-
 </template>
 
 <script>
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
-    import {
-        BRow, BCol, BForm, BFormGroup, BFormInput, BFormTextarea
-    } from 'bootstrap-vue'
-    //import { codeRowDetailsSupport } from './code'
+    import { BOverlay, BRow, BCol, BForm, BFormGroup, BFormInput, BFormTextarea } from 'bootstrap-vue'
     import axios from 'axios'
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
 
     extend('required', {
         ...required,
@@ -72,15 +72,16 @@
 
     export default {
         components: {
+            ToastificationContent,
+            ValidationProvider,
+            ValidationObserver,
+            BOverlay,
             BRow,
             BCol,
             BForm,
             BFormGroup,
             BFormInput,
             BFormTextarea,
-            ValidationProvider,
-            ValidationObserver,
-            ToastificationContent
         },
         props: {
             urlredirectId: {
@@ -91,12 +92,13 @@
         data() {
             return {
                 required,
+                showOverlay: false,
                 urlRedirectUpdateDto: {
                     Id: this.urlredirectId,
                     OldUrl: '',
                     NewUrl: '',
                     Description: '',
-                },                
+                },
             }
         },
         methods: {
@@ -104,16 +106,19 @@
                 this.$emit('getAllData');
             },
             getData() {
-                console.log('Number');
+                this.showOverlay = true;
                 axios.get('/admin/urlredirect-edit', {
                     params: {
                         urlRedirectId: this.urlredirectId
                     }
                 }).then((response) => {
                     console.log(response.data);
-                    this.urlRedirectUpdateDto.OldUrl = response.data.UrlRedirectUpdateDto.Data.OldUrl;
-                    this.urlRedirectUpdateDto.NewUrl = response.data.UrlRedirectUpdateDto.Data.NewUrl;
-                    this.urlRedirectUpdateDto.Description = response.data.UrlRedirectUpdateDto.Data.Description;
+                    if (response.data.UrlRedirectUpdateDto.ResultStatus === 0) {
+                        this.urlRedirectUpdateDto.OldUrl = response.data.UrlRedirectUpdateDto.Data.OldUrl;
+                        this.urlRedirectUpdateDto.NewUrl = response.data.UrlRedirectUpdateDto.Data.NewUrl;
+                        this.urlRedirectUpdateDto.Description = response.data.UrlRedirectUpdateDto.Data.Description;
+                        this.showOverlay = false;
+                    }                    
                 })
             },
             validationForm() {

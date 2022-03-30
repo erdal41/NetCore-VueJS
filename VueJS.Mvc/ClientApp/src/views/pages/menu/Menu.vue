@@ -30,14 +30,22 @@
             <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                    md="6"
                    cols="12">
+                <b-spinner v-if="deleteButtonDisabled"
+                           variant="secondary"
+                           class="align-middle mr-1" />
                 <b-button v-if="$can('create', 'Otherpage') && menuId != ''"
-                          variant="outline-danger"
+                          :disabled="deleteButtonDisabled"
+                          :variant="deleteButtonVariant"
                           class="mr-1"
                           @click.prevent="deleteMenu">
                     Sil
                 </b-button>
+                <b-spinner v-if="saveButtonDisabled"
+                           variant="secondary"
+                           class="align-middle mr-1" />
                 <b-button v-if="$can('create', 'Otherpage')"
-                          variant="primary"
+                          :disabled="saveButtonDisabled"
+                          :variant="saveButtonVariant"
                           @click.prevent="addOrUpdateData">
                     Kaydet
                 </b-button>
@@ -104,173 +112,188 @@
                 <app-collapse id="menu-items"
                               type="margin"
                               accordion>
+
                     <app-collapse-item title="Temel Sayfalar"
                                        visible>
-                        <div class="menu-item-search">
-                            <b-form-input v-model="basePageFilterText"
+                        <b-overlay :show="basePageShowOverlay"
+                                   size="sm">
+                            <div class="menu-item-search">
+                                <b-form-input v-model="basePageFilterText"
+                                              size="sm"
+                                              placeholder="Ara.."></b-form-input>
+                            </div>
+                            <div class="menu-item-list">
+                                <span v-if="filteredBasePage.length < 1">Temel Sayfa bulunamadı.</span>
+                                <b-form-checkbox v-else
+                                                 v-for="basePage in filteredBasePage"
+                                                 :key="basePage.Id"
+                                                 v-model="selectedPostItems"
+                                                 :value="basePage"
+                                                 name="basePage.Title"
+                                                 class="check-basepage"
+                                                 @change="postCheckChange">
+                                    {{ basePage.Title }}
+                                </b-form-checkbox>
+                            </div>
+                            <div class="menu-items-action">
+                                <b-form-checkbox v-model="allBasePagesCheck"
+                                                 :value="true"
+                                                 @change="allBasePageCheckChange">
+                                    <small>Tümünü Seç</small>
+                                </b-form-checkbox>
+                                <b-button variant="outline-primary"
                                           size="sm"
-                                          placeholder="Ara.."></b-form-input>
-                        </div>
-                        <div class="menu-item-list">
-                            <span v-if="filteredBasePage.length < 1">Temel Sayfa bulunamadı.</span>
-                            <b-form-checkbox v-else
-                                             v-for="basePage in filteredBasePage"
-                                             :key="basePage.Id"
-                                             v-model="selectedPostItems"
-                                             :value="basePage"
-                                             name="basePage.Title"
-                                             class="check-basepage"
-                                             @change="postCheckChange">
-                                {{ basePage.Title }}
-                            </b-form-checkbox>
-                        </div>
-                        <div class="menu-items-action">
-                            <b-form-checkbox v-model="allBasePagesCheck"
-                                             :value="true"
-                                             @change="allBasePageCheckChange">
-                                Tümünü Seç
-                            </b-form-checkbox>
-                            <b-button 
-                                      variant="outline-primary"
-                                      size="sm"
-                                      class="float-right menu-add-basepage"
-                                      @click.prevent="menuAddPost">
-                                Menüye Ekle
-                            </b-button>
-                        </div>
-                    </app-collapse-item>
-                    <app-collapse-item title="Sayfalar"
-                                       visible>
-                        <div class="menu-item-search">
-                            <b-form-input v-model="pageFilterText"
+                                          class="float-right menu-add-basepage"
+                                          @click.prevent="menuAddPost">                                    
+                                    Ekle
+                                </b-button>
+                            </div>
+                        </b-overlay>
+                    </app-collapse-item>                    
+                        <app-collapse-item title="Sayfalar"
+                                           visible>
+                            <b-overlay :show="pageShowOverlay"
+                               size="sm">
+                            <div class="menu-item-search">
+                                <b-form-input v-model="pageFilterText"
+                                              size="sm"
+                                              placeholder="Ara.."></b-form-input>
+                            </div>
+                            <div class="menu-item-list">
+                                <span v-if="filteredPage.length < 1">Sayfa bulunamadı.</span>
+                                <b-form-checkbox v-else
+                                                 v-for="page in filteredPage"
+                                                 :key="page.Id"
+                                                 v-model="selectedPostItems"
+                                                 :value="page"
+                                                 name="page.Title"
+                                                 class="check-page"
+                                                 @change="postCheckChange">
+                                    {{ page.Title }}
+                                </b-form-checkbox>
+                            </div>
+                            <div class="menu-items-action">
+                                <b-form-checkbox v-model="allPagesCheck"
+                                                 :value="true"
+                                                 @change="allPageCheckChange">
+                                    <small>Tümünü Seç</small>
+                                </b-form-checkbox>
+                                <b-button variant="outline-primary"
                                           size="sm"
-                                          placeholder="Ara.."></b-form-input>
-                        </div>
-                        <div class="menu-item-list">
-                            <span v-if="filteredPage.length < 1">Sayfa bulunamadı.</span>
-                            <b-form-checkbox v-else
-                                             v-for="page in filteredPage"
-                                             :key="page.Id"
-                                             v-model="selectedPostItems"
-                                             :value="page"
-                                             name="page.Title"
-                                             class="check-page"
-                                             @change="postCheckChange">
-                                {{ page.Title }}
-                            </b-form-checkbox>
-                        </div>
-                        <div class="menu-items-action">
-                            <b-form-checkbox v-model="allPagesCheck"
-                                             :value="true"
-                                             @change="allPageCheckChange">
-                                Tümünü Seç
-                            </b-form-checkbox>
-                            <b-button variant="outline-primary"
-                                      size="sm"
-                                      class="float-right menu-add-page"
-                                      @click.prevent="menuAddPost">
-                                Menüye Ekle
-                            </b-button>
-                        </div>
+                                          class="float-right menu-add-page"
+                                          @click.prevent="menuAddPost">
+                                    Ekle
+                                </b-button>
+                            </div>
+                    </b-overlay>
                     </app-collapse-item>
                     <app-collapse-item title="Makaleler">
-                        <div class="menu-item-search">
-                            <b-form-input v-model="articleFilterText"
+                        <b-overlay :show="articleShowOverlay"
+                                   size="sm">
+                            <div class="menu-item-search">
+                                <b-form-input v-model="articleFilterText"
+                                              size="sm"
+                                              placeholder="Ara.."></b-form-input>
+                            </div>
+                            <div class="menu-item-list">
+                                <span v-if="filteredArticle.length < 1">Makale bulunamadı.</span>
+                                <b-form-checkbox v-else
+                                                 v-for="article in filteredArticle"
+                                                 :key="article.Id"
+                                                 v-model="selectedPostItems"
+                                                 :value="article"
+                                                 name="article.Title"
+                                                 class="check-article"
+                                                 @change="postCheckChange">
+                                    {{ article.Title }}
+                                </b-form-checkbox>
+                            </div>
+                            <div class="menu-items-action">
+                                <b-form-checkbox v-model="allArticlesCheck"
+                                                 :value="true"
+                                                 @change="allArticleCheckChange">
+                                    <small>Tümünü Seç</small>
+                                </b-form-checkbox>
+                                <b-button variant="outline-primary"
                                           size="sm"
-                                          placeholder="Ara.."></b-form-input>
-                        </div>
-                        <div class="menu-item-list">
-                            <span v-if="filteredArticle.length < 1">Makale bulunamadı.</span>
-                            <b-form-checkbox v-else
-                                             v-for="article in filteredArticle"
-                                             :key="article.Id"
-                                             v-model="selectedPostItems"
-                                             :value="article"
-                                             name="article.Title"
-                                             class="check-article"
-                                             @change="postCheckChange">
-                                {{ article.Title }}
-                            </b-form-checkbox>
-                        </div>
-                        <div class="menu-items-action">
-                            <b-form-checkbox v-model="allArticlesCheck"
-                                             :value="true"
-                                             @change="allArticleCheckChange">
-                                Tümünü Seç
-                            </b-form-checkbox>
-                            <b-button variant="outline-primary"
-                                      size="sm"
-                                      class="float-right menu-add-article"
-                                      @click.prevent="menuAddPost">
-                                Menüye Ekle
-                            </b-button>
-                        </div>
+                                          class="float-right menu-add-article"
+                                          @click.prevent="menuAddPost">
+                                    Ekle
+                                </b-button>
+                            </div>
+                        </b-overlay>
                     </app-collapse-item>
                     <app-collapse-item title="Kategoriler">
-                        <div class="menu-item-search">
-                            <b-form-input v-model="categoryFilterText"
+                        <b-overlay :show="categoryShowOverlay"
+                                   size="sm">
+                            <div class="menu-item-search">
+                                <b-form-input v-model="categoryFilterText"
+                                              size="sm"
+                                              placeholder="Ara.."></b-form-input>
+                            </div>
+                            <div class="menu-item-list">
+                                <span v-if="filteredCategory.length < 1">Kategori bulunamadı.</span>
+                                <b-form-checkbox v-else
+                                                 v-for="category in filteredCategory"
+                                                 :key="category.Id"
+                                                 v-model="selectedTermItems"
+                                                 :value="category"
+                                                 name="category.Name"
+                                                 class="check-category"
+                                                 @change="termCheckChange">
+                                    {{ category.Name }}
+                                </b-form-checkbox>
+                            </div>
+                            <div class="menu-items-action">
+                                <b-form-checkbox v-model="allCategoriesCheck"
+                                                 :value="true"
+                                                 @change="allCategoryCheckChange">
+                                    <small>Tümünü Seç</small>
+                                </b-form-checkbox>
+                                <b-button variant="outline-primary"
                                           size="sm"
-                                          placeholder="Ara.."></b-form-input>
-                        </div>
-                        <div class="menu-item-list">
-                            <span v-if="filteredCategory.length < 1">Kategori bulunamadı.</span>
-                            <b-form-checkbox v-else
-                                             v-for="category in filteredCategory"
-                                             :key="category.Id"
-                                             v-model="selectedTermItems"
-                                             :value="category"
-                                             name="category.Name"
-                                             class="check-category"
-                                             @change="termCheckChange">
-                                {{ category.Name }}
-                            </b-form-checkbox>
-                        </div>
-                        <div class="menu-items-action">
-                            <b-form-checkbox v-model="allCategoriesCheck"
-                                             :value="true"
-                                             @change="allCategoryCheckChange">
-                                Tümünü Seç
-                            </b-form-checkbox>
-                            <b-button variant="outline-primary"
-                                      size="sm"
-                                      class="float-right menu-add-category"
-                                      @click.prevent="menuAddTerm">
-                                Menüye Ekle
-                            </b-button>
-                        </div>
+                                          class="float-right menu-add-category"
+                                          @click.prevent="menuAddTerm">
+                                    Ekle
+                                </b-button>
+                            </div>
+                        </b-overlay>
                     </app-collapse-item>
                     <app-collapse-item title="Etiketler">
-                        <div class="menu-item-search">
-                            <b-form-input v-model="tagFilterText"
+                        <b-overlay :show="tagShowOverlay"
+                                   size="sm">
+                            <div class="menu-item-search">
+                                <b-form-input v-model="tagFilterText"
+                                              size="sm"
+                                              placeholder="Ara.."></b-form-input>
+                            </div>
+                            <div class="menu-item-list">
+                                <span v-if="filteredTag.length < 1">Etiket bulunamadı.</span>
+                                <b-form-checkbox v-else
+                                                 v-for="tag in filteredTag"
+                                                 :key="tag.Id"
+                                                 v-model="selectedTermItems"
+                                                 :value="tag"
+                                                 name="tag.Name"
+                                                 class="check-tag"
+                                                 @change="termCheckChange">
+                                    {{ tag.Name }}
+                                </b-form-checkbox>
+                            </div>
+                            <div class="menu-items-action">
+                                <b-form-checkbox v-model="allTagsCheck"
+                                                 :value="true"
+                                                 @change="allTagCheckChange">
+                                    <small>Tümünü Seç</small>
+                                </b-form-checkbox>
+                                <b-button variant="outline-primary"
                                           size="sm"
-                                          placeholder="Ara.."></b-form-input>
-                        </div>
-                        <div class="menu-item-list">
-                            <span v-if="filteredTag.length < 1">Etiket bulunamadı.</span>
-                            <b-form-checkbox v-else
-                                             v-for="tag in filteredTag"
-                                             :key="tag.Id"
-                                             v-model="selectedTermItems"
-                                             :value="tag"
-                                             name="tag.Name"
-                                             class="check-tag"
-                                             @change="termCheckChange">
-                                {{ tag.Name }}
-                            </b-form-checkbox>
-                        </div>
-                        <div class="menu-items-action">
-                            <b-form-checkbox v-model="allTagsCheck"
-                                             :value="true"
-                                             @change="allTagCheckChange">
-                                Tümünü Seç
-                            </b-form-checkbox>
-                            <b-button variant="outline-primary"
-                                      size="sm"
-                                      class="float-right menu-add-tag"
-                                      @click.prevent="menuAddTerm">
-                                Menüye Ekle
-                            </b-button>
-                        </div>
+                                          class="float-right menu-add-tag"
+                                          @click.prevent="menuAddTerm">
+                                    Ekle
+                                </b-button>
+                            </div>
+                        </b-overlay>
                     </app-collapse-item>
                     <app-collapse-item title="Özel Bağlantılar">
                         <div class="custom-menu-item">
@@ -292,29 +315,31 @@
                                       size="sm"
                                       class="float-right mb-1"
                                       @click.prevent="menuAddCustom">
-                                Menüye Ekle
+                                Ekle
                             </b-button>
                         </div>
                     </app-collapse-item>
                 </app-collapse>
             </b-col>
-            <b-col cols="9">
+            <b-col cols="9">                
                 <b-card class="min-vh-100">
-                    <b-form-group v-if="menuId != ''"
-                                  label="Menü Adı"
-                                  label-for="updateMenuName">
-                        <b-form-input id="updateMenuName"
-                                      v-model="updateMenuName"></b-form-input>
-                        <hr />
-                    </b-form-group>
-
-                    <nested-draggable v-if="menuDetails.length > 0"
-                                      class="col-8" 
-                                      :menuDetails="menuDetails"
-                                      @updateMenuItem="getNewMenuDetailList"/>
-                    <pre>
+                    <b-overlay :show="menuItemsShowOverlay"
+                               size="sm">
+                        <b-form-group v-if="menuId != ''"
+                                      label="Menü Adı"
+                                      label-for="updateMenuName">
+                            <b-form-input id="updateMenuName"
+                                          v-model="updateMenuName"></b-form-input>
+                            <hr />
+                        </b-form-group>
+                        <nested-draggable v-if="menuDetails.length > 0"
+                                          class="col-8"
+                                          :menuDetails="menuDetails"
+                                          @updateMenuItem="getNewMenuDetailList" />
+                        <pre>
                         {{ menuDetails }}
                     </pre>
+                    </b-overlay>
                 </b-card>
             </b-col>
         </b-row>
@@ -323,16 +348,14 @@
 
 <script>
     import NestedDraggable from "./components/NestedDraggable";
-    import draggable from "vuedraggable";
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
+    import vSelect from 'vue-select'
     import AppCollapse from '@core/components/app-collapse/AppCollapse.vue'
     import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
-    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BButton, BSpinner, BFormCheckbox, BCard, BFormGroup, BFormInput, BListGroupItem } from 'bootstrap-vue'
-
+    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BOverlay, BFormGroup, BFormInput, BFormCheckbox, BCard } from 'bootstrap-vue'
     import axios from 'axios'
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import vSelect from 'vue-select'
 
     extend('required', {
         ...required,
@@ -342,24 +365,23 @@
     export default {
         components: {
             NestedDraggable,
-            draggable,
+            ToastificationContent,
+            vSelect,
             AppCollapse,
             AppCollapseItem,
-            ToastificationContent,
             ValidationProvider,
             ValidationObserver,
-            vSelect,
             BRow,
             BCol,
             BBreadcrumb,
             BBreadcrumbItem,
             BSpinner,
             BButton,
-            BFormCheckbox,
-            BCard,
+            BOverlay,
             BFormGroup,
             BFormInput,
-            BListGroupItem,
+            BFormCheckbox,
+            BCard
         },
         data() {
             return {
@@ -369,6 +391,16 @@
                         active: true,
                     }
                 ],
+                saveButtonDisabled: false,
+                saveButtonVariant: 'primary',
+                deleteButtonDisabled: false,
+                deleteButtonVariant: 'outline-danger',
+                basePageShowOverlay: false,
+                pageShowOverlay: false,
+                articleShowOverlay: false,
+                categoryShowOverlay: false,
+                tagShowOverlay: false,
+                menuItemsShowOverlay: false,
                 required,
                 isSelectLoading: false,
                 isSpinnerShow: true,
@@ -408,7 +440,7 @@
                 parentId: '',
             }
         },
-        methods: {            
+        methods: {
             postCheckChange() {
                 var selectedBasePages = this.selectedPostItems.filter(post => post.PostType === 4);
                 var selectedPages = this.selectedPostItems.filter(post => post.PostType === 0);
@@ -523,6 +555,10 @@
             },
             addOrUpdateData() {
                 if (this.menuId === '') {
+                    if (this.newMenuName !== '') {
+                        this.saveButtonDisabled = true;
+                        this.saveButtonVariant = 'outline-secondary';
+                    }
                     this.$refs.addMenuValidation.validate().then(success => {
                         if (success) {
                             var menuAddDto = {
@@ -545,12 +581,18 @@
                                             text: response.data.MenuDto.Message
                                         }
                                     });
+                                    this.saveButtonDisabled = false;
+                                    this.saveButtonVariant = 'primary';
                                 }
                             });
                         }
                     });
                 }
                 else {
+                    if (this.updateMenuName !== '') {
+                        this.saveButtonDisabled = true;
+                        this.saveButtonVariant = 'outline-secondary';
+                    }
                     var menuUpdateDto = {
                         Id: this.menuId,
                         Name: this.updateMenuName
@@ -563,7 +605,7 @@
                             if (this.newMenuDetailList.length < 1) {
                                 this.newMenuDetailList = this.menuDetails;
                             }
-                            this.updateChild(this.menuDetails);                           
+                            this.updateChild(this.menuDetails);
 
                             this.$toast({
                                 component: ToastificationContent,
@@ -574,6 +616,8 @@
                                     text: response.data.MenuDto.Message
                                 }
                             });
+                            this.saveButtonDisabled = false;
+                            this.saveButtonVariant = 'primary';
                         }
                     });
                 }
@@ -769,6 +813,8 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
+                        this.deleteButtonDisabled = true;
+                        this.deleteButtonVariant = 'outline-secondary';
                         axios.post('/admin/menu-delete?menuId=' + this.menuId)
                             .then((response) => {
                                 if (response.data.ResultStatus === 0) {
@@ -781,6 +827,9 @@
                                             text: response.data.Message
                                         }
                                     })
+                                    this.deleteButtonDisabled = false;
+                                    this.deleteButtonVariant = 'outline-danger';
+
                                     this.getAllMenus();
                                     this.menuDetails = [];
                                     this.selectedPostItems = [];
@@ -873,6 +922,7 @@
             },
             getAllMenuDetails(id) {
                 this.updateMenuName = this.menus.filter(menu => menu.Id == id)[0].Name;
+                this.menuItemsShowOverlay = true;
                 axios.get('/admin/menu-allmenudetails', {
                     params: {
                         menuId: this.menuId
@@ -889,6 +939,7 @@
                         else {
                             this.menuDetails = [];
                         }
+                        this.menuItemsShowOverlay = false;
                     })
                     .catch((error) => {
                         console.log(error)
@@ -905,6 +956,7 @@
                     });
             },
             getAllBasePages() {
+                this.basePageShowOverlay = true;
                 axios.get('/admin/post-allposts', {
                     params: {
                         postType: 'basepage',
@@ -917,6 +969,7 @@
                         } else {
                             this.basePages = [];
                         }
+                        this.basePageShowOverlay = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -931,6 +984,7 @@
                     });
             },
             getAllPages() {
+                this.pageShowOverlay = true;
                 axios.get('/admin/post-allposts', {
                     params: {
                         postType: 'page',
@@ -943,6 +997,7 @@
                         } else {
                             this.pages = [];
                         }
+                        this.pageShowOverlay = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -957,6 +1012,7 @@
                     });
             },
             getAllArticles() {
+                this.articleShowOverlay = true;
                 axios.get('/admin/post-allposts', {
                     params: {
                         postType: 'article',
@@ -969,6 +1025,7 @@
                         } else {
                             this.articles = [];
                         }
+                        this.articleShowOverlay = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -983,6 +1040,7 @@
                     });
             },
             getAllCategories() {
+                this.categoryShowOverlay = true;
                 axios.get('/admin/term-allterms', {
                     params: {
                         termType: "category"
@@ -995,6 +1053,7 @@
                         else {
                             this.categories = [];
                         }
+                        this.categoryShowOverlay = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -1009,6 +1068,7 @@
                     });
             },
             getAllTags() {
+                this.tagShowOverlay = true;
                 axios.get('/admin/term-allterms', {
                     params: {
                         termType: "tag"
@@ -1021,6 +1081,7 @@
                         else {
                             this.tags = [];
                         }
+                        this.tagShowOverlay = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -1148,19 +1209,5 @@
     #menu-items .menu-items-action .custom-checkbox {
         display: inline-block !important;
         margin-top: 5px;
-    }
-
-    .card-header {
-        padding: 8px !important;
-        border-bottom: 1px solid #ebe9f1 !important;
-    }
-
-    .dragArea {
-        min-height: 50px;
-        outline: 1px dashed;
-    }
-
-    .list-group-item {
-        transition: all 1s
     }
 </style>

@@ -105,14 +105,15 @@
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
-                                          v-model="filterText" />
+                                          v-model="filterText"
+                                          @input="allClear"/>
                             <b-input-group-append is-text>
                                 <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
                                               title="Temizle"
                                               class="cursor-pointer"
-                                              @click="filterText = ''" />
+                                              @click="filterText = ''; allClear();" />
                             </b-input-group-append>
                         </b-input-group>
                     </div>
@@ -281,7 +282,7 @@
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import Ripple from 'vue-ripple-directive'
     import {
-        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BOverlay, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BInputGroupPrepend, BInputGroupAppend, BFormInput, BFormCheckbox, BFormTextarea, BButton, VBTooltip, BSpinner, BTable, BLink, BFormSelect, BPagination,
+        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BInputGroupPrepend, BInputGroupAppend, BFormInput, BFormCheckbox, BFormTextarea, BButton, VBTooltip, BSpinner, BTable, BLink, BFormSelect, BPagination,
     } from 'bootstrap-vue'
     import axios from 'axios'
 
@@ -302,7 +303,6 @@
             BCol,
             BBreadcrumb,
             BBreadcrumbItem,
-            BOverlay,
             BCard,
             BCardBody,
             BForm,
@@ -335,15 +335,15 @@
                 required,
                 addButtonDisabled: false,
                 addButtonVariant: 'primary',
-                isBusy: true,
                 urlRedirectAddDto: {
                     OldUrl: '',
                     NewUrl: '',
                     Description: ''
                 },
+                isBusy: true,
                 dataNullMessage: 'Hiçbir yönlendirme bulunamadı.',
-                isShowSearchTextClearButton: false,
                 filterText: '',
+                isShowSearchTextClearButton: false,
                 urlRedirects: [],
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
@@ -367,95 +367,6 @@
             }
         },
         methods: {
-            urlRedirectsRefreshData(id, oldUrl, newUrl, description) {
-                var index = this.urlRedirects.findIndex(urlRedirect => urlRedirect.Id === id);
-                if (index !== -1) {
-                    this.urlRedirects[index].OldUrl = oldUrl;
-                    this.urlRedirects[index].NewUrl = newUrl;
-                    this.urlRedirects[index].Description = description;
-                }
-            },
-            changePage(e, pageNumber) {
-                this.checkedRows = [];
-                this.checkChange();
-                this.pageColumnQuantity = this.perPage * pageNumber;
-            },
-            updateClick(id) {
-                this.urlRedirectId = id;
-            },
-            rowHovered(item) {
-                this.hoveredRow = item;
-                this.isHiddenRowActions = true
-            },
-            isHovered(item) {
-                return item == this.hoveredRow
-            },
-            rowUnHovered() {
-                this.isHiddenRowActions = false
-            },
-            checkChange() {
-                if (this.checkedRows.length > 0) {
-                    this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = this.checkedRows.length > 0 ? "( " + this.checkedRows.length + " )" : '';
-
-                    var pageDataQuantity = this.urlRedirects.length - (this.pageColumnQuantity - this.perPage);
-                    if (this.pageColumnQuantity > this.perPage) {
-                        if (this.checkedRows.length === this.perPage) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else {
-                            this.selectAllCheck = 'false';
-                        }
-                    } else if (this.pageColumnQuantity === this.perPage) {
-                        if (this.checkedRows.length === this.perPage) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else if (this.checkedRows.length < this.perPage && this.urlRedirects.length === this.checkedRows.length) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else {
-                            this.selectAllCheck = 'false';
-                        }
-                    }
-                }
-                else {
-                    this.isHiddenMultiDeleteButton = false;
-                    this.selectAllCheck = 'false';
-                }
-            },
-            selectAllRows(value) {
-                if (value === true) {
-                    var idList = [];
-                    if (this.pageColumnQuantity > this.perPage) {
-                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
-                            if (this.urlRedirects[i] != null) {
-                                idList.push(this.urlRedirects[i].Id);
-                            }
-                        }
-                    } else if (this.pageColumnQuantity === this.perPage) {
-                        for (var i = 0; i < this.pageColumnQuantity; i++) {
-                            if (this.urlRedirects[i] != null) {
-                                idList.push(this.urlRedirects[i].Id);
-                            }
-                        }
-                    } else if (this.perPage > this.pageColumnQuantity) {
-                        for (var i = 0; i < this.perPage; i++) {
-                            if (this.urlRedirects[i] != undefined) {
-                                idList.push(this.urlRedirects[i].Id);
-                            }
-                        }
-                    }
-                    this.checkedRows = idList;
-                }
-                else {
-                    this.checkedRows = [];
-                    this.isHiddenMultiDeleteButton = false;
-                }
-                this.checkChange();
-            },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
@@ -502,8 +413,6 @@
                                         this.addButtonVariant = 'primary';
                                     }
                                     else {
-                                        this.addButtonDisabled = false;
-                                        this.addButtonVariant = 'primary';
                                         this.$toast({
                                             component: ToastificationContent,
                                             props: {
@@ -529,6 +438,129 @@
                         }
                     }
                 })
+            },
+            getAllData() {
+                this.isBusy = true;
+                axios.get('/admin/urlredirect-allurlredirects')
+                    .then((response) => {
+                        if (response.data.UrlRedirectListDto.ResultStatus === 0) {
+                            this.urlRedirects = response.data.UrlRedirectListDto.Data.UrlRedirects;
+                            this.pageColumnQuantity = this.perPage;
+                            this.totalRows = response.data.UrlRedirectListDto.Data.UrlRedirects.length;
+                        } else {
+                            this.urlRedirects = [];
+                            this.dataNullMessage = response.data.UrlRedirectListDto.Message;
+                        }
+
+                        this.isBusy = false;
+                        this.filterText = "";
+                        this.allClear();
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Yönlendirmeler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            filterByName: function (data) {
+                // no search, don't filter :
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+                return (data.OldUrl.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+            },
+            allClear() {
+                this.checkedRows = [];
+                this.checkedRowsCount = '';
+                this.isHiddenMultiDeleteButton = false;
+                this.selectAllCheck = 'false';
+            },
+            rowHovered(item) {
+                this.hoveredRow = item;
+                this.isHiddenRowActions = true
+            },
+            isHovered(item) {
+                return item == this.hoveredRow
+            },
+            rowUnHovered() {
+                this.isHiddenRowActions = false
+            },
+            checkChange() {
+                if (this.checkedRows.length > 0) {
+                    this.isHiddenMultiDeleteButton = true;
+                    this.checkedRowsCount = this.checkedRows.length > 0 ? "( " + this.checkedRows.length + " )" : '';
+
+                    var pageDataQuantity = this.filteredData.length - (this.pageColumnQuantity - this.perPage);
+                    if (this.pageColumnQuantity > this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && this.filteredData.length === this.checkedRows.length) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    }
+                }
+                else {
+                    this.isHiddenMultiDeleteButton = false;
+                    this.selectAllCheck = 'false';
+                }
+            },
+            selectAllRows(value) {
+                if (value === true) {
+                    var idList = [];
+                    if (this.pageColumnQuantity > this.perPage) {
+                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        for (var i = 0; i < this.pageColumnQuantity; i++) {
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    } else if (this.perPage > this.pageColumnQuantity) {
+                        for (var i = 0; i < this.perPage; i++) {
+                            if (this.filteredData[i] != undefined) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    }
+                    this.checkedRows = idList;
+                }
+                else {
+                    this.checkedRows = [];
+                    this.isHiddenMultiDeleteButton = false;
+                }
+                this.checkChange();
+            },
+            changePage(e, pageNumber) {
+                this.checkedRows = [];
+                this.checkChange();
+                this.pageColumnQuantity = this.perPage * pageNumber;
+            },           
+            updateClick(id) {
+                this.urlRedirectId = id;
             },
             singleDeleteData(id, name) {
                 this.$swal({
@@ -612,43 +644,6 @@
                         });
                     }
                 })
-            },
-            getAllData() {
-                this.isBusy = true;
-                axios.get('/admin/urlredirect-allurlredirects')
-                    .then((response) => {
-                        if (response.data.UrlRedirectListDto.ResultStatus === 0) {
-                            this.urlRedirects = response.data.UrlRedirectListDto.Data.UrlRedirects;
-                            this.pageColumnQuantity = this.perPage;
-                            this.totalRows = response.data.UrlRedirectListDto.Data.UrlRedirects.length;
-                        } else {
-                            this.urlRedirects = [];
-                            this.dataNullMessage = response.data.UrlRedirectListDto.Message;
-                        }
-
-                        this.isBusy = false;
-                        this.filterText = "";
-                        this.checkedRows = [];
-                        this.checkChange();
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Yönlendirmeler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            filterByName: function (data) {
-                // no search, don't filter :
-                if (this.filterText.length === 0) {
-                    return true;
-                }
-                return (data.OldUrl.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
         computed: {
