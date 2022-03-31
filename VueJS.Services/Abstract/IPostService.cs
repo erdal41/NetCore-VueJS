@@ -13,7 +13,7 @@ namespace VueJS.Services.Abstract
         Task<IDataResult<PostDto>> GetAsync(string postName);
         Task<IDataResult<PostDto>> GetByIdAsync(int postId, bool includeCategories, bool includeTags, bool includeComments, bool includeGalleries, bool includeUser);
         Task<IDataResult<PostUpdateDto>> GetBasePageUpdateDtoAsync(string pageName);
-        Task<IDataResult<PostListDto>> GetAllAsync(ObjectType? postType, PostStatus? postStatus, int? userId);
+        Task<IDataResult<PostListDto>> GetAllAsync(int? userId, string category, string tag, ObjectType postType, PostStatus? postStatus);
         Task<IDataResult<PostListDto>> GetAllPostStatusAsync(ObjectType postType, PostStatus postStatus);
         Task<IDataResult<PostListDto>> GetAllTopPostsAsync(int? postId);
         Task<IDataResult<PostListDto>> GetAllSubPostsAsync(int? postId);

@@ -127,7 +127,7 @@
                                                         :src="upload.FileName == null ? null : require('@/assets/images/media/' + upload.FileName)"
                                                         :alt="upload.AltText"
                                                         :style="multiSelect === true && !selectedImages.includes(upload.Id) ? 'opacity:0.5' : ''" />
-                                            <b-progress v-if="uploads.includes(upload.Id) && isImageProgress"
+                                            <b-progress v-if="isImageProgress"
                                                         animated
                                                         :value="progressPercent"
                                                         variant="primary"

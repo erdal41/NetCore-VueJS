@@ -629,6 +629,8 @@
                 this.isSpinnerShow = true;
                 axios.get('/admin/post-allposts', {
                     params: {
+                        category: this.$route.query.category,
+                        tag: this.$route.query.tag,
                         postType: 'article',
                         postStatus: this.$route.query.status
                     }
@@ -651,6 +653,8 @@
                         this.isHiddenStatusButton = false;
                     })
                     .catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
                         this.$toast({
                             component: ToastificationContent,
                             props: {

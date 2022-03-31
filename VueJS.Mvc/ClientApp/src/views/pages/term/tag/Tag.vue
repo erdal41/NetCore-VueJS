@@ -29,7 +29,11 @@
         <b-col v-if="$can('create', 'Tag')"
                md="12"
                lg="4">
-            <b-card title="Etiket Ekle">
+            <b-card id="card-add"
+                     header-tag="header">
+                <template #header>
+                    <span class="font-weight-bold" style="font-size:18px;">Etiket Ekle</span>
+                </template>
                 <validation-observer ref="simpleRules">
                     <b-form>
                         <b-row>
@@ -54,17 +58,18 @@
                                     <b-form-input id="slug"
                                                   v-model="termAddDto.Slug"
                                                   type="text"
-                                                  placeholder="Kısa İsim" 
-                                                  @blur="changeSlug"/>
+                                                  placeholder="Kısa İsim"
+                                                  @blur="changeSlug" />
                                 </b-form-group>
-
                                 <b-form-textarea id="description"
                                                  v-model="termAddDto.Description"
                                                  placeholder="Açıklama"
                                                  rows="3" />
-
-                                <!-- reset button -->
-                                <b-button variant="primary"
+                                <b-spinner v-if="addButtonDisabled"
+                                           variant="secondary"
+                                           class="align-middle mr-1" />
+                                <b-button :disabled="addButtonDisabled"
+                                          :variant="addButtonVariant"
                                           class="float-right mt-1"
                                           type="submit"
                                           @click.prevent="validationForm">
@@ -77,11 +82,15 @@
             </b-card>
         </b-col>
         <b-col :cols="$can('create', 'Tag') ? 8 : 12">
-            <b-card title="Tüm Etiketler"
+            <b-card id="card-list"
+                    title="Tüm Etiketler"
                     header-tag="header"
                     no-body>
                 <template #header>
-                    <div class="float-left">
+                    <span class="font-weight-bold" style="font-size:18px;">Tüm Etiketler </span>
+
+                    <div v-if="terms.length > 0"
+                         class="ml-auto">
                         <b-input-group size="sm"
                                        class="input-group-merge"
                                        v-on:mouseover="isShowSearchTextClearButton = true"
@@ -90,14 +99,15 @@
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
-                                          v-model="filterText" />
+                                          v-model="filterText"                                          
+                                          @input="allClear" />
                             <b-input-group-append is-text>
                                 <feather-icon v-show="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
                                               title="Temizle"
                                               class="cursor-pointer"
-                                              @click="filterText = ''" />
+                                              @click="filterText = ''; allClear();" />
                             </b-input-group-append>
                         </b-input-group>
                     </div>
@@ -106,7 +116,6 @@
                                   title="Tabloyu Yenile"
                                   v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                   variant="fade-secondary"
-                                  class="btn-icon mr-1"
                                   size="sm"
                                   @click="getAllData()">
                             <feather-icon icon="RotateCcwIcon" />
@@ -134,70 +143,74 @@
                         </b-form-group>
                     </div>
                 </b-card-body>
-                <div v-if="isSpinnerShow == true"
-                     class="text-center mt-2 mb-2">
-                    <b-spinner variant="primary" />
-                </div>
-                <div v-else>
-                    <b-table :items="filteredData"
-                             :fields="fields"
-                             :per-page="perPage"
-                             :current-page="currentPage"
-                             class="mb-0"
-                             foot-clone
-                             @row-hovered="rowHovered"
-                             @row-unhovered="rowUnHovered">
-                        <template #head(Id)="slot">
-                            <b-form-checkbox :disabled="!$can('delete', 'Tag')"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #foot(Id)="slot">
-                            <b-form-checkbox :disabled="!$can('delete', 'Tag')"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(Id)="row">
-                            <b-form-checkbox :disabled="!$can('delete', 'Tag')"
-                                             :value="row.item.Id.toString()"
-                                             :id="row.item.Id.toString()"
-                                             v-model="checkedRows"
-                                             @change="checkChange($event)"></b-form-checkbox>
-                        </template>
+                <b-table id="tag-table"
+                         :busy="isBusy"
+                         :items="filteredData"
+                         :fields="fields"
+                         :per-page="perPage"
+                         :current-page="currentPage"
+                         class="mb-0"
+                         foot-clone
+                         @row-hovered="rowHovered"
+                         @row-unhovered="rowUnHovered">
+                    <template #head(Id)="slot">
+                        <b-form-checkbox :disabled="!$can('delete', 'Tag') || filteredData.length <= 0"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #foot(Id)="slot">
+                        <b-form-checkbox :disabled="!$can('delete', 'Tag') || filteredData.length <= 0"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Id)="row">
+                        <b-form-checkbox :disabled="!$can('delete', 'Tag')"
+                                         :value="row.item.Id.toString()"
+                                         :id="row.item.Id.toString()"
+                                         v-model="checkedRows"
+                                         @change="checkChange($event)"></b-form-checkbox>
+                    </template>
 
-                        <template #cell(Name)="row">
-                            <b-link v-if="$can('update', 'Tag')"
-                                    :to="{ name:'pages-tag-edit', query: { edit : row.item.Id } }">
-                                <b>{{row.item.Name}}</b>
-                            </b-link>
-                            <b v-else>{{row.item.Name}}</b>
-                            <div class="row-actions">
-                                <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to=" {name: 'pages-tag-view', params: { slug: row.item.Slug }}"
-                                            class="text-primary small">Görüntüle</b-link>
-                                    <small v-if="$can('update', 'Tag')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-if="$can('update', 'Tag')"
-                                            :to="{ name:'pages-tag-edit', query: { edit : row.item.Id } }"
-                                            class="text-success small"
-                                            variant="flat-danger">Düzenle</b-link>
-                                    <small v-if="$can('delete', 'Tag')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-if="$can('delete', 'Tag')"
-                                            href="javascript:;"
-                                            no-prefetch
-                                            class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
-                                </div>
+                    <template #cell(Name)="row">
+                        <b-link v-if="$can('update', 'Tag')"
+                                :to="{ name:'pages-tag-edit', query: { edit : row.item.Id } }">
+                            <b>{{row.item.Name}}</b>
+                        </b-link>
+                        <b v-else>{{row.item.Name}}</b>
+                        <div class="row-actions">
+                            <div v-if="isHovered(row.item) && isHiddenRowActions">
+                                <b-link :to=" {name: 'pages-tag-view', params: { slug: row.item.Slug }}"
+                                        class="text-primary small">Görüntüle</b-link>
+                                <small v-if="$can('update', 'Tag')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="$can('update', 'Tag')"
+                                        :to="{ name:'pages-tag-edit', query: { edit : row.item.Id } }"
+                                        class="text-success small"
+                                        variant="flat-danger">Düzenle</b-link>
+                                <small v-if="$can('delete', 'Tag')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="$can('delete', 'Tag')"
+                                        href="javascript:;"
+                                        no-prefetch
+                                        class="text-danger small"
+                                        @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
                             </div>
-                        </template>
-                    </b-table>
-                </div>
-                <div v-show="terms.length <= 0"
-                     class="text-center mt-1">{{ dataNullMessage  }}</div>
-                <b-card-body>
+                        </div>
+                    </template>
+                    <template #cell(PostTerms)="row">
+                        <b-link :to="{ name: 'pages-article-list', query: { tag: row.item.Slug } }"><small> {{ row.item.PostTerms.length }}</small></b-link>
+                    </template>
+                    <template v-if="filteredData.length <= 0"
+                              slot="bottom-row">
+                        <td colspan="5"
+                            class="text-center">
+                            {{ dataNullMessage  }}
+                        </td>
+                    </template>
+                </b-table>
+                <b-card-body v-if="filteredData.length > 0">
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
                         <b-form-group label="Kayıt Sayısı: "
@@ -241,17 +254,15 @@
 </template>
 
 <script>
+    import UrlHelper from '@/helper/url-helper';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
     import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
+        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BInputGroupPrepend, BInputGroupAppend, BFormInput, BFormCheckbox, BFormTextarea, BButton, VBTooltip, BSpinner, BTable, BLink, BFormSelect, BPagination,
     } from 'bootstrap-vue'
-
-    import axios from 'axios'
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import vSelect from 'vue-select'
     import Ripple from 'vue-ripple-directive'
-    import UrlHelper from '@/helper/url-helper';
+    import axios from 'axios'
 
     extend('required', {
         ...required,
@@ -260,31 +271,30 @@
 
     export default {
         components: {
-            BBreadcrumb,
-            BBreadcrumbItem,
-            BSpinner,
-            BCardTitle,
-            BForm,
-            BFormSelect,
-            BTable,
-            BButton,
-            BFormCheckbox,
-            BFormTextarea,
-            BCard,
-            BRow,
-            BCol,
-            BCardBody,
-            BFormGroup,
-            BPagination,
-            BInputGroup,
-            BFormInput,
-            BInputGroupPrepend,
-            BInputGroupAppend,
+            UrlHelper,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
-            vSelect,
-            BLink
+            BRow,
+            BCol,
+            BBreadcrumb,
+            BBreadcrumbItem,
+            BCard,
+            BCardBody,
+            BForm,
+            BFormGroup,
+            BInputGroup,
+            BInputGroupPrepend,
+            BInputGroupAppend,
+            BFormInput,
+            BFormCheckbox,
+            BFormTextarea,
+            BButton,
+            BSpinner,
+            BTable,
+            BLink,
+            BFormSelect,
+            BPagination
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -299,25 +309,22 @@
                     }
                 ],
                 required,
-                isSpinnerShow: true,
-                perPage: 10,
-                pageOptions: [10, 20, 50, 100],
-                totalRows: 1,
-                currentPage: 1,
-                isShowSearchTextClearButton: false,
+                addButtonDisabled: false,
+                addButtonVariant: 'primary',
+                isBusy: true,
+                dataNullMessage: 'Hiçbir etiket bulunamadı.',
                 filterText: '',
+                isShowSearchTextClearButton: false,
                 terms: [],
-                dataNullMessage: '',
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
                 pageColumnQuantity: '',
-                name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
                     { key: 'Name', label: 'İSİM', sortable: true, thStyle: { width: "200px" } },
                     { key: 'Description', label: 'Açıklama', sortable: true },
                     { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }
+                    { key: 'PostTerms', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }
                 ],
                 selectAllCheck: false,
                 checkedRows: [],
@@ -332,89 +339,17 @@
                 seoObjectSettingAddDto: {
                     SeoTitle: this.Name
                 },
-                hoveredRow: null
+                hoveredRow: null,
+                perPage: 10,
+                pageOptions: [10, 20, 50, 100],
+                totalRows: 1,
+                currentPage: 1,
             }
         },
         methods: {
-            changePage(e, pageNumber) {
-                this.isHiddenMultiDeleteButton = false;
-                this.checkedRows = [];
-                this.checkedRowsCount = '';
-                this.selectAllCheck = 'false';
-                this.pageColumnQuantity = this.perPage * pageNumber;
-            },
             changeSlug() {
                 var seoSlug = UrlHelper.friendlySEOUrl(this.termAddDto.Slug);
                 this.termAddDto.Slug = seoSlug;
-            },
-            rowHovered(item) {
-                this.hoveredRow = item;
-                this.isHiddenRowActions = true
-            },
-            isHovered(item) {
-                return item == this.hoveredRow
-            },
-            rowUnHovered() {
-                this.isHiddenRowActions = false
-            },
-            checkChange() {
-                if (this.checkedRows.length > 0) {
-                    this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = "( " + this.checkedRows.length + " )";
-
-                    var pageDataQuantity = this.terms.length - (this.pageColumnQuantity - this.perPage);
-                    if (this.pageColumnQuantity > this.perPage) {
-                        if (this.checkedRows.length === this.perPage) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else {
-                            this.selectAllCheck = 'false';
-                        }
-                    } else if (this.pageColumnQuantity === this.perPage) {
-                        if (this.checkedRows.length === this.perPage) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else if (this.checkedRows.length < this.perPage && this.terms.length === this.checkedRows.length) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else {
-                            this.selectAllCheck = 'false';
-                        }
-                    }
-                }
-                else {
-                    this.isHiddenMultiDeleteButton = false;
-                    this.selectAllCheck = 'false';
-                }
-            },
-            selectAllRows(value) {
-                if (value === true) {
-                    var idList = [];
-                    if (this.pageColumnQuantity > this.perPage) {
-                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
-                            if (this.terms[i] != null) {
-                                idList.push(this.terms[i].Id);
-                            }
-                        }
-                        this.checkedRows = idList;
-                    } else if (this.pageColumnQuantity === this.perPage) {
-                        for (var i = 0; i < this.pageColumnQuantity; i++) {
-                            if (this.terms[i] != null) {
-                                idList.push(this.terms[i].Id);
-                            }
-                        }
-                        this.checkedRows = idList;
-                    }
-
-                }
-                else {
-                    this.checkedRows = [];
-                    this.isHiddenMultiDeleteButton = false;
-                }
-                this.checkChange();
             },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
@@ -465,6 +400,132 @@
                     }
                 })
             },
+            getAllData() {
+                this.isBusy = true;
+                axios.get('/admin/term-allterms', {
+                    params: {
+                        termType: 'tag'
+                    }
+                })
+                    .then((response) => {
+                        console.log(response.data);
+                        this.totalRows = response.data.TermListDto.Data.Terms.length;
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.terms = response.data.TermListDto.Data.Terms;
+                            this.pageColumnQuantity = this.perPage;
+                            this.totalRows = response.data.TermListDto.Data.Terms.length;
+                        } else {
+                            this.terms = [];
+                            this.dataNullMessage = response.data.TermListDto.Message;
+                        }
+                        this.isBusy = false;
+                        this.filterText = "";
+                        this.allClear();
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Etiketler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            filterByName: function (data) {
+                // no search, don't filter :
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+
+                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+            },
+            allClear() {
+                this.checkedRows = [];
+                this.checkedRowsCount = '';
+                this.isHiddenMultiDeleteButton = false;
+                this.selectAllCheck = 'false';
+            },
+            rowHovered(item) {
+                this.hoveredRow = item;
+                this.isHiddenRowActions = true
+            },
+            isHovered(item) {
+                return item == this.hoveredRow
+            },
+            rowUnHovered() {
+                this.isHiddenRowActions = false
+            },
+            checkChange() {
+                if (this.checkedRows.length > 0) {
+                    this.isHiddenMultiDeleteButton = true;
+                    this.checkedRowsCount = this.checkedRows.length > 0 ? "( " + this.checkedRows.length + " )" : '';
+
+                    var pageDataQuantity = this.filteredData.length - (this.pageColumnQuantity - this.perPage);
+                    if (this.pageColumnQuantity > this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && this.filteredData.length === this.checkedRows.length) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    }
+                }
+                else {
+                    this.isHiddenMultiDeleteButton = false;
+                    this.selectAllCheck = 'false';
+                }
+            },
+            selectAllRows(value) {
+                if (value === true) {
+                    var idList = [];
+                    if (this.pageColumnQuantity > this.perPage) {
+                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        for (var i = 0; i < this.pageColumnQuantity; i++) {
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    } else if (this.perPage > this.pageColumnQuantity) {
+                        for (var i = 0; i < this.perPage; i++) {
+                            if (this.filteredData[i] != undefined) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    }
+                    this.checkedRows = idList;
+                }
+                else {
+                    this.checkedRows = [];
+                    this.isHiddenMultiDeleteButton = false;
+                }
+                this.checkChange();
+            },
+            changePage(e, pageNumber) {
+                this.checkedRows = [];
+                this.checkChange();
+                this.pageColumnQuantity = this.perPage * pageNumber;
+            },          
             singleDeleteData(id, name) {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
@@ -548,49 +609,7 @@
                     }
                 })
             },
-            getAllData() {
-                this.isSpinnerShow = true;
-                axios.get('/admin/term-allterms', {
-                    params: {
-                        termType: 'tag'
-                    }
-                })
-                    .then((response) => {
-                        this.totalRows = response.data.TermListDto.Data.Terms.length;
-                        if (response.data.TermListDto.ResultStatus === 0) {
-                            this.terms = response.data.TermListDto.Data.Terms;
-                            this.pageColumnQuantity = this.perPage;
-                        } else {
-                            this.terms = [];
-                            this.dataNullMessage = response.data.TermListDto.Message;
-                        }
-                        this.filterText = "";
-                        this.isSpinnerShow = false;
-                        this.checkedRowsCount = "";
-                        this.checkedRows = [];
-                        this.isHiddenMultiDeleteButton = false;
 
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Etiketler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            filterByName: function (data) {
-                // no search, don't filter :
-                if (this.filterText.length === 0) {
-                    return true;
-                }
-
-                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
-            },
         },
         computed: {
             filteredData: function () {
@@ -607,15 +626,25 @@
 <style lang="scss">
     @import '@core/scss/vue/libs/vue-select.scss';
 
-    .card-header {
-        padding: 15px 0px 15px 10px !important;
+    #card-add.card .card-header {
+        padding: 8px 8px 8px 20px !important;
+        border-bottom: 1px solid #ebe9f1;
+        margin-bottom: 20px;
     }
 
-    [dir] .table th, [dir] .table td {
+    #card-list.card .card-header {
+        padding: 8px 8px 8px 8px !important;
+    }
+
+    #tag-table.table th, #tag-table.table td {
         padding: 0.72rem !important;
     }
 
-    [dir] .table th:last-child, [dir] .table td:last-child {
+    #tag-table > tbody > tr.b-table-bottom-row td {
+        padding: 30px 0px 30px 0 !important;
+    }
+
+    tag-table.table th:last-child, [dir] .table td:last-child {
         text-align: center;
     }
 </style>

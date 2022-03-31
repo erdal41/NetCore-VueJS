@@ -84,7 +84,7 @@
         title: 'Menü',
         icon: 'MenuIcon',
         route: 'pages-menu',
-        resource: 'Urlredirect',
+        resource: 'Otherpage',
         action: 'read',
     },
     {

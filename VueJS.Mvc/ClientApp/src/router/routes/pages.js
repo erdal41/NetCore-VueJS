@@ -280,8 +280,8 @@ export default [
         name: 'pages-menu',
         component: () => import('@/views/pages/menu/Menu.vue'),
         meta: {
-            resource: 'User',
-            action: 'update',
+            resource: 'Otherpage',
+            action: 'read',
         },
     },
 

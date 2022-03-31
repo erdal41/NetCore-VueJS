@@ -90,7 +90,7 @@
                 </b-col>
         <b-col md="12"
                lg="12">
-            <b-card id="url-redirect-list"
+            <b-card id="card-list"
                     header-tag="header"
                     no-body>
                 <template #header>
@@ -106,7 +106,7 @@
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
                                           v-model="filterText"
-                                          @input="allClear"/>
+                                          @input="allClear" />
                             <b-input-group-append is-text>
                                 <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
@@ -121,8 +121,7 @@
                         <b-button v-b-tooltip.hover
                                   title="Tabloyu Yenile"
                                   v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                                  variant="fade-secondary"
-                                  class="btn-icon mr-1"
+                                  variant="fade-secondary"                                  
                                   size="sm"
                                   @click="getAllData()">
                             <feather-icon icon="RotateCcwIcon" />
@@ -231,7 +230,7 @@
                         </td>
                     </template>
                 </b-table>
-                <b-card-body v-if="urlRedirects.length > 0">
+                <b-card-body v-if="filteredData.length > 0">
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
                         <b-form-group label="Kayıt Sayısı: "
@@ -276,14 +275,14 @@
 
 <script>
     import ModalEdit from './ModalEdit.vue';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import moment from 'moment';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
-    import Ripple from 'vue-ripple-directive'
     import {
         BRow, BCol, BBreadcrumb, BBreadcrumbItem, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BInputGroupPrepend, BInputGroupAppend, BFormInput, BFormCheckbox, BFormTextarea, BButton, VBTooltip, BSpinner, BTable, BLink, BFormSelect, BPagination,
     } from 'bootstrap-vue'
+    import Ripple from 'vue-ripple-directive'
     import axios from 'axios'
 
 
@@ -295,10 +294,10 @@
     export default {
         components: {
             ModalEdit,
+            ToastificationContent,
             moment,
             ValidationProvider,
             ValidationObserver,
-            ToastificationContent,
             BRow,
             BCol,
             BBreadcrumb,
@@ -450,7 +449,7 @@
                         } else {
                             this.urlRedirects = [];
                             this.dataNullMessage = response.data.UrlRedirectListDto.Message;
-                        }
+                        } 
 
                         this.isBusy = false;
                         this.filterText = "";
@@ -659,14 +658,14 @@
 </script>
 
 <style lang="scss">
-    #card-add.card .card-header{
-        padding: 8px 8px 8px 20px;
+    #card-add.card .card-header {
+        padding: 8px 8px 8px 20px !important;
         border-bottom: 1px solid #ebe9f1;
         margin-bottom: 20px;
     }
 
-    #url-redirect-list.card .card-header {
-        padding: 8px 8px 8px 20px;
+    #card-list.card .card-header {
+        padding: 8px 8px 8px 8px !important;
     }
 
     #urlredirect-table.table th, #urlredirect-table.table td {

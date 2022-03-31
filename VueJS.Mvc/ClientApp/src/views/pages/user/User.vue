@@ -186,7 +186,7 @@
                         </td>
                     </template>
                 </b-table>
-                <b-card-body v-if="users.length > 0">
+                <b-card-body v-if="filteredData.length > 0">
                     <div class="d-flex justify-content-between flex-wrap">
                         <!-- page length -->
                         <b-form-group label="Kayıt Sayısı: "

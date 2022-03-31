@@ -2,12 +2,26 @@
     <draggable v-bind="dragOptions"
                class="item-container list-group list-group-flush"
                :list="menuDetails"
-               tag="ul"
-               :move="checkMove">
-            <b-list-group-item v-for="el in menuDetails"
-                               :key="el.Id"
-                               class="item-group list-unstyled p-0 border-0"
-                               tag="li">
+               tag="ul">
+        <b-list-group-item v-for="el in menuDetails"
+                           :key="el.Id"
+                           class="item-group list-unstyled p-0 border-0"
+                           tag="li">
+            <b-overlay :show="busy"
+                       rounded="lg"
+                       opacity="0.5">
+                <template v-slot:overlay>
+                    <div class="d-flex align-items-center">
+                        <b-spinner small
+                                   type="grow"
+                                   variant="secondary" />
+                        <b-spinner type="grow"
+                                   variant="dark" />
+                        <b-spinner small
+                                   type="grow"
+                                   variant="secondary" />
+                    </div>
+                </template>
                 <div class="item cursor-move">
                     <span class="cursor-pointer">
                         {{ el.CustomName }}
@@ -42,21 +56,26 @@
                         <label>URL: </label> <a class="small" :href="el.CustomURL" target="_blank">{{ el.CustomURL }}</a>
                     </div>
                 </b-collapse>
-                <nested-draggable class="item-sub item-container list-group list-group-flush"
-                                  :menuDetails="el.Children"
-                                  v-bind="dragOptions"/>
-            </b-list-group-item>
+            </b-overlay>
+
+            <nested-draggable class="item-sub item-container list-group list-group-flush"
+                              :menuDetails="el.Children"
+                              v-bind="dragOptions" />
+        </b-list-group-item>
     </draggable>
 </template>
 
 <script>
     import draggable from "vuedraggable";
-    import { BListGroupItem, BCollapse, VBToggle , BFormGroup, BFormInput } from 'bootstrap-vue';
+    import { BOverlay, BSpinner, BListGroupItem, BCollapse, VBToggle, BFormGroup, BFormInput } from 'bootstrap-vue';
     import axios from 'axios'
+
     export default {
         name: "nested-draggable",
         components: {
             draggable,
+            BOverlay,
+            BSpinner,
             BListGroupItem,
             BCollapse,
             BFormGroup,
@@ -72,19 +91,35 @@
         },
         data() {
             return {
+                busy: false,
                 menuItemsText: [],
                 isOpenCollapse: false,
-                drag: false
             }
         },
         methods: {
-            getData() {
-                console.log(this.menuDetails);
+            menuType(type) {
+                if (type === 0) {
+                    return 'Sayfa';
+                } else if (type === 1) {
+                    return 'Makale';
+                } else if (type === 2) {
+                    return 'Kategori';
+                } else if (type === 3) {
+                    return 'Etiket';
+                } else if (type === 4) {
+                    return 'Temel Sayfa';
+                } else if (type === null) {
+                    return 'Özel Bağlantı';
+                }
             },
+            childList(id) {
+                return this.menuDetails.filter(item => item.ParentId === id);
+            },        
             updateMenuItems() {
                 this.$emit('updateMenuItem', this.menuDetails);
             },
             menuItemDelete(menuDetailItem) {
+                this.busy = true
                 axios.post('/admin/menu-deletemenudetail?menuId=' + menuDetailItem.Id).then((response) => {
                     let index = this.menuDetails.indexOf(menuDetailItem);
                     let children = [];
@@ -112,28 +147,6 @@
                     console.log(error.request)
                 });
             },
-            childList(id) {
-                return this.menuDetails.filter(item => item.ParentId === id);
-            },
-            menuType(type) {
-                if (type === 0) {
-                    return 'Sayfa';
-                } else if (type === 1) {
-                    return 'Makale';
-                } else if (type === 2) {
-                    return 'Kategori';
-                } else if (type === 3) {
-                    return 'Etiket';
-                } else if (type === 4) {
-                    return 'Temel Sayfa';
-                } else if (type === null) {
-                    return 'Özel Bağlantı';
-                }
-            },
-            checkMove: function (event) {
-                console.log(event)
-                console.log(this)
-            }
         },
         computed: {
             dragOptions() {
@@ -144,9 +157,6 @@
                     ghostClass: "ghost"
                 };
             }
-        },
-        mounted() {
-            this.getData();
         }
     };
 </script>
@@ -174,7 +184,7 @@
 
     .flip-list-move {
         transition: transform 0.5s;
-        border-top-color:red;
+        border-top-color: red;
     }
 
     .no-move {

@@ -31,12 +31,12 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         }
 
         [HttpGet("/admin/post-allposts")]
-        public async Task<JsonResult> AllPosts(ObjectType? postType, PostStatus? postStatus, int? userId)
+        public async Task<JsonResult> AllPosts(ObjectType postType, PostStatus? postStatus, int? userId, string category, string tag)
         {
-            var postListResult = await _postService.GetAllAsync(postType, postStatus, userId);
-            var publishPosts = await _postService.GetAllAsync(postType, PostStatus.publish, userId);
-            var draftPosts = await _postService.GetAllAsync(postType, PostStatus.draft, userId);
-            var trashPosts = await _postService.GetAllAsync(postType, PostStatus.trash, userId);
+            var postListResult = await _postService.GetAllAsync(userId, category, tag, postType, postStatus);
+            var publishPosts = await _postService.GetAllAsync(userId, category, tag, postType, PostStatus.publish);
+            var draftPosts = await _postService.GetAllAsync(userId, category, tag, postType, PostStatus.draft);
+            var trashPosts = await _postService.GetAllAsync(userId, category, tag, postType, PostStatus.trash);
 
             return Json(new PostViewModel
             {

@@ -33,7 +33,7 @@
                 <b-spinner v-if="deleteButtonDisabled"
                            variant="secondary"
                            class="align-middle mr-1" />
-                <b-button v-if="$can('create', 'Otherpage') && menuId != ''"
+                <b-button v-if="$can('create', 'Menu') && menuId != ''"
                           :disabled="deleteButtonDisabled"
                           :variant="deleteButtonVariant"
                           class="mr-1"
@@ -43,12 +43,12 @@
                 <b-spinner v-if="saveButtonDisabled"
                            variant="secondary"
                            class="align-middle mr-1" />
-                <b-button v-if="$can('create', 'Otherpage')"
-                          :disabled="saveButtonDisabled"
+                <b-button v-if="$can('create', 'Menu') || ($can('update', 'Menu') && menuId)"
+                          :disabled="saveButtonDisabled || deleteButtonDisabled"
                           :variant="saveButtonVariant"
                           @click.prevent="addOrUpdateData">
                     Kaydet
-                </b-button>
+                </b-button>                
             </b-col>
         </b-row>
         <b-row class="menu-banner">
@@ -65,7 +65,6 @@
                           :options="menus"
                           label="Name"
                           :reduce="(option) => option.Id"
-                          :clearable="false"
                           placeholder="— Seçim Yapın —"
                           :disabled="isSelectLoading"
                           :loading="isSelectLoading"
@@ -81,7 +80,8 @@
                     </template>
                 </v-select>
             </b-col>
-            <b-col cols="6">
+            <b-col v-if="$can('create', 'Menu')"
+                   cols="6">
                 <b-form-group label="veya yeni bir menü ekleyin"
                               label-for="tag"
                               label-cols="5"
@@ -100,14 +100,15 @@
                             <small class="text-danger">{{ errors[0] }}</small>
                         </validation-provider>
                     </validation-observer>
-                    <b-button v-if="$can('create','Tag') && menuId != ''"
+                    <b-button v-if="$can('create','Menu') && menuId"
                               variant="outline-primary"
                               @click.prevent="menuId = ''; newMenuName = ''; updateMenuName = ''; menuDetails = []">Yeni Menü Oluştur</b-button>
                 </b-form-group>
             </b-col>
         </b-row>
         <b-row class="mt-3">
-            <b-col cols="3">
+            <b-col v-if="$can('create','Menu') && $can('update','Menu')"
+                   cols="3">
                 <h4>Menü Öğeleri Ekle</h4>
                 <app-collapse id="menu-items"
                               type="margin"
@@ -141,7 +142,8 @@
                                                  @change="allBasePageCheckChange">
                                     <small>Tümünü Seç</small>
                                 </b-form-checkbox>
-                                <b-button variant="outline-primary"
+                                <b-button :disabled="!selectedPostItems.some(post => post.PostType === 4)"
+                                          variant="outline-primary"
                                           size="sm"
                                           class="float-right menu-add-basepage"
                                           @click.prevent="menuAddPost">                                    
@@ -178,7 +180,8 @@
                                                  @change="allPageCheckChange">
                                     <small>Tümünü Seç</small>
                                 </b-form-checkbox>
-                                <b-button variant="outline-primary"
+                                <b-button :disabled="!selectedPostItems.some(post => post.PostType === 0)"
+                                          variant="outline-primary"
                                           size="sm"
                                           class="float-right menu-add-page"
                                           @click.prevent="menuAddPost">
@@ -214,7 +217,8 @@
                                                  @change="allArticleCheckChange">
                                     <small>Tümünü Seç</small>
                                 </b-form-checkbox>
-                                <b-button variant="outline-primary"
+                                <b-button :disabled="!selectedPostItems.some(post => post.PostType === 1)"
+                                          variant="outline-primary"
                                           size="sm"
                                           class="float-right menu-add-article"
                                           @click.prevent="menuAddPost">
@@ -250,7 +254,8 @@
                                                  @change="allCategoryCheckChange">
                                     <small>Tümünü Seç</small>
                                 </b-form-checkbox>
-                                <b-button variant="outline-primary"
+                                <b-button :disabled="!selectedTermItems.some(term => term.TermType === 2)"
+                                          variant="outline-primary"
                                           size="sm"
                                           class="float-right menu-add-category"
                                           @click.prevent="menuAddTerm">
@@ -286,7 +291,8 @@
                                                  @change="allTagCheckChange">
                                     <small>Tümünü Seç</small>
                                 </b-form-checkbox>
-                                <b-button variant="outline-primary"
+                                <b-button :disabled="!selectedTermItems.some(term => term.TermType === 3)"
+                                          variant="outline-primary"
                                           size="sm"
                                           class="float-right menu-add-tag"
                                           @click.prevent="menuAddTerm">
@@ -311,7 +317,8 @@
                                               size="sm"
                                               placeholder="URL giriniz"></b-form-input>
                             </b-form-group>
-                            <b-button variant="outline-primary"
+                            <b-button :disabled="!customName || !customURL"
+                                      variant="outline-primary"
                                       size="sm"
                                       class="float-right mb-1"
                                       @click.prevent="menuAddCustom">
@@ -321,18 +328,18 @@
                     </app-collapse-item>
                 </app-collapse>
             </b-col>
-            <b-col cols="9">                
+            <b-col :cols="($can('create','Menu') || $can('update','Menu')) === true ? '9' : '12'">                
                 <b-card class="min-vh-100">
                     <b-overlay :show="menuItemsShowOverlay"
                                size="sm">
-                        <b-form-group v-if="menuId != ''"
+                        <b-form-group v-if="menuId"
                                       label="Menü Adı"
                                       label-for="updateMenuName">
                             <b-form-input id="updateMenuName"
                                           v-model="updateMenuName"></b-form-input>
                             <hr />
                         </b-form-group>
-                        <nested-draggable v-if="menuDetails.length > 0"
+                        <nested-draggable v-if="menuDetails.length > 0 && menuId"
                                           class="col-8"
                                           :menuDetails="menuDetails"
                                           @updateMenuItem="getNewMenuDetailList" />
@@ -441,6 +448,206 @@
             }
         },
         methods: {
+            getAllMenus() {
+                this.menus = [];
+                this.isSelectLoading = true;
+                axios.get('/admin/menu-allmenus')
+                    .then((response) => {
+                        console.log(response.data)
+                        if (response.data.MenuListDto.ResultStatus === 0) {
+                            this.menus = response.data.MenuListDto.Data.Menus;
+                            this.isSelectLoading = false;
+                        }
+                        else {
+                            this.menus = [];
+                            this.nullMenuMessage = response.data.MenuListDto.Message;
+                            this.isSelectLoading = false;
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Menüler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getAllBasePages() {
+                this.basePageShowOverlay = true;
+                axios.get('/admin/post-allposts', {
+                    params: {
+                        postType: 'basepage',
+                        postStatus: 'publish'
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.basePages = response.data.PostListDto.Data.Posts;
+                        } else {
+                            this.basePages = [];
+                        }
+                        this.basePageShowOverlay = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getAllPages() {
+                this.pageShowOverlay = true;
+                axios.get('/admin/post-allposts', {
+                    params: {
+                        postType: 'page',
+                        postStatus: 'publish'
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.pages = response.data.PostListDto.Data.Posts;
+                        } else {
+                            this.pages = [];
+                        }
+                        this.pageShowOverlay = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getAllArticles() {
+                this.articleShowOverlay = true;
+                axios.get('/admin/post-allposts', {
+                    params: {
+                        postType: 'article',
+                        postStatus: 'publish'
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.articles = response.data.PostListDto.Data.Posts;
+                        } else {
+                            this.articles = [];
+                        }
+                        this.articleShowOverlay = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getAllCategories() {
+                this.categoryShowOverlay = true;
+                axios.get('/admin/term-allterms', {
+                    params: {
+                        termType: "category"
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.categories = response.data.TermListDto.Data.Terms;
+                        }
+                        else {
+                            this.categories = [];
+                        }
+                        this.categoryShowOverlay = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getAllTags() {
+                this.tagShowOverlay = true;
+                axios.get('/admin/term-allterms', {
+                    params: {
+                        termType: "tag"
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.tags = response.data.TermListDto.Data.Terms;
+                        }
+                        else {
+                            this.tags = [];
+                        }
+                        this.tagShowOverlay = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            basePagesFilterByTitle: function (data) {
+                if (this.basePageFilterText.length === 0) {
+                    return true;
+                }
+                return (data.Title.toLowerCase().indexOf(this.basePageFilterText.toLowerCase()) > -1);
+            },
+            pagesFilterByTitle: function (data) {
+                if (this.pageFilterText.length === 0) {
+                    return true;
+                }
+                return (data.Title.toLowerCase().indexOf(this.pageFilterText.toLowerCase()) > -1);
+            },
+            articlesFilterByTitle: function (data) {
+                if (this.articleFilterText.length === 0) {
+                    return true;
+                }
+                return (data.Title.toLowerCase().indexOf(this.articleFilterText.toLowerCase()) > -1);
+            },
+            categoriesFilterByName: function (data) {
+                if (this.categoryFilterText.length === 0) {
+                    return true;
+                }
+                return (data.Name.toLowerCase().indexOf(this.categoryFilterText.toLowerCase()) > -1);
+            },
+            tagsFilterByName: function (data) {
+                if (this.tagFilterText.length === 0) {
+                    return true;
+                }
+                return (data.Name.toLowerCase().indexOf(this.tagFilterText.toLowerCase()) > -1);
+            },
             postCheckChange() {
                 var selectedBasePages = this.selectedPostItems.filter(post => post.PostType === 4);
                 var selectedPages = this.selectedPostItems.filter(post => post.PostType === 0);
@@ -530,100 +737,7 @@
                     this.selectedTermItems = [];
                 }
             },
-            getNewMenuDetailList(newList) {
-                this.newMenuDetailList = newList;
-            },
-            updateChild(list) {
-                list.forEach((item, index) => {
-                    item.MenuOrder = index + 1;
-                    item.ParentId = this.parentId;
-                    axios.post('/admin/menu-editmenudetail', {
-                        MenuDetailUpdateDto: item
-                    }).then((res) => {
-                        if (res.data.MenuDetailDto.ResultStatus === 0) {
-                            if (item.Children == null) {
-                                item.Children = [];
-                            } else {
-                                this.parentId = item.Id;
-                                this.updateChild(item.Children);
-                            }
-                        }
-                    });
-                });
-                this.parentId = '';
-                return list;
-            },
-            addOrUpdateData() {
-                if (this.menuId === '') {
-                    if (this.newMenuName !== '') {
-                        this.saveButtonDisabled = true;
-                        this.saveButtonVariant = 'outline-secondary';
-                    }
-                    this.$refs.addMenuValidation.validate().then(success => {
-                        if (success) {
-                            var menuAddDto = {
-                                Name: this.newMenuName
-                            }
-                            axios.post('/admin/menu-new', {
-                                MenuAddDto: menuAddDto
-                            }).then((response) => {
-                                if (response.data.MenuDto.ResultStatus === 0) {
-                                    this.getAllMenus();
-                                    this.menuId = response.data.MenuDto.Data.Menu.Id
-                                    this.updateMenuName = response.data.MenuDto.Data.Menu.Name
-
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.MenuDto.Message
-                                        }
-                                    });
-                                    this.saveButtonDisabled = false;
-                                    this.saveButtonVariant = 'primary';
-                                }
-                            });
-                        }
-                    });
-                }
-                else {
-                    if (this.updateMenuName !== '') {
-                        this.saveButtonDisabled = true;
-                        this.saveButtonVariant = 'outline-secondary';
-                    }
-                    var menuUpdateDto = {
-                        Id: this.menuId,
-                        Name: this.updateMenuName
-                    }
-                    axios.post('/admin/menu-edit', {
-                        MenuUpdateDto: menuUpdateDto
-                    }).then((response) => {
-                        if (response.data.MenuDto.ResultStatus === 0) {
-
-                            if (this.newMenuDetailList.length < 1) {
-                                this.newMenuDetailList = this.menuDetails;
-                            }
-                            this.updateChild(this.menuDetails);
-
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'success',
-                                    title: 'Başarılı İşlem!',
-                                    icon: 'CheckIcon',
-                                    text: response.data.MenuDto.Message
-                                }
-                            });
-                            this.saveButtonDisabled = false;
-                            this.saveButtonVariant = 'primary';
-                        }
-                    });
-                }
-            },
             menuAddPost(event) {
-                console.log(event);
                 if (this.menuId == '') {
                     this.$toast({
                         component: ToastificationContent,
@@ -798,6 +912,145 @@
                     });
                 }
             },
+            getChild(list) {
+                list.forEach(item => {
+                    if (item.Children == null) {
+                        item.Children = [];
+                    } else {
+                        this.getChild(item.Children);
+                    }
+                });
+                return list;
+            },
+            getAllMenuDetails(id) {
+                if (id !== null) {
+                    this.updateMenuName = this.menus.filter(menu => menu.Id == id)[0].Name;
+                    this.menuItemsShowOverlay = true;
+                    axios.get('/admin/menu-allmenudetails', {
+                        params: {
+                            menuId: this.menuId
+                        }
+                    })
+                        .then((response) => {
+                            console.log(response.data)
+                            if (response.data.MenuDetailListDto.ResultStatus === 0) {
+                                this.menuDetails = response.data.MenuDetailListDto.Data.MenuDetails;
+                                this.menuDetails = this.getChild(this.menuDetails);
+                                this.deleteMenuItemList = [];
+                                this.isAllCheckMenuItem = false;
+                            }
+                            else {
+                                this.menuDetails = [];
+                            }
+                            this.menuItemsShowOverlay = false;
+                        })
+                        .catch((error) => {
+                            console.log(error)
+                            console.log(error.request)
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'danger',
+                                    title: 'Hata Oluştu!',
+                                    icon: 'AlertOctagonIcon',
+                                    text: 'Menü içeriği listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                }
+                            })
+                        });
+                }
+            },
+            getNewMenuDetailList(newList) {
+                this.newMenuDetailList = newList;
+            },
+            updateChild(list) {
+                list.forEach((item, index) => {
+                    item.MenuOrder = index + 1;
+                    item.ParentId = this.parentId;
+                    axios.post('/admin/menu-editmenudetail', {
+                        MenuDetailUpdateDto: item
+                    }).then((res) => {
+                        if (res.data.MenuDetailDto.ResultStatus === 0) {
+                            if (item.Children == null) {
+                                item.Children = [];
+                            } else {
+                                this.parentId = item.Id;
+                                this.updateChild(item.Children);
+                            }
+                        }
+                    });
+                });
+                this.parentId = '';
+                return list;
+            },
+            addOrUpdateData() {
+                if (this.menuId === '') {
+                    if (this.newMenuName !== '') {
+                        this.saveButtonDisabled = true;
+                        this.saveButtonVariant = 'outline-secondary';
+                    }
+                    this.$refs.addMenuValidation.validate().then(success => {
+                        if (success) {
+                            var menuAddDto = {
+                                Name: this.newMenuName
+                            }
+                            axios.post('/admin/menu-new', {
+                                MenuAddDto: menuAddDto
+                            }).then((response) => {
+                                if (response.data.MenuDto.ResultStatus === 0) {
+                                    this.getAllMenus();
+                                    this.menuId = response.data.MenuDto.Data.Menu.Id
+                                    this.updateMenuName = response.data.MenuDto.Data.Menu.Name
+
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'success',
+                                            title: 'Başarılı İşlem!',
+                                            icon: 'CheckIcon',
+                                            text: response.data.MenuDto.Message
+                                        }
+                                    });
+                                    this.saveButtonDisabled = false;
+                                    this.saveButtonVariant = 'primary';
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    if (this.updateMenuName !== '') {
+                        this.saveButtonDisabled = true;
+                        this.saveButtonVariant = 'outline-secondary';
+                    }
+                    var menuUpdateDto = {
+                        Id: this.menuId,
+                        Name: this.updateMenuName
+                    }
+                    axios.post('/admin/menu-edit', {
+                        MenuUpdateDto: menuUpdateDto
+                    }).then((response) => {
+                        if (response.data.MenuDto.ResultStatus === 0) {
+
+                            if (this.newMenuDetailList.length < 1) {
+                                this.newMenuDetailList = this.menuDetails;
+                            }
+                            this.updateChild(this.menuDetails);
+
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'success',
+                                    title: 'Başarılı İşlem!',
+                                    icon: 'CheckIcon',
+                                    text: response.data.MenuDto.Message
+                                }
+                            });
+                            this.saveButtonDisabled = false;
+                            this.saveButtonVariant = 'primary';
+                        }
+                    });
+                }
+            },
             deleteMenu() {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
@@ -813,6 +1066,7 @@
                     buttonsStyling: false,
                 }).then(result => {
                     if (result.value) {
+                        this.saveButtonVariant = 'outline-secondary';
                         this.deleteButtonDisabled = true;
                         this.deleteButtonVariant = 'outline-secondary';
                         axios.post('/admin/menu-delete?menuId=' + this.menuId)
@@ -827,6 +1081,7 @@
                                             text: response.data.Message
                                         }
                                     })
+                                    this.saveButtonVariant = 'primary';
                                     this.deleteButtonDisabled = false;
                                     this.deleteButtonVariant = 'outline-danger';
 
@@ -865,275 +1120,6 @@
                             });
                     }
                 })
-            },
-            multiMenuItemDelete() {
-                if (this.deleteMenuItemList.length > 0) {
-                    this.deleteMenuItemList.forEach(item => {
-                        axios.post('/admin/menu-deletemenudetail?menuId=' + item.Id).then((response) => {
-                            if (response.data.ResultStatus === 0) {
-                                this.deleteMenuItem(item.Id);
-                                this.deleteMenuItemList = [];
-                                this.deleteMenuItemDisplay = [];
-                                this.isAllCheckMenuItem = false;
-                            }
-                        });
-                    })
-                }
-            },
-            getAllMenus() {
-                this.menus = [];
-                this.isSelectLoading = true;
-                axios.get('/admin/menu-allmenus')
-                    .then((response) => {
-                        console.log(response.data)
-                        if (response.data.MenuListDto.ResultStatus === 0) {
-                            this.menus = response.data.MenuListDto.Data.Menus;
-                            this.isSelectLoading = false;
-                        }
-                        else {
-                            this.menus = [];
-                            this.nullMenuMessage = response.data.MenuListDto.Message;
-                            this.isSelectLoading = false;
-                        }
-                    })
-                    .catch((error) => {
-                        console.log(error)
-                        console.log(error.request)
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Menüler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            getChild(list) {
-                list.forEach(item => {
-                    if (item.Children == null) {
-                        item.Children = [];
-                    } else {
-                        this.getChild(item.Children);
-                    }
-                });
-                return list;
-            },
-            getAllMenuDetails(id) {
-                this.updateMenuName = this.menus.filter(menu => menu.Id == id)[0].Name;
-                this.menuItemsShowOverlay = true;
-                axios.get('/admin/menu-allmenudetails', {
-                    params: {
-                        menuId: this.menuId
-                    }
-                })
-                    .then((response) => {
-                        console.log(response.data)
-                        if (response.data.MenuDetailListDto.ResultStatus === 0) {
-                            this.menuDetails = response.data.MenuDetailListDto.Data.MenuDetails;
-                            this.menuDetails = this.getChild(this.menuDetails);
-                            this.deleteMenuItemList = [];
-                            this.isAllCheckMenuItem = false;
-                        }
-                        else {
-                            this.menuDetails = [];
-                        }
-                        this.menuItemsShowOverlay = false;
-                    })
-                    .catch((error) => {
-                        console.log(error)
-                        console.log(error.request)
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Menü içeriği listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            getAllBasePages() {
-                this.basePageShowOverlay = true;
-                axios.get('/admin/post-allposts', {
-                    params: {
-                        postType: 'basepage',
-                        postStatus: 'publish'
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.PostListDto.ResultStatus === 0) {
-                            this.basePages = response.data.PostListDto.Data.Posts;
-                        } else {
-                            this.basePages = [];
-                        }
-                        this.basePageShowOverlay = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            getAllPages() {
-                this.pageShowOverlay = true;
-                axios.get('/admin/post-allposts', {
-                    params: {
-                        postType: 'page',
-                        postStatus: 'publish'
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.PostListDto.ResultStatus === 0) {
-                            this.pages = response.data.PostListDto.Data.Posts;
-                        } else {
-                            this.pages = [];
-                        }
-                        this.pageShowOverlay = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            getAllArticles() {
-                this.articleShowOverlay = true;
-                axios.get('/admin/post-allposts', {
-                    params: {
-                        postType: 'article',
-                        postStatus: 'publish'
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.PostListDto.ResultStatus === 0) {
-                            this.articles = response.data.PostListDto.Data.Posts;
-                        } else {
-                            this.articles = [];
-                        }
-                        this.articleShowOverlay = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            getAllCategories() {
-                this.categoryShowOverlay = true;
-                axios.get('/admin/term-allterms', {
-                    params: {
-                        termType: "category"
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.TermListDto.ResultStatus === 0) {
-                            this.categories = response.data.TermListDto.Data.Terms;
-                        }
-                        else {
-                            this.categories = [];
-                        }
-                        this.categoryShowOverlay = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            getAllTags() {
-                this.tagShowOverlay = true;
-                axios.get('/admin/term-allterms', {
-                    params: {
-                        termType: "tag"
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.TermListDto.ResultStatus === 0) {
-                            this.tags = response.data.TermListDto.Data.Terms;
-                        }
-                        else {
-                            this.tags = [];
-                        }
-                        this.tagShowOverlay = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            basePagesFilterByTitle: function (data) {
-                // no search, don't filter :
-                if (this.basePageFilterText.length === 0) {
-                    return true;
-                }
-
-                return (data.Title.toLowerCase().indexOf(this.basePageFilterText.toLowerCase()) > -1);
-            },
-            pagesFilterByTitle: function (data) {
-                // no search, don't filter :
-                if (this.pageFilterText.length === 0) {
-                    return true;
-                }
-
-                return (data.Title.toLowerCase().indexOf(this.pageFilterText.toLowerCase()) > -1);
-            },
-            articlesFilterByTitle: function (data) {
-                // no search, don't filter :
-                if (this.articleFilterText.length === 0) {
-                    return true;
-                }
-
-                return (data.Title.toLowerCase().indexOf(this.articleFilterText.toLowerCase()) > -1);
-            },
-            categoriesFilterByName: function (data) {
-                // no search, don't filter :
-                if (this.categoryFilterText.length === 0) {
-                    return true;
-                }
-
-                return (data.Name.toLowerCase().indexOf(this.categoryFilterText.toLowerCase()) > -1);
-            },
-            tagsFilterByName: function (data) {
-                // no search, don't filter :
-                if (this.tagFilterText.length === 0) {
-                    return true;
-                }
-
-                return (data.Name.toLowerCase().indexOf(this.tagFilterText.toLowerCase()) > -1);
             },
         },
         computed: {
