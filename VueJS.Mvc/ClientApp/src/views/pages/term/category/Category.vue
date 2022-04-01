@@ -29,7 +29,11 @@
         <b-col v-if="$can('create', 'Category')"
                md="12"
                lg="4">
-            <b-card title="Kategori Ekle">
+            <b-card id="card-add"
+                    header-tag="header">
+                <template #header>
+                    <span class="font-weight-bold" style="font-size:18px;">Kategori Ekle</span>
+                </template>
                 <validation-observer ref="simpleRules">
                     <b-form>
                         <b-row>
@@ -61,26 +65,40 @@
                                 <b-form-group label-for="parentTerms"
                                               description="Mevcut kategori için üst kategoriyi buradan seçebilirsiniz.">
                                     <v-select id="parentTerms"
-                                              v-model="selected"
+                                              v-model="termAddDto.ParentId"
                                               :options="allParentTerms"
                                               label="Name"
                                               :reduce="(option) => option.Id"
-                                              placeholder="— Üst Kategori —"
-                                              @input="onChangeMethod($event)" />
+                                              :disabled="isSelectLoading"
+                          :loading="isSelectLoading"
+                                              placeholder="— Üst Kategori —">
+                                        <template #spinner="{ loading }">
+                                            <div v-if="isSelectLoading"
+                                                 style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                 class="vs__spinner">
+                                            </div>
+                                        </template>
+                                        <template #no-options="{ search, searching, loading }">
+                                            {{ dataNullMessage }}
+                                        </template>
+                                    </v-select>
                                 </b-form-group>
 
                                 <b-form-textarea id="description"
                                                  v-model="termAddDto.Description"
                                                  placeholder="Açıklama"
                                                  rows="3" />
-
-                                <!-- reset button -->
-                                <b-button variant="primary"
-                                          class="float-right mt-1"
-                                          type="submit"
-                                          @click.prevent="validationForm">
-                                    Ekle
-                                </b-button>
+                                <div class="float-right mt-1">
+                                    <b-spinner v-if="addButtonDisabled"
+                                               variant="secondary"
+                                               class="align-middle mr-1" />
+                                    <b-button :disabled="addButtonDisabled"
+                                              :variant="addButtonVariant"
+                                              type="submit"
+                                              @click.prevent="validationForm">
+                                        Ekle
+                                    </b-button>
+                                </div>
                             </b-col>
                         </b-row>
                     </b-form>
@@ -88,11 +106,14 @@
             </b-card>
         </b-col>
         <b-col :cols="$can('create', 'Category') ? 8 : 12">
-            <b-card title="Tüm Kategoriler"
+            <b-card id="card-list"
                     header-tag="header"
                     no-body>
                 <template #header>
-                    <div class="float-left">
+                    <span class="font-weight-bold" style="font-size:18px;">Tüm Kategoriler </span>
+
+                    <div v-if="terms.length > 0"
+                         class="ml-auto">
                         <b-input-group size="sm"
                                        class="input-group-merge"
                                        v-on:mouseover="isShowSearchTextClearButton = true"
@@ -101,14 +122,15 @@
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
                             <b-form-input placeholder="Ara..."
-                                          v-model="filterText" />
+                                          v-model="filterText"
+                                          @input="allClear" />
                             <b-input-group-append is-text>
-                                <feather-icon v-show="isShowSearchTextClearButton"
+                                <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
                                               title="Temizle"
                                               class="cursor-pointer"
-                                              @click="filterText = ''" />
+                                              @click="filterText = ''; allClear();" />
                             </b-input-group-append>
                         </b-input-group>
                     </div>
@@ -146,106 +168,119 @@
                         <div></div>
                     </div>
                 </b-card-body>
-                <div v-if="isSpinnerShow == true"
-                     class="text-center mt-2 mb-2">
-                    <b-spinner variant="primary" />
-                </div>
-                <div v-else>
-                    <b-table id="categories-table"
-                             :items="filteredData"
-                             :fields="fields"
-                             :per-page="perPage"
-                             :current-page="currentPage"
-                             class="mb-0"
-                             foot-clone
-                             @row-hovered="rowHovered"
-                             @row-unhovered="rowUnHovered">
-                        <template #head(Id)="slot">
-                            <b-form-checkbox :disabled="!$can('delete', 'Category')"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #foot(Id)="slot">
-                            <b-form-checkbox :disabled="!$can('delete', 'Category')"
-                                             v-model="selectAllCheck"
-                                             :value="true"
-                                             @change="selectAllRows($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(Id)="row">
-                            <b-form-checkbox :disabled="!$can('delete', 'Category')"
-                                             :value="row.item.Id.toString()"
-                                             :id="row.item.Id.toString()"
-                                             v-model="checkedRows"
-                                             @change="checkChange($event)"></b-form-checkbox>
-                        </template>
-                        <template #cell(Name)="row">
-                            <b-link v-if="$can('update', 'Category')"
-                                    :to="{ name:'pages-category-edit', query: { edit : row.item.Id } }">
-                                <b>{{row.item.Name}}</b>
-                            </b-link>
-                            <b v-else>{{row.item.Name}}</b>
-                            <div class="row-actions">
-                                <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                    <b-link :to=" {name: 'pages-category-view', params: { slug: row.item.Slug }}"
-                                            class="text-primary small">Görüntüle</b-link>
-                                    <small v-if="$can('update', 'Category')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-if="$can('update', 'Category')"
-                                            :to="{ name:'pages-category-edit', query: { edit : row.item.Id } }"
-                                            class="text-success small"
-                                            variant="flat-danger">Düzenle</b-link>
-                                    <small v-if="$can('delete', 'Category')"
-                                           class="text-muted"> | </small>
-                                    <b-link v-if="$can('delete', 'Category')"
-                                            href="javascript:;"
-                                            no-prefetch
-                                            class="text-danger small"
-                                            @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
-                                </div>
+                <b-table id="category-table"
+                         :busy="isBusy"
+                         :items="filteredData"
+                         :fields="fields"
+                         :per-page="perPage"
+                         :current-page="currentPage"
+                         class="mb-0"
+                         foot-clone
+                         @row-hovered="rowHovered"
+                         @row-unhovered="rowUnHovered">
+                    <template #table-busy>
+                        <div class="text-center text-dark my-2">
+                            <b-spinner class="align-middle"></b-spinner>
+                        </div>
+                    </template>
+                    <template #head(Id)="slot">
+                        <b-form-checkbox :disabled="!$can('delete', 'Category') || filteredData.length <= 0"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #foot(Id)="slot">
+                        <b-form-checkbox :disabled="!$can('delete', 'Category') || filteredData.length <= 0"
+                                         v-model="selectAllCheck"
+                                         :value="true"
+                                         @change="selectAllRows($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Id)="row">
+                        <b-form-checkbox :disabled="!$can('delete', 'Category')"
+                                         :value="row.item.Id.toString()"
+                                         :id="row.item.Id.toString()"
+                                         v-model="checkedRows"
+                                         @change="checkChange($event)"></b-form-checkbox>
+                    </template>
+                    <template #cell(Name)="row">
+                        <b-link v-if="$can('update', 'Category')"
+                                :to="{ name:'pages-category-edit', query: { edit : row.item.Id } }">
+                            <b>{{row.item.Name}}</b>
+                        </b-link>
+                        <b v-else>{{row.item.Name}}</b>
+                        <div class="row-actions">
+                            <div v-if="isHovered(row.item) && isHiddenRowActions">
+                                <b-link :to=" {name: 'pages-category-view', params: { slug: row.item.Slug }}" target="_blank"
+                                        class="text-primary small">Görüntüle</b-link>
+                                <small v-if="$can('update', 'Category')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="$can('update', 'Category')"
+                                        :to="{ name:'pages-category-edit', query: { edit : row.item.Id } }"
+                                        class="text-success small"
+                                        variant="flat-danger">Düzenle</b-link>
+                                <small v-if="$can('delete', 'Category')"
+                                       class="text-muted"> | </small>
+                                <b-link v-if="$can('delete', 'Category')"
+                                        href="javascript:;"
+                                        no-prefetch
+                                        class="text-danger small"
+                                        @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
                             </div>
-                        </template>
-                    </b-table>
-                </div>
-                <div v-if="terms.length <= 0"
-                     class="text-center mt-1">{{ dataNullMessage  }}</div>
-                <b-card-body class="d-flex justify-content-between flex-wrap pt-1">
+                        </div>
+                    </template>
+                    <template #cell(Description)="row">
+                        {{ row.item.Description === '' ? '—' : row.item.Description }}
+                    </template>
+                    <template #cell(PostTerms)="row">
+                        <b-link :to="{ name: 'pages-article-list', query: { category: row.item.Slug } }"><small> {{ row.item.PostTerms.length }}</small></b-link>
+                    </template>
+                    <template v-if="filteredData.length <= 0"
+                              slot="bottom-row">
+                        <td colspan="5"
+                            class="text-center">
+                            {{ dataNullMessage  }}
+                        </td>
+                    </template>
+                </b-table>
+                <b-card-body v-if="filteredData.length > 0">
+                    <div class="d-flex justify-content-between flex-wrap">
 
-                    <!-- page length -->
-                    <b-form-group label="Kayıt Sayısı: "
-                                  label-cols="6"
-                                  label-align="left"
-                                  label-size="sm"
-                                  label-for="sortBySelect"
-                                  class="text-nowrap mb-md-0 mr-1">
-                        <b-form-select id="perPageSelect"
-                                       v-model="perPage"
-                                       size="sm"
-                                       inline
-                                       :options="pageOptions" />
-                    </b-form-group>
+                        <!-- page length -->
+                        <b-form-group label="Kayıt Sayısı: "
+                                      label-cols="6"
+                                      label-align="left"
+                                      label-size="sm"
+                                      label-for="sortBySelect"
+                                      class="text-nowrap mb-md-0 mr-1">
+                            <b-form-select id="perPageSelect"
+                                           v-model="perPage"
+                                           size="sm"
+                                           inline
+                                           :options="pageOptions" />
+                        </b-form-group>
 
-                    <!-- pagination -->
-                    <div>
-                        <b-pagination v-model="currentPage"
-                                      :total-rows="totalRows"
-                                      :per-page="perPage"
-                                      first-number
-                                      last-number
-                                      prev-class="prev-item"
-                                      next-class="next-item"
-                                      class="mb-0"
-                                      @page-click="changePage">
-                            <template #prev-text>
-                                <feather-icon icon="ChevronLeftIcon"
-                                              size="18" />
-                            </template>
-                            <template #next-text>
-                                <feather-icon icon="ChevronRightIcon"
-                                              size="18" />
-                            </template>
-                        </b-pagination>
-                    </div>
+                        <!-- pagination -->
+                        <div>
+                            <b-pagination v-model="currentPage"
+                                          :total-rows="totalRows"
+                                          :per-page="perPage"
+                                          first-number
+                                          last-number
+                                          prev-class="prev-item"
+                                          next-class="next-item"
+                                          class="mb-0"
+                                          @page-click="changePage">
+                                <template #prev-text>
+                                    <feather-icon icon="ChevronLeftIcon"
+                                                  size="18" />
+                                </template>
+                                <template #next-text>
+                                    <feather-icon icon="ChevronRightIcon"
+                                                  size="18" />
+                                </template>
+                            </b-pagination>
+                        </div>
+                        </div>
                 </b-card-body>
             </b-card>
         </b-col>
@@ -253,17 +288,17 @@
 </template>
 
 <script>
+    import UrlHelper from '@/helper/url-helper';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate'
     import { required } from '@validations'
-    import {
-        BBreadcrumb, BBreadcrumbItem, BSpinner, BTable, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormGroup, BFormSelect, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
-    } from 'bootstrap-vue'
-    //import { codeRowDetailsSupport } from './code'
-    import axios from 'axios'
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import vSelect from 'vue-select'
+
+    import {
+        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BInputGroupPrepend, BInputGroupAppend, BFormInput, BFormCheckbox, BFormTextarea, BButton, VBTooltip, BSpinner, BTable, BLink, BFormSelect, BPagination,
+    } from 'bootstrap-vue'
     import Ripple from 'vue-ripple-directive'
-    import UrlHelper from '@/helper/url-helper';
+    import axios from 'axios'
 
     extend('required', {
         ...required,
@@ -272,31 +307,31 @@
 
     export default {
         components: {
-            BBreadcrumb,
-            BBreadcrumbItem,
-            BSpinner,
-            BCardTitle,
-            BForm,
-            BTable,
-            BButton,
-            BFormCheckbox,
-            BFormTextarea,
-            BCard,
-            BRow,
-            BCol,
-            BCardBody,
-            BFormGroup,
-            BFormSelect,
-            BPagination,
-            BInputGroup,
-            BFormInput,
-            BInputGroupPrepend,
-            BInputGroupAppend,
+            UrlHelper,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
             vSelect,
-            BLink
+            BRow,
+            BCol,
+            BBreadcrumb,
+            BBreadcrumbItem,
+            BCard,
+            BCardBody,
+            BForm,
+            BFormGroup,
+            BInputGroup,
+            BInputGroupPrepend,
+            BInputGroupAppend,
+            BFormInput,
+            BFormCheckbox,
+            BFormTextarea,
+            BButton,
+            BSpinner,
+            BTable,
+            BLink,
+            BFormSelect,
+            BPagination
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -310,30 +345,25 @@
                         active: true,
                     }
                 ],
-                modalShow: false,
                 required,
-                isSpinnerShow: true,
-                perPage: 10,
-                pageOptions: [10, 20, 50, 100],
-                totalRows: 1,
-                currentPage: 1,
-                isShowSearchTextClearButton: false,
+                addButtonDisabled: false,
+                addButtonVariant: 'primary',
+                isBusy: true,
+                isSelectLoading: false,
+                dataNullMessage: 'Hiçbir kategori bulunamadı.',
                 filterText: '',
+                isShowSearchTextClearButton: false,
                 terms: [],
-                dataNullMessage: '',
                 allParentTerms: [],
-                selected: '',
-                selectedValue: null,
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
                 pageColumnQuantity: '',
-                name: "",
                 fields: [
                     { key: 'Id', sortable: false, thStyle: { width: "20px" } },
                     { key: 'Name', label: 'İSİM', sortable: true, thStyle: { width: "200px" } },
                     { key: 'Description', label: 'Açıklama', sortable: true },
                     { key: 'Slug', label: 'KISA İSİM', sortable: true, thStyle: { width: "150px" } },
-                    { key: 'Count', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }
+                    { key: 'PostTerms', label: 'Toplam', sortable: true, thStyle: { width: "100px" } }
                 ],
                 selectAllCheck: false,
                 checkedRows: [],
@@ -348,96 +378,23 @@
                 seoObjectSettingAddDto: {
                     SeoTitle: this.Name
                 },
-                hoveredRow: null
+                hoveredRow: null,
+                perPage: 10,
+                pageOptions: [10, 20, 50, 100],
+                totalRows: 1,
+                currentPage: 1,
             }
         },
         methods: {
-            changePage(e, pageNumber) {
-                this.isHiddenMultiDeleteButton = false;
-                this.checkedRows = [];
-                this.checkedRowsCount = '';
-                this.selectAllCheck = 'false';
-                this.pageColumnQuantity = this.perPage * pageNumber;
-            },
             changeSlug() {
                 var seoSlug = UrlHelper.friendlySEOUrl(this.termAddDto.Slug);
                 this.termAddDto.Slug = seoSlug;
             },
-            rowHovered(item) {
-                this.hoveredRow = item;
-                this.isHiddenRowActions = true
-            },
-            isHovered(item) {
-                return item == this.hoveredRow
-            },
-            rowUnHovered() {
-                this.isHiddenRowActions = false
-            },
-            onChangeMethod(value) {
-                this.termAddDto.ParentId = value;
-            },
-            checkChange() {
-                if (this.checkedRows.length > 0) {
-                    this.isHiddenMultiDeleteButton = true;
-                    this.checkedRowsCount = "( " + this.checkedRows.length + " )";
-
-                    var pageDataQuantity = this.terms.length - (this.pageColumnQuantity - this.perPage);
-                    if (this.pageColumnQuantity > this.perPage) {
-                        if (this.checkedRows.length === this.perPage) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else {
-                            this.selectAllCheck = 'false';
-                        }
-                    } else if (this.pageColumnQuantity === this.perPage) {
-                        if (this.checkedRows.length === this.perPage) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else if (this.checkedRows.length < this.perPage && this.terms.length === this.checkedRows.length) {
-                            this.selectAllCheck = 'true';
-                        }
-                        else {
-                            this.selectAllCheck = 'false';
-                        }
-                    }
-                }
-                else {
-                    this.isHiddenMultiDeleteButton = false;
-                    this.selectAllCheck = 'false';
-                }
-            },
-            selectAllRows(value) {
-                if (value === true) {
-                    var idList = [];
-                    if (this.pageColumnQuantity > this.perPage) {
-                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
-                            if (this.terms[i] != null) {
-                                idList.push(this.terms[i].Id);
-                            }
-                        }
-                        this.checkedRows = idList;
-                    } else if (this.pageColumnQuantity === this.perPage) {
-                        for (var i = 0; i < this.pageColumnQuantity; i++) {
-                            if (this.terms[i] != null) {
-                                idList.push(this.terms[i].Id);
-                            }
-                        }
-                        this.checkedRows = idList;
-                    }
-
-                }
-                else {
-                    this.checkedRows = [];
-                    this.isHiddenMultiDeleteButton = false;
-                }
-                this.checkChange();
-            },
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
+                        this.addButtonDisabled = true;
+                        this.addButtonVariant = 'outline-secondary';
                         axios.post('/admin/term-new',
                             {
                                 TermAddDto: this.termAddDto,
@@ -467,6 +424,8 @@
                                         },
                                     })
                                 }
+                                this.addButtonDisabled = false;
+                                this.addButtonVariant = 'primary';
                             })
                             .catch((error) => {
                                 this.$toast({
@@ -482,6 +441,135 @@
                     }
                 })
             },
+            getAllData() {
+                this.isBusy = true;
+                this.isSelectLoading = true;
+                axios.get('/admin/term-allterms', {
+                    params: {
+                        termType: "category"
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.terms = response.data.TermListDto.Data.Terms;
+                            this.allParentTerms = response.data.TermListDto.Data.Terms;
+                            this.pageColumnQuantity = this.perPage;
+                            this.totalRows = response.data.TermListDto.Data.Terms.length;
+                        }
+                        else {
+                            this.terms = [];
+                            this.allParentTerms = [];
+                            this.dataNullMessage = response.data.TermListDto.Message;
+                        }
+                        this.isBusy = false;
+                        this.isSelectLoading = false;
+                        this.filterText = "";
+                        this.allClear();
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            filterByName: function (data) {
+                // no search, don't filter :
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+
+                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+            },
+            allClear() {
+                this.checkedRows = [];
+                this.checkedRowsCount = '';
+                this.isHiddenMultiDeleteButton = false;
+                this.selectAllCheck = 'false';
+            },
+            rowHovered(item) {
+                this.hoveredRow = item;
+                this.isHiddenRowActions = true
+            },
+            isHovered(item) {
+                return item == this.hoveredRow
+            },
+            rowUnHovered() {
+                this.isHiddenRowActions = false
+            },
+            checkChange() {
+                if (this.checkedRows.length > 0) {
+                    this.isHiddenMultiDeleteButton = true;
+                    this.checkedRowsCount = this.checkedRows.length > 0 ? "( " + this.checkedRows.length + " )" : '';
+
+                    var pageDataQuantity = this.filteredData.length - (this.pageColumnQuantity - this.perPage);
+                    if (this.pageColumnQuantity > this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && pageDataQuantity > 0 && this.checkedRows.length === pageDataQuantity) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        if (this.checkedRows.length === this.perPage) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else if (this.checkedRows.length < this.perPage && this.filteredData.length === this.checkedRows.length) {
+                            this.selectAllCheck = 'true';
+                        }
+                        else {
+                            this.selectAllCheck = 'false';
+                        }
+                    }
+                }
+                else {
+                    this.isHiddenMultiDeleteButton = false;
+                    this.selectAllCheck = 'false';
+                }
+            },
+            selectAllRows(value) {
+                if (value === true) {
+                    var idList = [];
+                    if (this.pageColumnQuantity > this.perPage) {
+                        for (var i = this.pageColumnQuantity - this.perPage; i < this.pageColumnQuantity; i++) {
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    } else if (this.pageColumnQuantity === this.perPage) {
+                        for (var i = 0; i < this.pageColumnQuantity; i++) {
+                            if (this.filteredData[i] != null) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    } else if (this.perPage > this.pageColumnQuantity) {
+                        for (var i = 0; i < this.perPage; i++) {
+                            if (this.filteredData[i] != undefined) {
+                                idList.push(this.filteredData[i].Id);
+                            }
+                        }
+                    }
+                    this.checkedRows = idList;
+                }
+                else {
+                    this.checkedRows = [];
+                    this.isHiddenMultiDeleteButton = false;
+                }
+                this.checkChange();
+            },
+            changePage(e, pageNumber) {
+                this.checkedRows = [];
+                this.checkChange();
+                this.pageColumnQuantity = this.perPage * pageNumber;
+            },            
             singleDeleteData(id, name) {
                 this.$swal({
                     title: 'Silmek istediğinize emin misiniz?',
@@ -565,53 +653,7 @@
                     }
                 })
             },
-            getAllData() {
-                this.isSpinnerShow = true;
-                axios.get('/admin/term-allterms', {
-                    params: {
-                        termType: "category"
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.TermListDto.ResultStatus === 0) {
-                            this.terms = response.data.TermListDto.Data.Terms;
-                            this.allParentTerms = response.data.TermListDto.Data.Terms;
-                            this.pageColumnQuantity = this.perPage;
-                            this.totalRows = response.data.TermListDto.Data.Terms.length;
-                        }
-                        else {
-                            this.isSpinnerShow = false;
-                            this.terms = [];
-                            this.allParentTerms = [];
-                            this.dataNullMessage = response.data.TermListDto.Message;
-                        }
-
-                        this.filterText = "";
-                        this.isSpinnerShow = false;
-                        this.checkedRowsCount = "";
-                        this.checkedRows = [];
-                        this.isHiddenMultiDeleteButton = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            filterByName: function (data) {
-                // no search, don't filter :
-                if (this.filterText.length === 0) {
-                    return true;
-                }
-
-                return (data.Name.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
-            },
+            
         },
         computed: {
             filteredData: function () {
@@ -628,15 +670,25 @@
 <style lang="scss">
     @import '@core/scss/vue/libs/vue-select.scss';
 
-    .card-header {
-        padding: 15px 0px 15px 10px !important;
+    #card-add.card .card-header {
+        padding: 8px 8px 8px 20px !important;
+        border-bottom: 1px solid #ebe9f1;
+        margin-bottom: 20px;
     }
 
-    [dir] .table th, [dir] .table td {
+    #card-list.card .card-header {
+        padding: 8px 8px 8px 8px !important;
+    }
+
+    #category-table.table th, #category-table.table td {
         padding: 0.72rem !important;
     }
 
-    [dir] #categories-table.table th:last-child, [dir] .table td:last-child {
+    #category-table > tbody > tr.b-table-bottom-row td {
+        padding: 30px 0px 30px 0 !important;
+    }
+
+    #category-table.table th:last-child, #category-table.table td:last-child {
         text-align: center;
     }
 </style>

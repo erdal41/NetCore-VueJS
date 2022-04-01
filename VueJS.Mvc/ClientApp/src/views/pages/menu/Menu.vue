@@ -61,11 +61,11 @@
             </b-col>
             <b-col cols="3"
                    class="menu-select">
-                <v-select v-model="menuId"
+                <v-select placeholder="— Seçim Yapın —"
+                          v-model="menuId"
                           :options="menus"
                           label="Name"
                           :reduce="(option) => option.Id"
-                          placeholder="— Seçim Yapın —"
                           :disabled="isSelectLoading"
                           :loading="isSelectLoading"
                           @input="getAllMenuDetails">
@@ -412,7 +412,7 @@
                 isSelectLoading: false,
                 isSpinnerShow: true,
                 isShowSearchTextClearButton: false,
-                nullMenuMessage: '',
+                nullMenuMessage: 'Hiçbir menü bulunamadı.',
                 menuId: '',
                 newMenuName: '',
                 updateMenuName: '',
@@ -456,13 +456,12 @@
                         console.log(response.data)
                         if (response.data.MenuListDto.ResultStatus === 0) {
                             this.menus = response.data.MenuListDto.Data.Menus;
-                            this.isSelectLoading = false;
                         }
                         else {
                             this.menus = [];
                             this.nullMenuMessage = response.data.MenuListDto.Message;
-                            this.isSelectLoading = false;
                         }
+                        this.isSelectLoading = false;
                     })
                     .catch((error) => {
                         console.log(error)

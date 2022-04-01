@@ -71,8 +71,6 @@
                                                      v-model="urlRedirectAddDto.Description"
                                                      placeholder="Açıklama"
                                                      rows="2" />
-
-                                    <!-- reset button -->
                                     <div class="float-right mt-1">
                                         <b-spinner v-if="addButtonDisabled"
                                                    variant="secondary"
@@ -213,6 +211,9 @@
                                         @click="singleDeleteData(row.item.Id, row.item.OldUrl)">Sil</b-link>
                             </div>
                         </div>
+                    </template>
+                    <template #cell(Description)="row">
+                        {{ row.item.Description === '' ? '—' : row.item.Description }}
                     </template>
                     <template #cell(ModifiedDate)="row">
                         <span>{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>
@@ -407,9 +408,7 @@
                                                 text: this.urlRedirectAddDto.OldUrl + " linki " + this.urlRedirectAddDto.NewUrl + " linkine yönlendirildi."
                                             }
                                         });
-                                        this.getAllData();
-                                        this.addButtonDisabled = false;
-                                        this.addButtonVariant = 'primary';
+                                        this.getAllData();                                        
                                     }
                                     else {
                                         this.$toast({
@@ -422,6 +421,8 @@
                                             },
                                         });
                                     }
+                                    this.addButtonDisabled = false;
+                                    this.addButtonVariant = 'primary';
                                 })
                                 .catch((error) => {
                                     this.$toast({

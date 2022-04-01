@@ -1093,7 +1093,7 @@
         }
     }
 </script>
-image-thumbnail
+
 <style lang="scss">
     @import '@core/scss/vue/libs/vue-select.scss';
 

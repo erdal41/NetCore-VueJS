@@ -29,8 +29,12 @@
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="6"
                cols="12">
+            <b-spinner v-if="buttonDisabled"
+                       variant="secondary"
+                       class="align-middle mr-1" />
             <b-button id="draft"
-                      variant="outline-primary"
+                      :disabled="buttonDisabled"
+                      :variant="draftButtonVariant"
                       class="mr-1"
                       size="sm"
                       type="submit"
@@ -38,7 +42,8 @@
                 Taslak Olarak Kaydet
             </b-button>
             <b-button id="save"
-                      variant="primary"
+                       :disabled="buttonDisabled"
+                      :variant="saveButtonVariant"
                       type="submit"
                       @click.prevent="validationForm">
                 Yayınla
@@ -204,8 +209,20 @@
                                       :options="schemaPageTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Sayfa Türü Seçiniz..."
-                                      @input="changePageType()" />
+                                      placeholder="— Sayfa Türü —"
+                                      :disabled="isSchemaPageSelectLoading"
+                              :loading="isSchemaPageSelectLoading"
+                                      @input="changePageType()">
+                                <template #spinner="{ loading }">
+                                    <div v-if="isSchemaPageSelectLoading"
+                                         style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                         class="vs__spinner">
+                                    </div>
+                                </template>
+                                <template #no-options="{ search, searching, loading }">
+                                    {{ nullSchemaMessage }}
+                                </template>
+                            </v-select>
                         </b-form-group>
                         <b-form-group label="Makale Türü">
                             <v-select id="schemaArticleType"
@@ -213,8 +230,20 @@
                                       :options="schemaArticleTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Makale Türü Seçiniz..."
-                                      @input="changeArticleType" />
+                                      placeholder="— Makale Türü —"
+                                      :disabled="isSchemaArticleSelectLoading"
+                              :loading="isSchemaArticleSelectLoading"
+                                      @input="changeArticleType">
+                                <template #spinner="{ loading }">
+                                    <div v-if="isSchemaArticleSelectLoading"
+                                         style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                         class="vs__spinner">
+                                    </div>
+                                </template>
+                                <template #no-options="{ search, searching, loading }">
+                                    {{ nullSchemaMessage }}
+                                </template>
+                            </v-select>
                         </b-form-group>
                     </b-tab>
                     <b-tab title="Sosyal Medya">
@@ -281,7 +310,7 @@
                                                 <b-img rounded
                                                        v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
                                                        :alt="twitterImage.altText"
-                                                       class="select-twitter-image"/>
+                                                       class="select-twitter-image" />
                                                 <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-primary"
                                                           size="sm"
@@ -333,10 +362,22 @@
                               :options="categories"
                               label="Name"
                               :reduce="(option) => option.Id"
-                              placeholder="Kategori Seçiniz..."
+                              placeholder="— Kategori —"
                               taggable
                               multiple
-                              @input="changeCategory" />
+                              :disabled="isCategorySelectLoading"
+                              :loading="isCategorySelectLoading"
+                              @input="changeCategory">
+                        <template #spinner="{ loading }">
+                            <div v-if="isCategorySelectLoading"
+                                 style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                 class="vs__spinner">
+                            </div>
+                        </template>
+                        <template #no-options="{ search, searching, loading }">
+                            {{ nullCategoryMessage }}
+                        </template>
+                    </v-select>
                 </b-form-group>
                 <b-button v-b-toggle.new-category
                           size="sm"
@@ -368,7 +409,19 @@
                                               :reduce="(option) => option.Id"
                                               class="select-size-sm"
                                               placeholder="— Üst Kategori —"
-                                              @input="changeParentTerm" />
+                                              :disabled="isCategorySelectLoading"
+                              :loading="isCategorySelectLoading"
+                                              @input="changeParentTerm">
+                                        <template #spinner="{ loading }">
+                                            <div v-if="isCategorySelectLoading"
+                                                 style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                 class="vs__spinner">
+                                            </div>
+                                        </template>
+                                        <template #no-options="{ search, searching, loading }">
+                                            {{ nullCategoryMessage }}
+                                        </template>
+                                    </v-select>
                                 </b-form-group>
                                 <b-button variant="outline-primary"
                                           size="sm"
@@ -386,9 +439,21 @@
                               :options="tags"
                               label="Name"
                               :reduce="(option) => option.Id"
-                              placeholder="Etiket Seçiniz..."
+                              placeholder="— Etiket —"
                               multiple
-                              @input="changeTag" />
+                              :disabled="isTagSelectLoading"
+                              :loading="isTagSelectLoading"
+                              @input="changeTag">
+                        <template #spinner="{ loading }">
+                            <div v-if="isTagSelectLoading"
+                                 style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                 class="vs__spinner">
+                            </div>
+                        </template>
+                        <template #no-options="{ search, searching, loading }">
+                            {{ nullTagMessage }}
+                        </template>
+                    </v-select>
                 </b-form-group>
                 <b-button v-b-toggle.new-tag
                           size="sm"
@@ -547,6 +612,16 @@
         },
         data() {
             return {
+                buttonDisabled: false,
+                saveButtonVariant: 'primary',
+                draftButtonVariant: 'outline-primary',
+                isCategorySelectLoading: false,
+                isTagSelectLoading: false,
+                isSchemaPageSelectLoading: false,
+                isSchemaArticleSelectLoading: false,
+                nullCategoryMessage: 'Hiçbir kategori bulunamadı.',
+                nullTagMessage: 'Hiçbir etiket bulunamadı.',
+                nullSchemaMessage: 'Hiçbir şema türü bulunamadı.',
                 breadcrumbs: [
                     {
                         text: 'Makaleler',
@@ -672,6 +747,7 @@
                 }
             },
             allCategories() {
+                this.isCategorySelectLoading = true;
                 axios.get('/admin/term-allterms', {
                     params: {
                         termType: 'category'
@@ -681,7 +757,12 @@
                         if (response.data.TermListDto.ResultStatus === 0) {
                             this.categories = response.data.TermListDto.Data.Terms;
                             this.allParentTerms = response.data.TermListDto.Data.Terms;
+                        } else {
+                            this.categories = [];
+                            this.allParentTerms = [];
+                            this.nullCategoryMessage = response.data.TermListDto.Message;
                         }
+                        this.isCategorySelectLoading = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -696,6 +777,7 @@
                     });
             },
             allTags() {
+                this.isTagSelectLoading = true;
                 axios.get('/admin/term-allterms', {
                     params: {
                         termType: 'tag'
@@ -704,7 +786,11 @@
                     .then((response) => {
                         if (response.data.TermListDto.ResultStatus === 0) {
                             this.tags = response.data.TermListDto.Data.Terms;
+                        } else {
+                            this.tags = [];
+                            this.nullTagMessage = response.data.TermListDto.Message;
                         }
+                        this.isTagSelectLoading = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -777,9 +863,15 @@
                 }
             },
             getSchemaPageType() {
+                this.isSchemaPageSelectLoading = true;
                 axios.get('/admin/post-getschemapagetype')
                     .then((response) => {
-                        this.schemaPageTypes = response.data;
+                        if (response.data != null) {
+                            this.schemaPageTypes = response.data;
+                        } else {
+                            this.schemaPageTypes = [];
+                        }
+                        this.isSchemaPageSelectLoading = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -794,9 +886,15 @@
                     });
             },
             getSchemaArticleType() {
+                this.isSchemaArticleSelectLoading = true;
                 axios.get('/admin/post-getschemapagetype')
                     .then((response) => {
-                        this.schemaArticleTypes = response.data;
+                        if (response.data != null) {
+                            this.schemaArticleTypes = response.data;
+                        } else {
+                            this.schemaArticleTypes = [];
+                        }
+                        this.isSchemaArticleSelectLoading = false;
                     })
                     .catch((error) => {
                         this.$toast({

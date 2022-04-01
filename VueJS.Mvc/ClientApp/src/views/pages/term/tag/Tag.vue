@@ -65,16 +65,17 @@
                                                  v-model="termAddDto.Description"
                                                  placeholder="Açıklama"
                                                  rows="3" />
-                                <b-spinner v-if="addButtonDisabled"
-                                           variant="secondary"
-                                           class="align-middle mr-1" />
-                                <b-button :disabled="addButtonDisabled"
-                                          :variant="addButtonVariant"
-                                          class="float-right mt-1"
-                                          type="submit"
-                                          @click.prevent="validationForm">
-                                    Ekle
-                                </b-button>
+                                <div class="float-right mt-1">
+                                    <b-spinner v-if="addButtonDisabled"
+                                               variant="secondary"
+                                               class="align-middle mr-1" />
+                                    <b-button :disabled="addButtonDisabled"
+                                              :variant="addButtonVariant"
+                                              type="submit"
+                                              @click.prevent="validationForm">
+                                        Ekle
+                                    </b-button>
+                                    </div>
                             </b-col>
                         </b-row>
                     </b-form>
@@ -83,7 +84,6 @@
         </b-col>
         <b-col :cols="$can('create', 'Tag') ? 8 : 12">
             <b-card id="card-list"
-                    title="Tüm Etiketler"
                     header-tag="header"
                     no-body>
                 <template #header>
@@ -102,7 +102,7 @@
                                           v-model="filterText"                                          
                                           @input="allClear" />
                             <b-input-group-append is-text>
-                                <feather-icon v-show="isShowSearchTextClearButton"
+                                <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
                                               title="Temizle"
@@ -153,6 +153,11 @@
                          foot-clone
                          @row-hovered="rowHovered"
                          @row-unhovered="rowUnHovered">
+                    <template #table-busy>
+                        <div class="text-center text-dark my-2">
+                            <b-spinner class="align-middle"></b-spinner>
+                        </div>
+                    </template>
                     <template #head(Id)="slot">
                         <b-form-checkbox :disabled="!$can('delete', 'Tag') || filteredData.length <= 0"
                                          v-model="selectAllCheck"
@@ -181,7 +186,7 @@
                         <b v-else>{{row.item.Name}}</b>
                         <div class="row-actions">
                             <div v-if="isHovered(row.item) && isHiddenRowActions">
-                                <b-link :to=" {name: 'pages-tag-view', params: { slug: row.item.Slug }}"
+                                <b-link :to=" {name: 'pages-tag-view', params: { slug: row.item.Slug }}" target="_blank"
                                         class="text-primary small">Görüntüle</b-link>
                                 <small v-if="$can('update', 'Tag')"
                                        class="text-muted"> | </small>
@@ -198,6 +203,9 @@
                                         @click="singleDeleteData(row.item.Id, row.item.Name)">Sil</b-link>
                             </div>
                         </div>
+                    </template>
+                    <template #cell(Description)="row">
+                        {{ row.item.Description === '' ? '—' : row.item.Description }}
                     </template>
                     <template #cell(PostTerms)="row">
                         <b-link :to="{ name: 'pages-article-list', query: { tag: row.item.Slug } }"><small> {{ row.item.PostTerms.length }}</small></b-link>
@@ -354,6 +362,8 @@
             validationForm() {
                 this.$refs.simpleRules.validate().then(success => {
                     if (success) {
+                        this.addButtonDisabled = true;
+                        this.addButtonVariant = 'outline-secondary';
                         axios.post('/admin/term-new',
                             {
                                 TermAddDto: this.termAddDto,
@@ -371,7 +381,7 @@
                                             text: response.data.TermDto.Message
                                         }
                                     })
-                                    this.getAllData();
+                                    this.getAllData();                                    
                                 }
                                 else {
                                     this.$toast({
@@ -384,6 +394,8 @@
                                         },
                                     })
                                 }
+                                this.addButtonDisabled = false;
+                                this.addButtonVariant = 'primary';
                             })
                             .catch((error) => {
                                 console.log(error);
@@ -609,7 +621,6 @@
                     }
                 })
             },
-
         },
         computed: {
             filteredData: function () {
@@ -644,7 +655,7 @@
         padding: 30px 0px 30px 0 !important;
     }
 
-    tag-table.table th:last-child, [dir] .table td:last-child {
+    #tag-table.table th:last-child, #tag-table.table td:last-child {
         text-align: center;
     }
 </style>
