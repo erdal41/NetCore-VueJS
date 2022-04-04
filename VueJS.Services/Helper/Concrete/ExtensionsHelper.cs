@@ -61,7 +61,7 @@ namespace VueJS.Services.Helper.Concrete
             return url;
         }
 
-        public async Task<object> GetParentsAsync(ObjectType objectType, object entity)
+        public async Task<object> GetParentsAsync(ObjectType? objectType, object entity)
         {
             if (objectType == ObjectType.basepage || objectType == ObjectType.page || objectType == ObjectType.article)
             {

@@ -213,7 +213,7 @@
                         </div>
                     </template>
                     <template #cell(Description)="row">
-                        {{ row.item.Description === '' ? '—' : row.item.Description }}
+                        {{ row.item.Description == '' || row.item.Description == null ? '—' : row.item.Description }}
                     </template>
                     <template #cell(ModifiedDate)="row">
                         <span>{{ new Date(row.item.ModifiedDate).toLocaleString() }}</span>

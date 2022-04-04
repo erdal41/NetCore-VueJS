@@ -18,14 +18,12 @@ namespace VueJS.Data.Concrete.EntityFramework.Mappings
                 new PostTerm
                 {
                     PostId = 1,
-                    TermId = 1,
-                    TermType = ObjectType.category,
+                    TermId = 1
                 },
                 new PostTerm
                 {
                     PostId = 1,
-                    TermId = 2,
-                    TermType = ObjectType.tag
+                    TermId = 2
                 }
                 );
         }

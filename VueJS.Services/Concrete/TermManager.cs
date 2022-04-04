@@ -124,7 +124,7 @@ namespace VueJS.Services.Concrete
 
         public async Task<IDataResult<TermDto>> AddAsync(TermAddDto termAddDto)
         {
-            string slug = termAddDto.Slug == "" ?  ExtensionsHelper.FriendlySEOString(termAddDto.Name) : termAddDto.Slug;
+            string slug = string.IsNullOrWhiteSpace(termAddDto.Slug) ?  ExtensionsHelper.FriendlySEOString(termAddDto.Name) : termAddDto.Slug;
             var slugCheck = await UnitOfWork.Terms.GetAllAsync(t => t.Slug == slug && t.TermType == termAddDto.TermType);
             if (slugCheck.Count != 0) return new DataResult<TermDto>(ResultStatus.Error, Messages.UrlCheck(termAddDto.TermType), null);
             var term = Mapper.Map<Term>(termAddDto);

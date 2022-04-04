@@ -333,7 +333,6 @@ namespace VueJS.Services.Concrete
             if (postNameCheck.Count != 0) return new DataResult<PostDto>(ResultStatus.Error, Messages.UrlCheck(postAddDto.PostType), null);
 
             var post = Mapper.Map<Post>(postAddDto);
-            post.PostStatus = PostStatus.publish;
             post.UserId = userId;
             post.PostName = postName;
             post.CommentCount = 0;
@@ -488,7 +487,7 @@ namespace VueJS.Services.Concrete
 
                 foreach (var pterm in post.PostTerms)
                 {
-                    Term term = (Term)await ExtensionsHelper.GetParentsAsync(pterm.TermType, pterm.Term);
+                    Term term = (Term)await ExtensionsHelper.GetParentsAsync(null, pterm.Term);
                     pterm.Term.Parents = term.Parents;
                 }
             }

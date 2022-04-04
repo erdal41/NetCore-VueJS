@@ -211,8 +211,7 @@
                                       :reduce="(option) => option.Id"
                                       placeholder="— Sayfa Türü —"
                                       :disabled="isSchemaPageSelectLoading"
-                              :loading="isSchemaPageSelectLoading"
-                                      @input="changePageType()">
+                                      :loading="isSchemaPageSelectLoading">
                                 <template #spinner="{ loading }">
                                     <div v-if="isSchemaPageSelectLoading"
                                          style="border-left-color: rgba(88, 151, 251, 0.71)"
@@ -225,15 +224,13 @@
                             </v-select>
                         </b-form-group>
                         <b-form-group label="Makale Türü">
-                            <v-select id="schemaArticleType"
-                                      v-model="selectedArticleType"
+                            <v-select v-model="articleSeoSettingAddDto.SchemaArticleType"
                                       :options="schemaArticleTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
                                       placeholder="— Makale Türü —"
                                       :disabled="isSchemaArticleSelectLoading"
-                              :loading="isSchemaArticleSelectLoading"
-                                      @input="changeArticleType">
+                                      :loading="isSchemaArticleSelectLoading">
                                 <template #spinner="{ loading }">
                                     <div v-if="isSchemaArticleSelectLoading"
                                          style="border-left-color: rgba(88, 151, 251, 0.71)"
@@ -355,19 +352,20 @@
         </b-col>
         <b-col md="12"
                lg="4">
-            <b-card title="Kategori">
+            <b-card class="card-border"
+                    header-tag="header">
+                    <template #header>
+                        <span class="font-weight-bold" style="font-size:18px;">Kategori</span>
+                    </template>
                 <b-form-group>
-                    <v-select id="categoryList"
-                              v-model="selectedCategory"
+                    <v-select v-model="selectedCategory"
                               :options="categories"
                               label="Name"
                               :reduce="(option) => option.Id"
                               placeholder="— Kategori —"
-                              taggable
                               multiple
                               :disabled="isCategorySelectLoading"
-                              :loading="isCategorySelectLoading"
-                              @input="changeCategory">
+                              :loading="isCategorySelectLoading">
                         <template #spinner="{ loading }">
                             <div v-if="isCategorySelectLoading"
                                  style="border-left-color: rgba(88, 151, 251, 0.71)"
@@ -402,16 +400,14 @@
                                     </validation-provider>
                                 </b-form-group>
                                 <b-form-group>
-                                    <v-select id="parentTerms"
-                                              v-model="selectedParentTerm"
+                                    <v-select v-model="categoryAddDto.ParentId"
                                               :options="allParentTerms"
                                               label="Name"
                                               :reduce="(option) => option.Id"
                                               class="select-size-sm"
                                               placeholder="— Üst Kategori —"
                                               :disabled="isCategorySelectLoading"
-                              :loading="isCategorySelectLoading"
-                                              @input="changeParentTerm">
+                                              :loading="isCategorySelectLoading">
                                         <template #spinner="{ loading }">
                                             <div v-if="isCategorySelectLoading"
                                                  style="border-left-color: rgba(88, 151, 251, 0.71)"
@@ -423,7 +419,8 @@
                                         </template>
                                     </v-select>
                                 </b-form-group>
-                                <b-button variant="outline-primary"
+                                <b-button :disabled="categoryAddDto.Name === ''"
+                                          variant="outline-primary"
                                           size="sm"
                                           @click.prevent="validationFormCategory">
                                     Ekle
@@ -433,7 +430,11 @@
                     </b-card>
                 </b-collapse>
             </b-card>
-            <b-card title="Etiket">
+            <b-card class="card-border"
+                    header-tag="header">
+                <template #header>
+                    <span class="font-weight-bold" style="font-size:18px;">Etiket</span>
+                </template>
                 <b-form-group>
                     <v-select v-model="selectedTag"
                               :options="tags"
@@ -442,8 +443,7 @@
                               placeholder="— Etiket —"
                               multiple
                               :disabled="isTagSelectLoading"
-                              :loading="isTagSelectLoading"
-                              @input="changeTag">
+                              :loading="isTagSelectLoading">
                         <template #spinner="{ loading }">
                             <div v-if="isTagSelectLoading"
                                  style="border-left-color: rgba(88, 151, 251, 0.71)"
@@ -477,7 +477,8 @@
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
                                 </b-form-group>
-                                <b-button variant="outline-primary"
+                                <b-button :disabled="tagAddDto.Name === ''"
+                                          variant="outline-primary"
                                           size="sm"
                                           @click.prevent="validationFormTag">
                                     Ekle
@@ -546,23 +547,22 @@
 </template>
 
 <script>
+    import ModalMedia from '../../media/ModalMedia.vue';
+    import UrlHelper from '@/helper/url-helper';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
+    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
+    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
+    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import { quillEditor } from 'vue-quill-editor';
     import 'quill/dist/quill.snow.css'
-
+    import vSelect from 'vue-select';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
     import { required } from '@validations';
     import {
         BBreadcrumb, BBreadcrumbItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
-    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
     import axios from 'axios';
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
-    import vSelect from 'vue-select';
-    import Ripple from 'vue-ripple-directive';
-    import { quillEditor } from 'vue-quill-editor';
-    import ModalMedia from '../../media/ModalMedia.vue';
-    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
-    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
-    import UrlHelper from '@/helper/url-helper';
+    import Ripple from 'vue-ripple-directive';    
 
     extend('required', {
         ...required,
@@ -673,8 +673,8 @@
                     IsRobotsNoArchive: Boolean,
                     IsRobotsNoImageIndex: Boolean,
                     IsRobotsNoSnippet: Boolean,
-                    SchemaPageType: '',
-                    SchemaArticleType: '',
+                    SchemaPageType: 0,
+                    SchemaArticleType: 0,
                     OpenGraphImageId: '',
                     OpenGraphTitle: '',
                     OpenGraphDescription: '',
@@ -720,32 +720,10 @@
                 isOpenGraphImageChoose: false,
                 isTwitterImageChoose: false,
                 schemaPageTypes: [],
-                schemaArticleTypes: [],
-                selectedPageType: { Id: '0', Name: 'Sayfalar için varsayılan(Web sayfası)' },
-                selectedArticleType: { Id: '0', Name: 'Yazılar için varsayılan(Makale)' }
+                schemaArticleTypes: []
             }
         },
         methods: {
-            postNameEdit() {
-                this.oldPostName = this.postAddDto.PostName;
-                var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.PostName);
-                this.postAddDto.PostName = seoPostName;
-                this.isSlugEditActive = false;
-            },
-            postNameEditCancel() {
-                this.isSlugEditActive = false;
-                this.postAddDto.PostName = this.oldPostName;
-            },
-            changePostName() {
-                if (!this.postAddDto.Title) {
-                    this.isShowPostName = false;
-                }
-                else {
-                    this.isShowPostName = true;
-                    var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.Title);
-                    this.postAddDto.PostName = seoPostName;
-                }
-            },
             allCategories() {
                 this.isCategorySelectLoading = true;
                 axios.get('/admin/term-allterms', {
@@ -804,14 +782,71 @@
                         })
                     });
             },
-            changeCategory(value) {
-                this.selectedCategory = value;
+            getSchemaPageType() {
+                this.isSchemaPageSelectLoading = true;
+                axios.get('/admin/post-getschemapagetype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaPageTypes = response.data;
+                        } else {
+                            this.schemaPageTypes = [];
+                        }
+                        this.isSchemaPageSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
             },
-            changeParentTerm(value) {
-                this.categoryAddDto.ParentId = value;
+            getSchemaArticleType() {
+                this.isSchemaArticleSelectLoading = true;
+                axios.get('/admin/post-getschemapagetype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaArticleTypes = response.data;
+                        } else {
+                            this.schemaArticleTypes = [];
+                        }
+                        this.isSchemaArticleSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
             },
-            changeTag(value) {
-                this.selectedTag = value;
+            postNameEdit() {
+                this.oldPostName = this.postAddDto.PostName;
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.PostName);
+                this.postAddDto.PostName = seoPostName;
+                this.isSlugEditActive = false;
+            },
+            postNameEditCancel() {
+                this.isSlugEditActive = false;
+                this.postAddDto.PostName = this.oldPostName;
+            },
+            changePostName() {
+                if (!this.postAddDto.Title) {
+                    this.isShowPostName = false;
+                }
+                else {
+                    this.isShowPostName = true;
+                    var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.Title);
+                    this.postAddDto.PostName = seoPostName;
+                }
             },
             addNewTerm: function (e) {
                 if (e.target.id == "newCategory") {
@@ -861,144 +896,6 @@
                     this.twitterImage.fileName = null;
                     this.twitterImage.altText = null;
                 }
-            },
-            getSchemaPageType() {
-                this.isSchemaPageSelectLoading = true;
-                axios.get('/admin/post-getschemapagetype')
-                    .then((response) => {
-                        if (response.data != null) {
-                            this.schemaPageTypes = response.data;
-                        } else {
-                            this.schemaPageTypes = [];
-                        }
-                        this.isSchemaPageSelectLoading = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getSchemaArticleType() {
-                this.isSchemaArticleSelectLoading = true;
-                axios.get('/admin/post-getschemapagetype')
-                    .then((response) => {
-                        if (response.data != null) {
-                            this.schemaArticleTypes = response.data;
-                        } else {
-                            this.schemaArticleTypes = [];
-                        }
-                        this.isSchemaArticleSelectLoading = false;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            changePageType(value) {
-                this.articleSeoSettingAddDto.SchemaPageType = value;
-            },
-            changeArticleType(value) {
-                this.articleSeoSettingAddDto.SchemaArticleType = value;
-            },
-            validationForm: function (e) {
-                this.postAddDto.FeaturedImageId = this.featuredImage.id;
-                this.articleSeoSettingAddDto.FocusKeyword = this.keywords.toString();
-                this.articleSeoSettingAddDto.OpenGraphImageId = this.openGraphImage.id;
-                this.articleSeoSettingAddDto.TwitterImageId = this.twitterImage.id;
-                this.articleSeoSettingAddDto.SchemaPageType = this.selectedPageType.Id;
-                this.articleSeoSettingAddDto.SchemaArticleType = this.selectedArticleType.Id;
-                if (e.target.id == "save") {
-                    this.postAddDto.PostStatus = "publish";
-                }
-                else if (e.target.id == "draft") {
-                    this.postAddDto.PostStatus = "draft";
-                }
-                this.$refs.articleAddForm.validate().then(success => {
-                    if (success) {
-                        axios.post('/admin/post-new',
-                            {
-                                PostAddDto: this.postAddDto,
-                                SeoObjectSettingAddDto: this.articleSeoSettingAddDto
-                            })
-                            .then((response) => {
-                                if (response.data.PostDto.ResultStatus === 0) {
-
-                                    this.postTermAddDto.PostId = response.data.PostDto.Data.Post.Id;
-                                    if (this.selectedCategory.length > 0) {
-                                        for (var i = 0; i < this.selectedCategory.length; i++) {
-                                            this.postTermAddDto.TermId = this.selectedCategory[i];
-                                            this.postTermAddDto.TermType = "category";
-
-                                            axios.post('/admin/term-newpostterm', {
-                                                PostTermAddDto: this.postTermAddDto
-                                            });
-                                        }
-                                    }
-
-                                    if (this.selectedTag.length > 0) {
-                                        for (var i = 0; i < this.selectedTag.length; i++) {
-                                            this.postTermAddDto.TermId = this.selectedTag[i];
-                                            this.postTermAddDto.TermType = "tag";
-
-                                            axios.post('/admin/term-newpostterm', {
-                                                PostTermAddDto: this.postTermAddDto
-                                            });
-                                        }
-                                    }
-
-                                    this.$router.push({ name: 'pages-article-edit', query: { edit: response.data.PostDto.Data.Post.Id } })
-
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.PostDto.Message
-                                        }
-                                    })
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.PostDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                console.log(error);
-                                console.log(error.request);
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
             },
             validationFormCategory() {
                 this.$refs.categoryAddForm.validate().then(success => {
@@ -1096,15 +993,96 @@
                     }
                 })
             },
-        },
-        computed: {
+            validationForm: function (e) {
+                this.postAddDto.FeaturedImageId = this.featuredImage.id;
+                this.articleSeoSettingAddDto.FocusKeyword = this.keywords.toString();
+                this.articleSeoSettingAddDto.OpenGraphImageId = this.openGraphImage.id;
+                this.articleSeoSettingAddDto.TwitterImageId = this.twitterImage.id;
+                if (e.target.id == "save") {
+                    this.postAddDto.PostStatus = "publish";
+                }
+                else if (e.target.id == "draft") {
+                    this.postAddDto.PostStatus = "draft";
+                }
+                this.$refs.articleAddForm.validate().then(success => {
+                    if (success) {
+                        axios.post('/admin/post-new',
+                            {
+                                PostAddDto: this.postAddDto,
+                                SeoObjectSettingAddDto: this.articleSeoSettingAddDto
+                            })
+                            .then((response) => {
+                                if (response.data.PostDto.ResultStatus === 0) {
+
+                                    this.postTermAddDto.PostId = response.data.PostDto.Data.Post.Id;
+                                    if (this.selectedCategory.length > 0) {
+                                        for (var i = 0; i < this.selectedCategory.length; i++) {
+                                            this.postTermAddDto.TermId = this.selectedCategory[i];
+                                            this.postTermAddDto.TermType = "category";
+
+                                            axios.post('/admin/term-newpostterm', {
+                                                PostTermAddDto: this.postTermAddDto
+                                            });
+                                        }
+                                    }
+
+                                    if (this.selectedTag.length > 0) {
+                                        for (var i = 0; i < this.selectedTag.length; i++) {
+                                            this.postTermAddDto.TermId = this.selectedTag[i];
+                                            this.postTermAddDto.TermType = "tag";
+
+                                            axios.post('/admin/term-newpostterm', {
+                                                PostTermAddDto: this.postTermAddDto
+                                            });
+                                        }
+                                    }
+
+                                    this.$router.push({ name: 'pages-article-edit', query: { edit: response.data.PostDto.Data.Post.Id } })
+
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'success',
+                                            title: 'Başarılı İşlem!',
+                                            icon: 'CheckIcon',
+                                            text: response.data.PostDto.Message
+                                        }
+                                    })
+                                }
+                                else {
+                                    this.$toast({
+                                        component: ToastificationContent,
+                                        props: {
+                                            variant: 'danger',
+                                            title: 'Başarısız İşlem!',
+                                            icon: 'AlertOctagonIcon',
+                                            text: response.data.PostDto.Message
+                                        },
+                                    })
+                                }
+                            })
+                            .catch((error) => {
+                                console.log(error);
+                                console.log(error.request);
+                                this.$toast({
+                                    component: ToastificationContent,
+                                    props: {
+                                        variant: 'danger',
+                                        title: 'Hata Oluştu!',
+                                        icon: 'AlertOctagonIcon',
+                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                    },
+                                })
+                            });
+                    }
+                })
+            },
         },
         mounted() {
             this.allCategories();
             this.allTags();
             this.getSchemaPageType();
             this.getSchemaArticleType();
-            console.log(this.selectedTag);
         }
     }
 </script>
@@ -1114,6 +1092,12 @@
 
     .ql-editor {
         min-height: 500px !important;
+    }
+
+    .card-border > .card-header {
+        padding: 8px 8px 8px 20px !important;
+        border-bottom: 1px solid #ebe9f1;
+        margin-bottom: 20px;
     }
 
     .card-border {

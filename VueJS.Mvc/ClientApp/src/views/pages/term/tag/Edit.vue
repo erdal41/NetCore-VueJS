@@ -336,9 +336,7 @@
         },
         data() {
             return {
-                buttonDisabled: false,
-                saveButtonVariant: 'primary',
-                deleteButtonVariant: 'outline-danger',
+               
                 doHaveData: Boolean,
                 showOverlay: false,
                 required,

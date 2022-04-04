@@ -205,7 +205,7 @@
                         </div>
                     </template>
                     <template #cell(Description)="row">
-                        {{ row.item.Description === '' ? '—' : row.item.Description }}
+                        {{ row.item.Description == '' || row.item.Description == null ? '—' : row.item.Description }}
                     </template>
                     <template #cell(PostTerms)="row">
                         <b-link :to="{ name: 'pages-article-list', query: { tag: row.item.Slug } }"><small> {{ row.item.PostTerms.length }}</small></b-link>

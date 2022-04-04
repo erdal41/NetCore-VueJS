@@ -32,7 +32,11 @@
                 <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                        md="4"
                        cols="12">
+                    <b-spinner v-if="buttonDisabled"
+                               variant="secondary"
+                               class="align-middle mr-1" />
                     <b-button v-if="postUpdateDto.PostStatus == 0 || postUpdateDto.PostStatus == 'publish'"
+                              :disabled="buttonDisabled"
                               variant="outline-primary"
                               class="mr-1"
                               size="sm"
@@ -41,21 +45,24 @@
                         Görüntüle
                     </b-button>
                     <b-button v-else-if="postUpdateDto.PostStatus == 1 || postUpdateDto.PostStatus == 'draft'"
+                              :disabled="buttonDisabled"
                               variant="outline-primary"
                               class="mr-1"
                               size="sm"
                               type="button"
-                              :to=" {name: 'pages-post-preview', params: { preview: $route.query.edit }}">
+                              :to=" {name: 'pages-post-preview', params: { preview: $route.query.edit }}" target="_blank">
                         Önizle
                     </b-button>
                     <b-button id="save"
-                              variant="primary"
+                              :disabled="buttonDisabled"
+                              :variant="saveButtonVariant"
                               class="mr-1"
                               type="submit"
                               @click.prevent="validationForm">
                         {{ saveButtonText }}
                     </b-button>
-                    <b-dropdown variant="link"
+                    <b-dropdown :disabled="buttonDisabled"
+                                variant="link"
                                 no-caret
                                 toggle-class="p-0"
                                 right>
@@ -76,7 +83,6 @@
                         </b-dropdown-item>
 
                         <b-dropdown-item href="javascript:;"
-                                         id="trash"
                                          variant="danger"
                                          @click="postStatusChange">
                             Çöp Kutusuna Taşı
@@ -85,439 +91,516 @@
                 </b-col>
                 <b-col md="12"
                        lg="8">
-                    <b-card>
-                        <validation-observer ref="articleAddForm">
-                            <b-form>
-                                <b-row>
-                                    <b-col cols="12">
-                                        <b-form-group label-for="title">
-                                            <validation-provider #default="{ errors }"
-                                                                 name="title"
-                                                                 vid="title"
-                                                                 rules="required">
-                                                <b-form-input id="title"
-                                                              v-model="postUpdateDto.Title"
-                                                              :state="errors.length > 0 ? false:null"
-                                                              type="text"
-                                                              placeholder="Başlık"
-                                                              @blur="changePostName" />
-                                                <small class="text-danger">{{ errors[0] }}</small>
-                                            </validation-provider>
-
-                                        </b-form-group>
-                                        <b-form-group>
-                                            <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postUpdateDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postUpdateDto.PostName }}</span></a>
-                                            <b-button v-show="isSlugEditActive == false"
-                                                      v-b-tooltip.hover
-                                                      title="Gönderinin linkini değiştirmenizi sağlar."
-                                                      v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-                                                      variant="outline-primary"
-                                                      size="sm"
-                                                      class="ml-1"
-                                                      @click="isSlugEditActive = !isSlugEditActive">
-                                                Düzenle
-                                            </b-button>
-                                            <div v-show="isSlugEditActive == true"
-                                                 class="card-border p-1">
-                                                <b-form-input type="text"
-                                                              v-model="postUpdateDto.PostName"
-                                                              placeholder="Gönderi Linki"
-                                                              size="sm">
-                                                </b-form-input>
-                                                <b-button variant="primary"
-                                                          class="mt-1"
-                                                          size="sm"
-                                                          @click="postNameEdit">
-                                                    Tamam
-                                                </b-button>
-                                                <b-button variant="flat-secondary"
-                                                          size="sm"
-                                                          class="ml-1 mt-1"
-                                                          @click="postNameEditCancel">
-                                                    İptal
-                                                </b-button>
-                                            </div>
-                                        </b-form-group>
-                                        <b-form-group>
-                                            <quill-editor v-model="postUpdateDto.Content"
-                                                          :options="editorOption" />
-                                        </b-form-group>
-                                    </b-col>
-                                </b-row>
-                            </b-form>
-                        </validation-observer>
-                    </b-card>
-                    <b-card-actions v-show="$can('update', 'Seo')"
-                                    title="SEO Ayarları"
-                                    action-collapse
-                                    collapsed>
-                        <b-tabs>
-                            <b-tab title="Genel"
-                                   active>
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <b-card>
+                            <validation-observer ref="articleAddForm">
                                 <b-form>
                                     <b-row>
                                         <b-col cols="12">
-                                            <b-form-group label-for="SeoTitle"
-                                                          description="Arama motoru optimizasyonu için geçerli olan SEO Başlığının uzunluğu 60 karakter olarak önerilir.">
-                                                <b-form-input id="SeoTitle"
-                                                              v-model="seoObjectSettingUpdateDto.SeoTitle"
-                                                              type="text"
-                                                              placeholder="Seo Başlığı" />
+                                            <b-form-group label-for="title">
+                                                <validation-provider #default="{ errors }"
+                                                                     name="title"
+                                                                     vid="title"
+                                                                     rules="required">
+                                                    <b-form-input id="title"
+                                                                  v-model="postUpdateDto.Title"
+                                                                  :state="errors.length > 0 ? false:null"
+                                                                  type="text"
+                                                                  placeholder="Başlık"
+                                                                  @blur="changePostName" />
+                                                    <small class="text-danger">{{ errors[0] }}</small>
+                                                </validation-provider>
+
                                             </b-form-group>
-                                            <b-form-group label-for="keyword"
-                                                          description="Bazı arama motorları için hala geçerli olan kelimeler, içerikle ilgili olacak şekilde maksimum 5 adet girilmesi önerilir.">
-                                                <b-form-tags v-model="keywords"
-                                                             input-id="tags-basic"
-                                                             id="keyword"
-                                                             class="mb-2"
-                                                             placeholder="Anahtar kelime giriniz." />
+                                            <b-form-group>
+                                                <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postUpdateDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postUpdateDto.PostName }}</span></a>
+                                                <b-button v-show="isSlugEditActive == false"
+                                                          v-b-tooltip.hover
+                                                          title="Gönderinin linkini değiştirmenizi sağlar."
+                                                          v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                                          variant="outline-primary"
+                                                          size="sm"
+                                                          class="ml-1"
+                                                          @click="isSlugEditActive = !isSlugEditActive">
+                                                    Düzenle
+                                                </b-button>
+                                                <div v-show="isSlugEditActive == true"
+                                                     class="card-border p-1">
+                                                    <b-form-input type="text"
+                                                                  v-model="postUpdateDto.PostName"
+                                                                  placeholder="Gönderi Linki"
+                                                                  size="sm">
+                                                    </b-form-input>
+                                                    <b-button variant="primary"
+                                                              class="mt-1"
+                                                              size="sm"
+                                                              @click="postNameEdit">
+                                                        Tamam
+                                                    </b-button>
+                                                    <b-button variant="flat-secondary"
+                                                              size="sm"
+                                                              class="ml-1 mt-1"
+                                                              @click="postNameEditCancel">
+                                                        İptal
+                                                    </b-button>
+                                                </div>
                                             </b-form-group>
-                                            <b-form-group label-for="SeoDescription"
-                                                          description="Arama motoru optimizayonu için geçerli olan SEO açıklamasının uzunluğu 50-160 karakter arasında girilmesi önerilir.">
-                                                <b-form-textarea id="SeoDescription"
-                                                                 v-model="seoObjectSettingUpdateDto.SeoDescription"
-                                                                 placeholder="Meta Açıklama"
-                                                                 rows="3" />
+                                            <b-form-group>
+                                                <quill-editor v-model="postUpdateDto.Content"
+                                                              :options="editorOption" />
                                             </b-form-group>
-                                            <app-collapse>
-                                                <app-collapse-item title="Gelişmiş">
-                                                    <b-form-group label-for="CanonicalUrl"
-                                                                  description="Geçerli sayfa ile benzer içeriğe sahip olan sayfanın linkini giriniz.">
-                                                        <b-form-input id="CanonicalUrl"
-                                                                      v-model="seoObjectSettingUpdateDto.CanonicalUrl"
-                                                                      type="text"
-                                                                      placeholder="Benzer Link" />
-                                                    </b-form-group>
-                                                    <b-form-group>
-                                                        <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoIndex"
-                                                                         name="check-button"
-                                                                         switch
-                                                                         inline>
-                                                            Arama motorlarının bu terimi arama sonuçlarında göstermesini istiyor musunuz?
-                                                        </b-form-checkbox>
-                                                    </b-form-group>
-                                                    <b-form-group>
-                                                        <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoFollow"
-                                                                         name="check-button"
-                                                                         switch
-                                                                         inline>
-                                                            Arama motorları bu sayfa üzerindeki bağlantıları(linkleri) izlemeli mi?
-                                                        </b-form-checkbox>
-                                                    </b-form-group>
-                                                    <b-form-group>
-                                                        <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoArchive"
-                                                                         name="check-button"
-                                                                         switch
-                                                                         inline>
-                                                            Arama motorları bu sayfanın önbelleğini almalı mı?
-                                                        </b-form-checkbox>
-                                                    </b-form-group>
-                                                    <b-form-group>
-                                                        <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoImageIndex"
-                                                                         name="check-button"
-                                                                         switch
-                                                                         inline>
-                                                            Arama motorları bu sayfa üzerindeki resimleri indexlemeli mi?
-                                                        </b-form-checkbox>
-                                                    </b-form-group>
-                                                    <b-form-group>
-                                                        <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoSnippet"
-                                                                         name="check-button"
-                                                                         switch
-                                                                         inline>
-                                                            Arama motorları bu sayfa için özel snippetlere izin vermeli mi?
-                                                        </b-form-checkbox>
-                                                    </b-form-group>
-                                                </app-collapse-item>
-                                            </app-collapse>
                                         </b-col>
                                     </b-row>
                                 </b-form>
-                            </b-tab>
-                            <b-tab title="Şema">
-                                <p>
-                                    <strong>Sayfalarınızı schema.org kullanarak otomatik olarak tanımlar</strong>
-                                    <br />
-                                    Bu, arama motorlarının web sitenizi ve içeriğinizi anlamasına yardımcı olur. Bu sayfa için bazı ayarlarınızı aşağıda değiştirebilirsiniz.
-                                </p>
-                                <b-form-group label="Sayfa Türü">
-                                    <v-select v-model="seoObjectSettingUpdateDto.SchemaPageType"
-                                              :options="schemaPageTypes"
-                                              label="Name"
-                                              :reduce="(option) => option.Id"
-                                              :clearable="false"
-                                              @input="changePageType" />
-                                </b-form-group>
-                                <b-form-group label="Makale Türü">
-                                    <v-select v-model="seoObjectSettingUpdateDto.SchemaArticleType"
-                                              :options="schemaArticleTypes"
-                                              label="Name"
-                                              :reduce="(option) => option.Id"
-                                              :clearable="false"
-                                              @input="changeArticleType" />
-                                </b-form-group>
-                            </b-tab>
-                            <b-tab title="Sosyal Medya">
-                                <app-collapse>
-                                    <app-collapse-item title="Sosyal Medya">
-                                        <b-row class="kb-search-content-info match-height">
-                                            <b-col lg="4"
-                                                   md="4"
-                                                   sm="6">
-                                                <div class="image-preview">
-                                                    <div class="image-thumbnail select-opengraph-image"
-                                                         v-b-modal.modal-media
-                                                         @click="selectImage">
-                                                        <b-img rounded
-                                                               v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
-                                                               :alt="openGraphImage.altText"
-                                                               class="select-opengraph-image" />
-                                                        <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                                  variant="relief-primary"
-                                                                  size="sm"
-                                                                  class="btn-icon rounded-circle select-image select-opengraph-image">
-                                                            <feather-icon icon="Edit2Icon"
-                                                                          class="select-opengraph-image"
-                                                                          size="11" />
-                                                        </b-button>
-                                                    </div>
-                                                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                              variant="relief-secondary"
-                                                              size="sm"
-                                                              class="btn-icon rounded-circle remove-image remove-opengraph-image"
-                                                              @click="removeImage">
-                                                        <feather-icon icon="XIcon"
-                                                                      class="remove-opengraph-image"
-                                                                      size="11" />
-                                                    </b-button>
-                                                    <b-form-input type="text"
-                                                                  hidden
-                                                                  v-model="openGraphImage.id"></b-form-input>
-                                                </div>
+                            </validation-observer>
+                        </b-card>
+                    </b-overlay>
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <b-card-actions v-show="$can('update', 'Seo')"
+                                        title="SEO Ayarları"
+                                        action-collapse
+                                        collapsed>
+                            <b-tabs>
+                                <b-tab title="Genel"
+                                       active>
+                                    <b-form>
+                                        <b-row>
+                                            <b-col cols="12">
+                                                <b-form-group label-for="SeoTitle"
+                                                              description="Arama motoru optimizasyonu için geçerli olan SEO Başlığının uzunluğu 60 karakter olarak önerilir.">
+                                                    <b-form-input id="SeoTitle"
+                                                                  v-model="seoObjectSettingUpdateDto.SeoTitle"
+                                                                  type="text"
+                                                                  placeholder="Seo Başlığı" />
+                                                </b-form-group>
+                                                <b-form-group label-for="keyword"
+                                                              description="Bazı arama motorları için hala geçerli olan kelimeler, içerikle ilgili olacak şekilde maksimum 5 adet girilmesi önerilir.">
+                                                    <b-form-tags v-model="keywords"
+                                                                 input-id="tags-basic"
+                                                                 id="keyword"
+                                                                 class="mb-2"
+                                                                 placeholder="Anahtar kelime giriniz." />
+                                                </b-form-group>
+                                                <b-form-group label-for="SeoDescription"
+                                                              description="Arama motoru optimizayonu için geçerli olan SEO açıklamasının uzunluğu 50-160 karakter arasında girilmesi önerilir.">
+                                                    <b-form-textarea id="SeoDescription"
+                                                                     v-model="seoObjectSettingUpdateDto.SeoDescription"
+                                                                     placeholder="Meta Açıklama"
+                                                                     rows="3" />
+                                                </b-form-group>
+                                                <app-collapse>
+                                                    <app-collapse-item title="Gelişmiş">
+                                                        <b-form-group label-for="CanonicalUrl"
+                                                                      description="Geçerli sayfa ile benzer içeriğe sahip olan sayfanın linkini giriniz.">
+                                                            <b-form-input id="CanonicalUrl"
+                                                                          v-model="seoObjectSettingUpdateDto.CanonicalUrl"
+                                                                          type="text"
+                                                                          placeholder="Benzer Link" />
+                                                        </b-form-group>
+                                                        <b-form-group>
+                                                            <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoIndex"
+                                                                             name="check-button"
+                                                                             switch
+                                                                             inline>
+                                                                Arama motorlarının bu terimi arama sonuçlarında göstermesini istiyor musunuz?
+                                                            </b-form-checkbox>
+                                                        </b-form-group>
+                                                        <b-form-group>
+                                                            <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoFollow"
+                                                                             name="check-button"
+                                                                             switch
+                                                                             inline>
+                                                                Arama motorları bu sayfa üzerindeki bağlantıları(linkleri) izlemeli mi?
+                                                            </b-form-checkbox>
+                                                        </b-form-group>
+                                                        <b-form-group>
+                                                            <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoArchive"
+                                                                             name="check-button"
+                                                                             switch
+                                                                             inline>
+                                                                Arama motorları bu sayfanın önbelleğini almalı mı?
+                                                            </b-form-checkbox>
+                                                        </b-form-group>
+                                                        <b-form-group>
+                                                            <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoImageIndex"
+                                                                             name="check-button"
+                                                                             switch
+                                                                             inline>
+                                                                Arama motorları bu sayfa üzerindeki resimleri indexlemeli mi?
+                                                            </b-form-checkbox>
+                                                        </b-form-group>
+                                                        <b-form-group>
+                                                            <b-form-checkbox v-model="seoObjectSettingUpdateDto.IsRobotsNoSnippet"
+                                                                             name="check-button"
+                                                                             switch
+                                                                             inline>
+                                                                Arama motorları bu sayfa için özel snippetlere izin vermeli mi?
+                                                            </b-form-checkbox>
+                                                        </b-form-group>
+                                                    </app-collapse-item>
+                                                </app-collapse>
                                             </b-col>
                                         </b-row>
-                                        <b-form-group class="mt-1">
-                                            <b-form-input id="OpenGraphTitle"
-                                                          v-model="seoObjectSettingUpdateDto.OpenGraphTitle"
-                                                          type="text"
-                                                          placeholder="Sosyal Medya Başlığı" />
-                                        </b-form-group>
-                                        <b-form-group>
-                                            <b-form-textarea id="OpenGraphDescription"
-                                                             v-model="seoObjectSettingUpdateDto.OpenGraphDescription"
-                                                             placeholder="Sosyal Medya Açıklaması"
-                                                             rows="3" />
-                                        </b-form-group>
-                                    </app-collapse-item>
-                                    <app-collapse-item title="Twitter">
-                                        <b-row class="kb-search-content-info match-height">
-                                            <b-col lg="4"
-                                                   md="4"
-                                                   sm="6">
-                                                <div class="image-preview">
-                                                    <div class="image-thumbnail select-twitter-image"
-                                                         v-b-modal.modal-media
-                                                         @click="selectImage">
-                                                        <b-img rounded
-                                                               v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
-                                                               :alt="twitterImage.altText"
-                                                               class="select-twitter-image" />
+                                    </b-form>
+                                </b-tab>
+                                <b-tab title="Şema">
+                                    <p>
+                                        <strong>Sayfalarınızı schema.org kullanarak otomatik olarak tanımlar</strong>
+                                        <br />
+                                        Bu, arama motorlarının web sitenizi ve içeriğinizi anlamasına yardımcı olur. Bu sayfa için bazı ayarlarınızı aşağıda değiştirebilirsiniz.
+                                    </p>
+                                    <b-form-group label="Sayfa Türü">
+                                        <v-select v-model="seoObjectSettingUpdateDto.SchemaPageType"
+                                                  :options="schemaPageTypes"
+                                                  label="Name"
+                                                  :reduce="(option) => option.Id"
+                                                  :clearable="false"
+                                                  :disabled="isSchemaPageSelectLoading"
+                                                  :loading="isSchemaPageSelectLoading">
+                                            <template #spinner="{ loading }">
+                                                <div v-if="isSchemaPageSelectLoading"
+                                                     style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                     class="vs__spinner">
+                                                </div>
+                                            </template>
+                                            <template #no-options="{ search, searching, loading }">
+                                                {{ nullSchemaMessage }}
+                                            </template>
+                                        </v-select>
+                                    </b-form-group>
+                                    <b-form-group label="Makale Türü">
+                                        <v-select v-model="seoObjectSettingUpdateDto.SchemaArticleType"
+                                                  :options="schemaArticleTypes"
+                                                  label="Name"
+                                                  :reduce="(option) => option.Id"
+                                                  :clearable="false"
+                                                  :disabled="isSchemaArticleSelectLoading"
+                                                  :loading="isSchemaArticleSelectLoading">
+                                            <template #spinner="{ loading }">
+                                                <div v-if="isSchemaArticleSelectLoading"
+                                                     style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                     class="vs__spinner">
+                                                </div>
+                                            </template>
+                                            <template #no-options="{ search, searching, loading }">
+                                                {{ nullSchemaMessage }}
+                                            </template>
+                                        </v-select>
+                                    </b-form-group>
+                                </b-tab>
+                                <b-tab title="Sosyal Medya">
+                                    <app-collapse>
+                                        <app-collapse-item title="Sosyal Medya">
+                                            <b-row class="kb-search-content-info match-height">
+                                                <b-col lg="4"
+                                                       md="4"
+                                                       sm="6">
+                                                    <div class="image-preview">
+                                                        <div class="image-thumbnail select-opengraph-image"
+                                                             v-b-modal.modal-media
+                                                             @click="selectImage">
+                                                            <b-img rounded
+                                                                   v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
+                                                                   :alt="openGraphImage.altText"
+                                                                   class="select-opengraph-image" />
+                                                            <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                                      variant="relief-primary"
+                                                                      size="sm"
+                                                                      class="btn-icon rounded-circle select-image select-opengraph-image">
+                                                                <feather-icon icon="Edit2Icon"
+                                                                              class="select-opengraph-image"
+                                                                              size="11" />
+                                                            </b-button>
+                                                        </div>
                                                         <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                                  variant="relief-primary"
+                                                                  variant="relief-secondary"
                                                                   size="sm"
-                                                                  class="btn-icon rounded-circle select-image select-twitter-image">
-                                                            <feather-icon icon="Edit2Icon"
-                                                                          class="select-twitter-image"
+                                                                  class="btn-icon rounded-circle remove-image remove-opengraph-image"
+                                                                  @click="removeImage">
+                                                            <feather-icon icon="XIcon"
+                                                                          class="remove-opengraph-image"
                                                                           size="11" />
                                                         </b-button>
+                                                        <b-form-input type="text"
+                                                                      hidden
+                                                                      v-model="openGraphImage.id"></b-form-input>
                                                     </div>
-                                                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                              variant="relief-secondary"
-                                                              size="sm"
-                                                              class="btn-icon rounded-circle remove-image remove-twitter-image"
-                                                              @click="removeImage">
-                                                        <feather-icon icon="XIcon"
-                                                                      class="remove-twitter-image"
-                                                                      size="11" />
-                                                    </b-button>
-                                                    <b-form-input type="text"
-                                                                  hidden
-                                                                  v-model="twitterImage.id"></b-form-input>
-                                                </div>
-                                            </b-col>
-                                        </b-row>
-                                        <b-form-group class="mt-1">
-                                            <b-form-input id="TwitterTitle"
-                                                          v-model="seoObjectSettingUpdateDto.TwitterTitle"
-                                                          type="text"
-                                                          placeholder="Twitter Başlığı" />
-                                        </b-form-group>
-                                        <b-form-group>
-                                            <b-form-textarea id="TwitterDescription"
-                                                             v-model="seoObjectSettingUpdateDto.TwitterDescription"
-                                                             placeholder="Twitter Açıklaması"
-                                                             rows="3" />
-                                        </b-form-group>
-                                    </app-collapse-item>
-                                </app-collapse>
-                            </b-tab>
-                        </b-tabs>
-                    </b-card-actions>
+                                                </b-col>
+                                            </b-row>
+                                            <b-form-group class="mt-1">
+                                                <b-form-input id="OpenGraphTitle"
+                                                              v-model="seoObjectSettingUpdateDto.OpenGraphTitle"
+                                                              type="text"
+                                                              placeholder="Sosyal Medya Başlığı" />
+                                            </b-form-group>
+                                            <b-form-group>
+                                                <b-form-textarea id="OpenGraphDescription"
+                                                                 v-model="seoObjectSettingUpdateDto.OpenGraphDescription"
+                                                                 placeholder="Sosyal Medya Açıklaması"
+                                                                 rows="3" />
+                                            </b-form-group>
+                                        </app-collapse-item>
+                                        <app-collapse-item title="Twitter">
+                                            <b-row class="kb-search-content-info match-height">
+                                                <b-col lg="4"
+                                                       md="4"
+                                                       sm="6">
+                                                    <div class="image-preview">
+                                                        <div class="image-thumbnail select-twitter-image"
+                                                             v-b-modal.modal-media
+                                                             @click="selectImage">
+                                                            <b-img rounded
+                                                                   v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
+                                                                   :alt="twitterImage.altText"
+                                                                   class="select-twitter-image" />
+                                                            <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                                      variant="relief-primary"
+                                                                      size="sm"
+                                                                      class="btn-icon rounded-circle select-image select-twitter-image">
+                                                                <feather-icon icon="Edit2Icon"
+                                                                              class="select-twitter-image"
+                                                                              size="11" />
+                                                            </b-button>
+                                                        </div>
+                                                        <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                                  variant="relief-secondary"
+                                                                  size="sm"
+                                                                  class="btn-icon rounded-circle remove-image remove-twitter-image"
+                                                                  @click="removeImage">
+                                                            <feather-icon icon="XIcon"
+                                                                          class="remove-twitter-image"
+                                                                          size="11" />
+                                                        </b-button>
+                                                        <b-form-input type="text"
+                                                                      hidden
+                                                                      v-model="twitterImage.id"></b-form-input>
+                                                    </div>
+                                                </b-col>
+                                            </b-row>
+                                            <b-form-group class="mt-1">
+                                                <b-form-input id="TwitterTitle"
+                                                              v-model="seoObjectSettingUpdateDto.TwitterTitle"
+                                                              type="text"
+                                                              placeholder="Twitter Başlığı" />
+                                            </b-form-group>
+                                            <b-form-group>
+                                                <b-form-textarea id="TwitterDescription"
+                                                                 v-model="seoObjectSettingUpdateDto.TwitterDescription"
+                                                                 placeholder="Twitter Açıklaması"
+                                                                 rows="3" />
+                                            </b-form-group>
+                                        </app-collapse-item>
+                                    </app-collapse>
+                                </b-tab>
+                            </b-tabs>
+                        </b-card-actions>
+                        </b-overlay>
                 </b-col>
                 <b-col md="12"
                        lg="4">
-                    <b-card title="Kategori">
-                        <b-form-group>
-                            <v-select v-model="currentSelectedCategory"
-                                      :options="categories"
-                                      label="Name"
-                                      :reduce="(option) => option.Id"
-                                      placeholder="Kategori Seçiniz..."
-                                      multiple
-                                      @option:selecting="selectingTerms"
-                                      @option:deselected="deSelectingTerms" />
-                        </b-form-group>
-                        <b-button v-b-toggle.new-category
-                                  size="sm"
-                                  variant="flat-primary">
-                            + Yeni Kategori Ekle
-                        </b-button>
-                        <b-collapse id="new-category">
-                            <b-card class="card-border">
-                                <validation-observer ref="categoryAddForm">
-                                    <b-form>
-                                        <b-form-group>
-                                            <validation-provider #default="{ errors }"
-                                                                 name="categoryName"
-                                                                 vid="categoryName"
-                                                                 rules="required">
-                                                <b-form-input v-model="categoryAddDto.Name"
-                                                              :state="errors.length > 0 ? false:null"
-                                                              type="text"
-                                                              size="sm"
-                                                              placeholder="Kategori Adı" />
-                                                <small class="text-danger">{{ errors[0] }}</small>
-                                            </validation-provider>
-                                        </b-form-group>
-                                        <b-form-group>
-                                            <v-select id="parentTerms"
-                                                      v-model="selectedParentTerm"
-                                                      :options="allParentTerms"
-                                                      label="Name"
-                                                      :reduce="(option) => option.Id"
-                                                      class="select-size-sm"
-                                                      placeholder="— Üst Kategori —"
-                                                      @input="changeParentTerm" />
-                                        </b-form-group>
-                                        <b-button variant="outline-primary"
-                                                  size="sm"
-                                                  @click.prevent="validationFormCategory">
-                                            Ekle
-                                        </b-button>
-                                    </b-form>
-                                </validation-observer>
-                            </b-card>
-                        </b-collapse>
-                    </b-card>
-                    <b-card title="Etiket">
-                        <b-form-group>
-                            <v-select v-model="currentSelectedTag"
-                                      :options="tags"
-                                      label="Name"
-                                      :reduce="(option) => option.Id"
-                                      placeholder="Etiket Seçiniz..."
-                                      multiple
-                                      @option:selecting="selectingTerms"
-                                      @option:deselecting="deSelectingTerms" />
-                        </b-form-group>
-                        <b-button v-b-toggle.new-tag
-                                  size="sm"
-                                  variant="flat-primary">
-                            + Yeni Etiket Ekle
-                        </b-button>
-                        <b-collapse id="new-tag">
-                            <b-card class="card-border">
-                                <validation-observer ref="tagAddForm">
-                                    <b-form>
-                                        <b-form-group>
-                                            <validation-provider #default="{ errors }"
-                                                                 name="tagName"
-                                                                 vid="tagName"
-                                                                 rules="required">
-                                                <b-form-input v-model="tagAddDto.Name"
-                                                              :state="errors.length > 0 ? false:null"
-                                                              type="text"
-                                                              size="sm"
-                                                              placeholder="Etiket Adı" />
-                                                <small class="text-danger">{{ errors[0] }}</small>
-                                            </validation-provider>
-                                        </b-form-group>
-                                        <b-button variant="outline-primary"
-                                                  size="sm"
-                                                  @click.prevent="validationFormTag">
-                                            Ekle
-                                        </b-button>
-                                    </b-form>
-                                </validation-observer>
-                            </b-card>
-                        </b-collapse>
-                    </b-card>
-                    <b-card-actions title="Resim"
-                                    action-collapse
-                                    collapsed>
-                        <b-form-group>
-                            <b-form-checkbox v-model="postUpdateDto.IsShowFeaturedImage"
-                                             name="check-button"
-                                             switch
-                                             inline>
-                                Görsel gönderide gösterilsin mi?
-                            </b-form-checkbox>
-                        </b-form-group>
-                        <div class="image-preview mt-1">
-                            <div class="image-thumbnail select-featured-image"
-                                 v-b-modal.modal-media
-                                 @click="selectImage">
-                                <b-img v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
-                                       :alt="featuredImage.altText"
-                                       rounded
-                                       class="select-featured-image"
-                                       v-b-modal.modal-media
-                                       @click="selectImage" />
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <b-card title="Kategori">
+                            <b-form-group>
+                                <v-select v-model="currentSelectedCategory"
+                                          :options="categories"
+                                          label="Name"
+                                          :reduce="(option) => option.Id"
+                                          placeholder="— Kategori —"
+                                          multiple
+                                          :disabled="isCategorySelectLoading"
+                                          :loading="isCategorySelectLoading"
+                                          @option:selecting="selectingTerms"
+                                          @option:deselected="deSelectingTerms">
+                                    <template #spinner="{ loading }">
+                                        <div v-if="isCategorySelectLoading"
+                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                             class="vs__spinner">
+                                        </div>
+                                    </template>
+                                    <template #no-options="{ search, searching, loading }">
+                                        {{ nullCategoryMessage }}
+                                    </template>
+                                </v-select>
+                            </b-form-group>
+                            <b-button v-b-toggle.new-category
+                                      size="sm"
+                                      variant="flat-primary">
+                                + Yeni Kategori Ekle
+                            </b-button>
+                            <b-collapse id="new-category">
+                                <b-card class="card-border">
+                                    <validation-observer ref="categoryAddForm">
+                                        <b-form>
+                                            <b-form-group>
+                                                <validation-provider #default="{ errors }"
+                                                                     name="categoryName"
+                                                                     vid="categoryName"
+                                                                     rules="required">
+                                                    <b-form-input v-model="categoryAddDto.Name"
+                                                                  :state="errors.length > 0 ? false:null"
+                                                                  type="text"
+                                                                  size="sm"
+                                                                  placeholder="Kategori Adı" />
+                                                    <small class="text-danger">{{ errors[0] }}</small>
+                                                </validation-provider>
+                                            </b-form-group>
+                                            <b-form-group>
+                                                <v-select id="parentTerms"
+                                                          v-model="categoryAddDto.ParentId"
+                                                          :options="allParentTerms"
+                                                          label="Name"
+                                                          :reduce="(option) => option.Id"
+                                                          class="select-size-sm"
+                                                          placeholder="— Üst Kategori —"
+                                                          :disabled="isCategorySelectLoading"
+                                                          :loading="isCategorySelectLoading">
+                                                    <template #spinner="{ loading }">
+                                                        <div v-if="isCategorySelectLoading"
+                                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                             class="vs__spinner">
+                                                        </div>
+                                                    </template>
+                                                    <template #no-options="{ search, searching, loading }">
+                                                        {{ nullCategoryMessage }}
+                                                    </template>
+                                                </v-select>
+                                            </b-form-group>
+                                            <b-button :disabled="categoryAddDto.Name === ''"
+                                                      variant="outline-primary"
+                                                      size="sm"
+                                                      @click.prevent="validationFormCategory">
+                                                Ekle
+                                            </b-button>
+                                        </b-form>
+                                    </validation-observer>
+                                </b-card>
+                            </b-collapse>
+                        </b-card>
+                    </b-overlay>
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <b-card title="Etiket">
+                            <b-form-group>
+                                <v-select v-model="currentSelectedTag"
+                                          :options="tags"
+                                          label="Name"
+                                          :reduce="(option) => option.Id"
+                                          placeholder="— Etiket —"
+                                          multiple
+                                          :disabled="isTagSelectLoading"
+                                          :loading="isTagSelectLoading"
+                                          @option:selecting="selectingTerms"
+                                          @option:deselecting="deSelectingTerms">
+                                    <template #spinner="{ loading }">
+                                        <div v-if="isTagSelectLoading"
+                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                             class="vs__spinner">
+                                        </div>
+                                    </template>
+                                    <template #no-options="{ search, searching, loading }">
+                                        {{ nullTagMessage }}
+                                    </template>
+                                </v-select>
+                            </b-form-group>
+                            <b-button v-b-toggle.new-tag
+                                      size="sm"
+                                      variant="flat-primary">
+                                + Yeni Etiket Ekle
+                            </b-button>
+                            <b-collapse id="new-tag">
+                                <b-card class="card-border">
+                                    <validation-observer ref="tagAddForm">
+                                        <b-form>
+                                            <b-form-group>
+                                                <validation-provider #default="{ errors }"
+                                                                     name="tagName"
+                                                                     vid="tagName"
+                                                                     rules="required">
+                                                    <b-form-input v-model="tagAddDto.Name"
+                                                                  :state="errors.length > 0 ? false:null"
+                                                                  type="text"
+                                                                  size="sm"
+                                                                  placeholder="Etiket Adı" />
+                                                    <small class="text-danger">{{ errors[0] }}</small>
+                                                </validation-provider>
+                                            </b-form-group>
+                                            <b-button :disabled="tagAddDto.Name === ''"
+                                                      variant="outline-primary"
+                                                      size="sm"
+                                                      @click.prevent="validationFormTag">
+                                                Ekle
+                                            </b-button>
+                                        </b-form>
+                                    </validation-observer>
+                                </b-card>
+                            </b-collapse>
+                        </b-card>
+                    </b-overlay>
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <b-card-actions title="Resim"
+                                        action-collapse
+                                        collapsed>
+                            <b-form-group>
+                                <b-form-checkbox v-model="postUpdateDto.IsShowFeaturedImage"
+                                                 name="check-button"
+                                                 switch
+                                                 inline>
+                                    Görsel gönderide gösterilsin mi?
+                                </b-form-checkbox>
+                            </b-form-group>
+                            <div class="image-preview mt-1">
+                                <div class="image-thumbnail select-featured-image"
+                                     v-b-modal.modal-media
+                                     @click="selectImage">
+                                    <b-img v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
+                                           :alt="featuredImage.altText"
+                                           rounded
+                                           class="select-featured-image"
+                                           v-b-modal.modal-media
+                                           @click="selectImage" />
+                                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                              variant="relief-primary"
+                                              size="sm"
+                                              class="btn-icon rounded-circle select-image select-featured-image">
+                                        <feather-icon icon="Edit2Icon"
+                                                      class="select-featured-image"
+                                                      size="11" />
+                                    </b-button>
+                                </div>
                                 <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                          variant="relief-primary"
+                                          variant="relief-secondary"
                                           size="sm"
-                                          class="btn-icon rounded-circle select-image select-featured-image">
-                                    <feather-icon icon="Edit2Icon"
-                                                  class="select-featured-image"
+                                          class="btn-icon rounded-circle remove-image remove-featured-image"
+                                          @click="removeImage">
+                                    <feather-icon icon="XIcon"
+                                                  class="remove-featured-image"
                                                   size="11" />
                                 </b-button>
+                                <b-form-input type="text"
+                                              hidden
+                                              v-model="featuredImage.id"></b-form-input>
                             </div>
-                            <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                      variant="relief-secondary"
-                                      size="sm"
-                                      class="btn-icon rounded-circle remove-image remove-featured-image"
-                                      @click="removeImage">
-                                <feather-icon icon="XIcon"
-                                              class="remove-featured-image"
-                                              size="11" />
-                            </b-button>
-                            <b-form-input type="text"
-                                          hidden
-                                          v-model="featuredImage.id"></b-form-input>
-                        </div>
-                    </b-card-actions>
-                    <b-card-actions title="Diğer Ayarlar"
-                                    action-collapse
-                                    collapsed>
-                        <b-form-group>
-                            <b-form-checkbox v-model="postUpdateDto.CommentStatus"
-                                             name="check-button"
-                                             switch
-                                             inline>
-                                Bu gönderi için yorumlar aktif olsun mu?
-                            </b-form-checkbox>
-                        </b-form-group>
-                    </b-card-actions>
+                        </b-card-actions>
+                    </b-overlay>
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <b-card-actions title="Diğer Ayarlar"
+                                        action-collapse
+                                        collapsed>
+                            <b-form-group>
+                                <b-form-checkbox v-model="postUpdateDto.CommentStatus"
+                                                 name="check-button"
+                                                 switch
+                                                 inline>
+                                    Bu gönderi için yorumlar aktif olsun mu?
+                                </b-form-checkbox>
+                            </b-form-group>
+                        </b-card-actions>
+                        </b-overlay>
                 </b-col>
             </b-row>
         </div>
@@ -544,23 +627,22 @@
 </template>
 
 <script>
+    import ModalMedia from '../../media/ModalMedia.vue';
+    import UrlHelper from '@/helper/url-helper';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
+    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
+    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
+    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import { quillEditor } from 'vue-quill-editor';
     import 'quill/dist/quill.snow.css'
-
+    import vSelect from 'vue-select';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
     import { required } from '@validations';
     import {
-        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
+        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BOverlay, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
-    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
     import axios from 'axios';
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
-    import vSelect from 'vue-select';
     import Ripple from 'vue-ripple-directive';
-    import { quillEditor } from 'vue-quill-editor';
-    import ModalMedia from '../../media/ModalMedia.vue';
-    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
-    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
-    import UrlHelper from '@/helper/url-helper';
 
     extend('required', {
         ...required,
@@ -590,6 +672,7 @@
             BButton,
             BFormCheckbox,
             BFormTextarea,
+            BOverlay,
             BCard,
             BRow,
             BCol,
@@ -612,6 +695,16 @@
         },
         data() {
             return {
+                showOverlay: false,
+                buttonDisabled: false,
+                saveButtonVariant: 'primary',
+                isCategorySelectLoading: false,
+                isTagSelectLoading: false,
+                isSchemaPageSelectLoading: false,
+                isSchemaArticleSelectLoading: false,
+                nullCategoryMessage: 'Hiçbir kategori bulunamadı.',
+                nullTagMessage: 'Hiçbir etiket bulunamadı.',
+                nullSchemaMessage: 'Hiçbir şema türü bulunamadı.',
                 doHaveData: Boolean,
                 isTrashedPost: Boolean,
                 editorOption: {
@@ -710,6 +803,223 @@
             }
         },
         methods: {
+            getData() {
+                this.showOverlay = true;
+                axios.get('/admin/post-edit?postId=' + this.$route.query.edit)
+                    .then((response) => {
+                        if (response.data.PostUpdateDto.ResultStatus === 0) {
+                            if (response.data.PostUpdateDto.Data.PostType !== 1) {
+                                this.doHaveData = false;
+                            }
+                            else {
+                                this.doHaveData = true;
+                                this.parentPostName = "";
+                                console.log(response.data);
+                                if (response.data.PostUpdateDto.Data.PostStatus == 2) {
+                                    this.isTrashedPost = true;
+                                    this.doHaveData = true;
+                                }
+                                else {
+                                    this.doHaveData = true;
+                                    this.isTrashedPost = false;
+
+                                    if (response.data.PostUpdateDto.Data.Parents != null) {
+                                        for (var i = response.data.PostUpdateDto.Data.Parents.length - 1; i >= 0; --i) {
+                                            this.parentPostName += "/" + response.data.PostUpdateDto.Data.Parents[i].PostName
+                                        }
+                                    }
+
+                                    this.postUpdateDto.PostStatus = response.data.PostUpdateDto.Data.PostStatus;
+                                    this.postUpdateDto.PostName = response.data.PostUpdateDto.Data.PostName;
+                                    this.postUpdateDto.PostType = response.data.PostUpdateDto.Data.PostType;
+                                    this.postUpdateDto.Title = response.data.PostUpdateDto.Data.Title;
+                                    this.postUpdateDto.Content = response.data.PostUpdateDto.Data.Content;
+
+                                    this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.Data.IsShowFeaturedImage;
+                                    if (response.data.PostUpdateDto.Data.FeaturedImage != null) {
+                                        this.featuredImage.id = response.data.PostUpdateDto.Data.FeaturedImageId;
+                                        this.featuredImage.fileName = response.data.PostUpdateDto.Data.FeaturedImage.FileName;
+                                        this.featuredImage.altText = response.data.PostUpdateDto.Data.FeaturedImage.AltText;
+                                    }
+
+                                    this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Data.Id;
+                                    this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.Data.SeoTitle;
+                                    this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.Data.SeoDescription;
+                                    this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.Data.CanonicalUrl;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoIndex;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoFollow;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoArchive;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoImageIndex;
+                                    this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoSnippet;
+
+                                    this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.Data.SchemaPageType;
+                                    this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.Data.SchemaArticleType;
+
+                                    this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphTitle;
+                                    this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphDescription;
+
+                                    this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.Data.TwitterTitle;
+                                    this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.Data.TwitterDescription;
+
+                                    this.keywords = response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword.split(',');
+
+                                    if (response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage != null) {
+                                        this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImageId;
+                                        this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.FileName;
+                                        this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.AltText;
+                                    }
+
+                                    if (response.data.SeoObjectSettingUpdateDto.Data.TwitterImage != null) {
+                                        this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.Data.TwitterImageId;
+                                        this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.FileName;
+                                        this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.AltText;
+                                    }
+
+                                    this.postUpdateDto.CommentStatus = response.data.PostUpdateDto.Data.CommentStatus;
+
+                                    if (response.data.PostUpdateDto.Data.PostTerms.length > 0) {
+                                        response.data.PostUpdateDto.Data.PostTerms.forEach((postTerm, index) => {
+                                            if (postTerm.Term.TermType === 2) {
+                                                this.currentSelectedCategory.push(postTerm.TermId);
+                                            } else if (postTerm.Term.TermType === 3) {
+                                                this.currentSelectedTag.push(postTerm.TermId);
+                                            }
+                                        });
+                                        this.terms = this.currentSelectedCategory.concat(this.currentSelectedTag);
+                                    }
+
+                                    console.log(this.currentSelectedCategory);
+
+                                    if (response.data.PostUpdateDto.Data.PostStatus == 0) {
+                                        this.saveButtonText = "Güncelle";
+                                    } else if (response.data.PostUpdateDto.Data.PostStatus == 1) {
+                                        this.saveButtonText = "Yayınla";
+                                    }
+                                }
+                                this.showOverlay = false;
+                            }
+                        }
+                        else {
+                            this.doHaveData = false;
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        console.log(error.request);
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            allCategories() {
+                axios.get('/admin/term-allterms', {
+                    params: {
+                        termType: 'category'
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.categories = response.data.TermListDto.Data.Terms;
+                            this.allParentTerms = response.data.TermListDto.Data.Terms;
+                        } else {
+                            this.categories = [];
+                            this.allParentTerms = [];
+                            this.nullCategoryMessage = response.data.TermListDto.Message;
+                        }
+                        this.isCategorySelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            allTags() {
+                this.isTagSelectLoading = true;
+                axios.get('/admin/term-allterms', {
+                    params: {
+                        termType: 'tag'
+                    }
+                })
+                    .then((response) => {
+                        if (response.data.TermListDto.ResultStatus === 0) {
+                            this.tags = response.data.TermListDto.Data.Terms;
+                        } else {
+                            this.tags = [];
+                            this.nullTagMessage = response.data.TermListDto.Message;
+                        }
+                        this.isTagSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Etiketler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getSchemaPageType() {
+                this.isSchemaPageSelectLoading = true;
+                axios.get('/admin/post-getschemapagetype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaPageTypes = response.data;
+                        } else {
+                            this.schemaPageTypes = [];
+                        }
+                        this.isSchemaPageSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            getSchemaArticleType() {
+                this.isSchemaArticleSelectLoading = true;
+                axios.get('/admin/post-getschemapagetype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaArticleTypes = response.data;
+                        } else {
+                            this.schemaArticleTypes = [];
+                        }
+                        this.isSchemaArticleSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
             postNameEdit() {
                 this.oldPostName = this.postUpdateDto.PostName;
                 var seoPostName = UrlHelper.friendlySEOUrl(this.postUpdateDto.PostName);
@@ -740,56 +1050,6 @@
                 else {
                     this.selectedTerms = this.selectedTerms.filter(termId => termId != value.Id);
                 }
-            },
-            allCategories() {
-                axios.get('/admin/term-allterms', {
-                    params: {
-                        termType: 'category'
-                    }
-                })
-                    .then((response) => {
-                        console.log(response.data)
-                        if (response.data.TermListDto.ResultStatus === 0) {
-                            this.categories = response.data.TermListDto.Data.Terms;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Kategoriler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            allTags() {
-                axios.get('/admin/term-allterms', {
-                    params: {
-                        termType: 'tag'
-                    }
-                })
-                    .then((response) => {
-                        if (response.data.TermListDto.ResultStatus === 0) {
-                            this.tags = response.data.TermListDto.Data.Terms;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Etiketler listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            changeParentTerm(value) {
-                this.categoryAddDto.ParentId = value;
             },
             addNewTerm: function (e) {
                 if (e.target.id == "newCategory") {
@@ -840,161 +1100,10 @@
                     this.twitterImage.altText = null;
                 }
             },
-            getSchemaPageType() {
-                axios.get('/admin/post-getschemapagetype')
-                    .then((response) => {
-                        this.schemaPageTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getSchemaArticleType() {
-                axios.get('/admin/post-getschemaarticletype')
-                    .then((response) => {
-                        this.schemaArticleTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            changePageType(value) {
-                this.seoObjectSettingUpdateDto.SchemaPageType = value;
-            },
-            changeArticleType(value) {
-                this.seoObjectSettingUpdateDto.SchemaArticleType = value;
-            },
-            getData() {
-                axios.get('/admin/post-edit?postId=' + this.$route.query.edit)
-                    .then((response) => {
-                        if (response.data.PostUpdateDto.ResultStatus === 0) {
-                            if (response.data.PostUpdateDto.Data.PostType !== 1) {
-                                this.doHaveData = false;
-                            }
-                            else {
-                                this.parentPostName = "";
-                                if (response.data.PostUpdateDto != null) {
-                                    if (response.data.PostUpdateDto.Data.PostStatus == 2) {
-                                        this.isTrashedPost = true;
-                                        this.doHaveData = true;
-                                    }
-                                    else {
-                                        this.doHaveData = true;
-                                        this.isTrashedPost = false;
-
-                                        if (response.data.PostUpdateDto.Data.Parents != null) {
-                                            for (var i = response.data.PostUpdateDto.Data.Parents.length - 1; i >= 0; --i) {
-                                                this.parentPostName += "/" + response.data.PostUpdateDto.Data.Parents[i].PostName
-                                            }
-                                        }
-
-                                        this.postUpdateDto.PostStatus = response.data.PostUpdateDto.Data.PostStatus;
-                                        this.postUpdateDto.PostName = response.data.PostUpdateDto.Data.PostName;
-                                        this.postUpdateDto.PostType = response.data.PostUpdateDto.Data.PostType;
-                                        this.postUpdateDto.Title = response.data.PostUpdateDto.Data.Title;
-                                        this.postUpdateDto.Content = response.data.PostUpdateDto.Data.Content;
-
-                                        this.postUpdateDto.IsShowFeaturedImage = response.data.PostUpdateDto.Data.IsShowFeaturedImage;
-                                        if (response.data.PostUpdateDto.Data.FeaturedImage != null) {
-                                            this.featuredImage.id = response.data.PostUpdateDto.Data.FeaturedImageId;
-                                            this.featuredImage.fileName = response.data.PostUpdateDto.Data.FeaturedImage.FileName;
-                                            this.featuredImage.altText = response.data.PostUpdateDto.Data.FeaturedImage.AltText;
-                                        }
-
-                                        this.seoObjectSettingUpdateDto.Id = response.data.SeoObjectSettingUpdateDto.Data.Id;
-                                        this.seoObjectSettingUpdateDto.SeoTitle = response.data.SeoObjectSettingUpdateDto.Data.SeoTitle;
-                                        this.seoObjectSettingUpdateDto.SeoDescription = response.data.SeoObjectSettingUpdateDto.Data.SeoDescription;
-                                        this.seoObjectSettingUpdateDto.CanonicalUrl = response.data.SeoObjectSettingUpdateDto.Data.CanonicalUrl;
-                                        this.seoObjectSettingUpdateDto.IsRobotsNoIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoIndex;
-                                        this.seoObjectSettingUpdateDto.IsRobotsNoFollow = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoFollow;
-                                        this.seoObjectSettingUpdateDto.IsRobotsNoArchive = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoArchive;
-                                        this.seoObjectSettingUpdateDto.IsRobotsNoImageIndex = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoImageIndex;
-                                        this.seoObjectSettingUpdateDto.IsRobotsNoSnippet = response.data.SeoObjectSettingUpdateDto.Data.IsRobotsNoSnippet;
-
-                                        this.seoObjectSettingUpdateDto.SchemaPageType = response.data.SeoObjectSettingUpdateDto.Data.SchemaPageType;
-                                        this.seoObjectSettingUpdateDto.SchemaArticleType = response.data.SeoObjectSettingUpdateDto.Data.SchemaArticleType;
-
-                                        this.seoObjectSettingUpdateDto.OpenGraphTitle = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphTitle;
-                                        this.seoObjectSettingUpdateDto.OpenGraphDescription = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphDescription;
-
-                                        this.seoObjectSettingUpdateDto.TwitterTitle = response.data.SeoObjectSettingUpdateDto.Data.TwitterTitle;
-                                        this.seoObjectSettingUpdateDto.TwitterDescription = response.data.SeoObjectSettingUpdateDto.Data.TwitterDescription;
-
-                                        this.keywords = response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword == null ? [] : response.data.SeoObjectSettingUpdateDto.Data.FocusKeyword.split(',');
-
-                                        if (response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage != null) {
-                                            this.openGraphImage.id = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImageId;
-                                            this.openGraphImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.FileName;
-                                            this.openGraphImage.altText = response.data.SeoObjectSettingUpdateDto.Data.OpenGraphImage.AltText;
-                                        }
-
-                                        if (response.data.SeoObjectSettingUpdateDto.Data.TwitterImage != null) {
-                                            this.twitterImage.id = response.data.SeoObjectSettingUpdateDto.Data.TwitterImageId;
-                                            this.twitterImage.fileName = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.FileName;
-                                            this.twitterImage.altText = response.data.SeoObjectSettingUpdateDto.Data.TwitterImage.AltText;
-                                        }
-
-                                        this.postUpdateDto.CommentStatus = response.data.PostUpdateDto.Data.CommentStatus;
-
-                                        if (response.data.PostUpdateDto.Data.PostTerms.length > 0) {
-                                            response.data.PostUpdateDto.Data.PostTerms.forEach((term, index) => {
-                                                if (term.TermType === 2) {
-                                                    this.currentSelectedCategory.push(term.TermId);
-                                                } else if (term.TermType === 3) {
-                                                    this.currentSelectedTag.push(term.TermId);
-                                                }
-                                            });
-                                            this.terms = this.currentSelectedCategory.concat(this.currentSelectedTag);
-                                        }
-
-                                        if (response.data.PostUpdateDto.Data.PostStatus == 0) {
-                                            this.saveButtonText = "Güncelle";
-                                        } else if (response.data.PostUpdateDto.Data.PostStatus == 1) {
-                                            this.saveButtonText = "Yayınla";
-                                        }
-                                    }
-                                }
-                                else {
-                                    this.doHaveData = false;
-                                    this.isTrashedPost = false;
-                                }
-                            }
-                        }
-                        else {
-                            this.doHaveData = false;
-                        }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        console.log(error.request);
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
             validationForm: function (e) {
+                this.buttonDisabled = true;
+                this.saveButtonVariant = 'outline-secondary';
+
                 this.postUpdateDto.FeaturedImageId = this.featuredImage.id;
                 this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
                 this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
@@ -1005,9 +1114,7 @@
                 else if (e.target.id == "draft") {
                     this.postUpdateDto.PostStatus = "draft";
                 }
-                else if (e.target.id == "trash") {
-                    this.postUpdateDto.PostStatus = "trash";
-                }
+
                 this.$refs.articleAddForm.validate().then(success => {
                     if (success) {
                         axios.post('/admin/post-edit',
@@ -1018,19 +1125,23 @@
                             .then((response) => {
                                 if (response.data.PostDto.ResultStatus === 0) {
                                     if (this.deSelectedTerms.length > 0) {
-                                        console.log(this.deSelectedTerms)
                                         this.deSelectedTerms.forEach((termId, index) => {
                                             axios.post('/admin/term-deletepostterm?postId=' + response.data.PostDto.Data.Post.Id + '&termId=' + termId);
                                         });
                                     }
 
+                                    console.log(this.selectedTerms);
                                     if (this.selectedTerms.length > 0) {
-
-                                        this.selectedTerms.forEach((postTerm, index) => {
-                                            axios.post('/admin/term-newpostterm', {
+                                        this.selectedTerms.forEach((term, index) => {
+                                            var postTermAddDto = {
                                                 PostId: response.data.PostDto.Data.Post.Id,
-                                                TermId: postTerm.Id,
-                                                TermType: postTerm.TermType,
+                                                TermId: term
+                                            }
+                                            axios.post('/admin/term-newpostterm', {
+                                                PostTermAddDto: postTermAddDto
+                                            }).catch((error) => {
+                                                console.log(error)
+                                                console.log(error.request)
                                             });
                                         });
                                     }
@@ -1062,6 +1173,8 @@
                                         },
                                     })
                                 }
+                                this.buttonDisabled = false;
+                                this.saveButtonVariant = 'primary';
                             })
                             .catch((error) => {
                                 console.log(error);
@@ -1100,6 +1213,7 @@
                                     })
                                     this.allCategories();
                                     this.currentSelectedCategory.push(response.data.TermDto.Data.Term.Id)
+                                    this.selectedTerms.push(response.data.TermDto.Data.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -1114,6 +1228,8 @@
                                 }
                             })
                             .catch((error) => {
+                                console.log(error)
+                                console.log(error.request)
                                 this.$toast({
                                     component: ToastificationContent,
                                     props: {
@@ -1148,6 +1264,7 @@
                                     })
                                     this.allTags();
                                     this.currentSelectedTag.push(response.data.TermDto.Data.Term.Id)
+                                    this.selectedTerms.push(response.data.TermDto.Data.Term.Id)
                                 }
                                 else {
                                     this.$toast({
@@ -1175,15 +1292,8 @@
                     }
                 })
             },
-            postStatusChange: function (event) {
-                var postStatus = "";
-                if (event.target.id == "trash") {
-                    postStatus = "trash";
-                } else {
-                    postStatus = "draft";
-                }
-
-                axios.post('/admin/post-poststatuschange?postId=' + this.$route.query.edit + "&status=" + postStatus)
+            postStatusChange() {
+                axios.post('/admin/post-poststatuschange?postId=' + this.$route.query.edit + "&status=" + 2)
                     .then((response) => {
                         if (response.data.PostDto.ResultStatus === 0) {
                             this.$router.push({ path: '/admin/articles' });
@@ -1223,9 +1333,9 @@
             },
         },
         mounted() {
+            this.getData();
             this.allCategories();
             this.allTags();
-            this.getData();
             this.getSchemaPageType();
             this.getSchemaArticleType();
         }

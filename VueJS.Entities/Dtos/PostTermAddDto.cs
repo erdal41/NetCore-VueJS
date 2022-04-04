@@ -1,5 +1,4 @@
-﻿using VueJS.Entities.ComplexTypes;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace VueJS.Entities.Dtos
 {
@@ -10,8 +9,5 @@ namespace VueJS.Entities.Dtos
 
         [Required]
         public int TermId { get; set; }
-
-        [Required]
-        public ObjectType TermType { get; set; }
     }
 }
