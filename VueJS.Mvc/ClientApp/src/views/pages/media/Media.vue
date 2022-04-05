@@ -9,7 +9,7 @@
             <b-row class="breadcrumbs-top">
                 <b-col cols="12">
                     <h2 class="content-header-title float-left pr-1 mb-0">
-                        Medya
+                        {{ $t('Media') }}
                     </h2>
                     <div class="breadcrumb-wrapper">
                         <b-breadcrumb>
@@ -32,41 +32,43 @@
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="6"
                cols="12">
-            <label class="btn btn-primary m-0">
-                Yeni Ekle
-                <b-form-file hidden="hidden"
+            <b-spinner v-if="addButtonDisabled"
+                       variant="secondary"
+                       class="align-middle mr-1" />
+            <label class="btn btn-primary">
+                {{ $t('Add New') }}
+                <b-form-file hidden
                              plain
                              multiple
                              accept="image/jpeg, image/png, image/gif"
                              @change.prevent="addFiles" />
             </label>
-            <b-button 
-                   @click.prevent="isShowModal = true">asdsa</b-button>
         </b-col>
         <b-col cols="12">
-            <b-card header-tag="header"
+            <b-card id="upload-list"
+                    header-tag="header"
                     no-body>
                 <template #header>
-                    <div v-if="multiSelect === false"
+                    <div v-if="multiSelect === false && filteredData.length > 0"
                          class="float-left">
-                        <b-button v-show="$can('create', 'Basepage')"
+                        <b-button v-if="$can('create', 'Basepage')"
                                   v-b-tooltip.hover
                                   variant="outline-primary"
                                   size="sm"
-                                  @click.prevent="multiSelect = true">Toplu Seçim</b-button>
+                                  @click.prevent="multiSelect = true">{{ $t('Bulk Selection') }}</b-button>
                     </div>
                     <div v-if="multiSelect === true"
                          class="float-left">
-                        <b-button v-show="$can('create', 'Basepage')"
+                        <b-button v-if="$can('create', 'Basepage')"
                                   variant="primary"
                                   size="sm"
                                   :disabled="selectedImages.length <= 0"
-                                  @click="multiDeleteData"> {{ selectedImagesCount }} Kalıcı Olarak Sil</b-button>
-                        <b-button v-show="$can('create', 'Basepage')"
+                                  @click="multiDeleteData"> {{ selectedImagesCount }} {{  $t('Permanently Delete') }}</b-button>
+                        <b-button v-if="$can('create', 'Basepage')"
                                   variant="outline-primary"
                                   class=" ml-1"
                                   size="sm"
-                                  @click.prevent="multiSelect = false; selectedImages = []; selectedImagesCount = ''">Vazgeç</b-button>
+                                  @click.prevent="multiSelect = false; selectedImages = []; selectedImagesCount = ''">{{ $t('Cancel') }}</b-button>
                     </div>
                     <div v-if="multiSelect === false"
                          class="ml-auto">
@@ -77,13 +79,13 @@
                             <b-input-group-prepend is-text>
                                 <feather-icon icon="SearchIcon" />
                             </b-input-group-prepend>
-                            <b-form-input placeholder="Ara..."
+                            <b-form-input :placeholder="$t('Search') + '...'"
                                           v-model="filterText" />
                             <b-input-group-append is-text>
-                                <feather-icon v-show="isShowSearchTextClearButton"
+                                <feather-icon v-if="isShowSearchTextClearButton"
                                               icon="XIcon"
                                               v-b-tooltip.hover
-                                              title="Temizle"
+                                              :title="$t('Clear')"
                                               class="cursor-pointer"
                                               @click="filterText = ''"/>
                             </b-input-group-append>
@@ -92,10 +94,10 @@
                     <div v-if="multiSelect === false"
                          class="ml-auto">
                         <b-button v-b-tooltip.hover
-                                  title="Dosyaları Yenile"
+                                  :title="$t('Refresh Media')"
                                   v-ripple.400="'rgba(113, 102, 240, 0.15)'"
                                   variant="fade-secondary"
-                                  class="btn-icon mr-1"
+                                  class="btn-icon"
                                   size="sm"
                                   @click="getAllData">
                             <feather-icon icon="RotateCcwIcon" />
@@ -105,14 +107,14 @@
                 <b-card-body class="p-0">
                     <div v-if="isSpinnerShow == true"
                          class="text-center mt-2 mb-2">
-                        <b-spinner variant="primary" />
+                        <b-spinner variant="secondary" />
                     </div>
                     <div v-else>
                         <ul class="gallery">
                             <li v-for="upload in filteredData" :key="upload.Id"
                                 class="gallery-item"
-                                               @click="imageClick($event, upload.Id)"
-                                               v-b-modal="multiSelect == false ? 'upload-modal' : ''">
+                                @click="imageClick($event, upload.Id)"
+                                v-b-modal="multiSelect == false ? 'upload-modal' : ''">
                                 <div class="media"
                                      :class="multiSelect === true && selectedImages.includes(upload.Id) ? 'checked-image' : ''">
                                     <b-form-checkbox v-if="multiSelect && selectedImages.includes(upload.Id)"
@@ -140,13 +142,12 @@
                     </div>
                 </b-card-body>
 
-                <div v-show="uploads.length <= 0"
-                     class="text-center mt-1">{{ dataNullMessage  }}</div>
-                <b-card-body>
-                    <div class="d-flex justify-content-between flex-wrap">
-                        <label> Dosya Sayısı: {{ uploads.length }}</label>
+                <div v-if="filteredData.length < 1"
+                     class="text-center mt-2 mb-5">{{ dataNullMessage  }}
+                </div>
+                    <div class="d-flex justify-content-between flex-wrap ml-1">
+                        <label> {{ $t('Number of Files') + ': ' + filteredData.length }}</label>
                     </div>
-                </b-card-body>
             </b-card>
         </b-col>
     </b-row>
@@ -192,6 +193,8 @@
         },
         data() {
             return {
+                addButtonDisabled: false,
+                addButtonVariant: 'btn btn-primary',
                 breadcrumbs: [
                     {
                         text: 'Medya',
@@ -209,7 +212,7 @@
                 uploads: [],
                 shortedData: [],
                 newFiles: [],
-                dataNullMessage: '',
+                dataNullMessage: 'Hiçbir medya bulunamadı.',
                 selected: '',
                 selectedValue: null,
                 isHiddenMultiDeleteButton: false,
@@ -271,8 +274,6 @@
                                     }, 5000);
                                 }
                             });
-
-
                         }
                     }).catch((error) => {
                         console.log(error)
@@ -280,17 +281,6 @@
                     });
 
                 }
-            },
-            asd() {
-                this.isImageProgress = true;
-                this.uploads.unshift({
-                    FileName: null,
-                    AltText: null,
-                });
-                this.uploadId = 1;
-                console.log('ss');
-                let element = this.$refs.modal.$el
-                $(element).modal('show')
             },
             imageClick: function (event, id) {
                 if (this.multiSelect === true) {
@@ -357,8 +347,8 @@
             },
             multiDeleteData() {
                 this.$swal({
-                    title: 'Toplu olarak silmek istediğinizden emin misiniz?',
-                    text: this.selectedImagesCount + " adet dosya kalıcı olarak silinecektir?",
+                    title: this.$t('Are you sure you want to delete the selected media files?'),
+                    text: this.$t('Permanently delete file?', { '0': this.selectedImagesCount }),
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Evet',
@@ -380,6 +370,7 @@
                                     }
                                 });
                         });
+
                     }
                 })
             },
@@ -405,6 +396,12 @@
 </script>
 
 <style lang="scss">
+
+    #upload-list.card .card-header {
+        padding: 8px 8px 8px 8px;
+        border-bottom: 1px solid #ebe9f1;
+        margin-bottom: 20px;
+    }
 
     .gallery {
         padding: 2px;

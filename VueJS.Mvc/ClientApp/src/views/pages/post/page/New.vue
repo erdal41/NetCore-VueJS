@@ -29,7 +29,11 @@
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="6"
                cols="12">
+            <b-spinner v-if="buttonDisabled"
+                       variant="secondary"
+                       class="align-middle mr-1" />
             <b-button id="draft"
+                      :disabled="buttonDisabled"
                       variant="outline-primary"
                       class="mr-1"
                       size="sm"
@@ -38,7 +42,8 @@
                 Taslak Olarak Kaydet
             </b-button>
             <b-button id="save"
-                      variant="primary"
+                      :disabled="buttonDisabled"
+                      :variant="saveButtonVariant"
                       type="submit"
                       @click.prevent="validationForm">
                 Yayınla
@@ -205,7 +210,19 @@
                                       :options="schemaPageTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Sayfa Türü Seçiniz..." />
+                                      placeholder="— Sayfa Türü —"
+                                      :disabled="isSchemaPageSelectLoading"
+                                      :loading="isSchemaPageSelectLoading">
+                                <template #spinner="{ loading }">
+                                    <div v-if="isSchemaPageSelectLoading"
+                                         style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                         class="vs__spinner">
+                                    </div>
+                                </template>
+                                <template #no-options="{ search, searching, loading }">
+                                    {{ nullSchemaMessage }}
+                                </template>
+                            </v-select>
                         </b-form-group>
                         <b-form-group label="Makale Türü">
                             <v-select id="schemaArticleType"
@@ -213,7 +230,19 @@
                                       :options="schemaArticleTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Makale Türü Seçiniz..." />
+                                      placeholder="— Makale Türü —"
+                                      :disabled="isSchemaArticleSelectLoading"
+                                      :loading="isSchemaArticleSelectLoading">
+                                <template #spinner="{ loading }">
+                                    <div v-if="isSchemaArticleSelectLoading"
+                                         style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                         class="vs__spinner">
+                                    </div>
+                                </template>
+                                <template #no-options="{ search, searching, loading }">
+                                    {{ nullSchemaMessage }}
+                                </template>
+                            </v-select>
                         </b-form-group>
                     </b-tab>
                     <b-tab title="Sosyal Medya">
@@ -279,8 +308,8 @@
                                                  @click="selectImage">
                                                 <b-img rounded
                                                        v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
-                                                       :alt="twitterImage.altText" 
-                                                       class="select-twitter-image"/>
+                                                       :alt="twitterImage.altText"
+                                                       class="select-twitter-image" />
                                                 <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-primary"
                                                           size="sm"
@@ -332,7 +361,19 @@
                               :options="topPosts"
                               label="Title"
                               :reduce="(option) => option.Id"
-                              placeholder="— Ebeveyn Sayfa —" />
+                              placeholder="— Ebeveyn Sayfa —"
+                              :disabled="isTopPageSelectLoading"
+                              :loading="isTopPageSelectLoading">
+                        <template #spinner="{ loading }">
+                            <div v-if="isTopPageSelectLoading"
+                                 style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                 class="vs__spinner">
+                            </div>
+                        </template>
+                        <template #no-options="{ search, searching, loading }">
+                            {{ nullPageMessage }}
+                        </template>
+                    </v-select>
                 </b-form-group>
             </b-card-actions>
             <b-card-actions title="Resim"
@@ -393,23 +434,23 @@
 </template>
 
 <script>
+    import ModalMedia from '../../media/ModalMedia.vue';
+    import UrlHelper from '@/helper/url-helper';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
+    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
+    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
+    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import { quillEditor } from 'vue-quill-editor';
     import 'quill/dist/quill.snow.css'
-
+    import vSelect from 'vue-select';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
     import { required } from '@validations';
     import {
-        BBreadcrumb, BBreadcrumbItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
+        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BDropdown, BDropdownItem, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BFormInput,
+        BInputGroupPrepend, BFormTextarea, BFormTags, BFormCheckbox, BCollapse, BImg, BTabs, BTab, BPagination, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
-    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
     import axios from 'axios';
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
-    import vSelect from 'vue-select';
     import Ripple from 'vue-ripple-directive';
-    import { quillEditor } from 'vue-quill-editor';
-    import ModalMedia from '../../media/ModalMedia.vue';
-    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
-    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
-    import UrlHelper from '@/helper/url-helper';
 
     extend('required', {
         ...required,
@@ -418,39 +459,39 @@
 
     export default {
         components: {
-            BBreadcrumb,
-            BBreadcrumbItem,
-            BCollapse,
-            AppCollapse,
-            AppCollapseItem,
-            quillEditor,
             ModalMedia,
-            BCardActions,
-            BSpinner,
-            BImg,
-            BTabs,
-            BTab,
-            BFormTags,
-            BCardTitle,
-            BForm,
-            BFormSelect,
-            BButton,
-            BFormCheckbox,
-            BFormTextarea,
-            BCard,
-            BRow,
-            BCol,
-            BCardBody,
-            BFormGroup,
-            BPagination,
-            BInputGroup,
-            BFormInput,
-            BInputGroupPrepend,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
             vSelect,
-            BLink,
+            quillEditor,
+            BCardActions,
+            AppCollapse,
+            AppCollapseItem,
+            BRow,
+            BCol,
+            BBreadcrumb,
+            BBreadcrumbItem,
+            BSpinner,
+            BButton,
+            BDropdown,
+            BDropdownItem,
+            BCard,
+            BCardBody,
+            BForm,
+            BFormGroup,
+            BInputGroup,
+            BFormInput,
+            BInputGroupPrepend,
+            BFormCheckbox,
+            BFormTextarea,
+            BFormTags,
+            BCollapse,
+            BImg,
+            BTabs,
+            BTab,
+            BPagination,
+            BLink
         },
         directives: {
             'b-toggle': VBToggle,
@@ -459,6 +500,13 @@
         },
         data() {
             return {
+                buttonDisabled: false,
+                saveButtonVariant: 'primary',
+                isTopPageSelectLoading: false,
+                isSchemaPageSelectLoading: false,
+                isSchemaArticleSelectLoading: false,
+                nullPageMessage: 'Hiçbir sayfa bulunamadı.',
+                nullSchemaMessage: 'Hiçbir şema türü bulunamadı.',
                 breadcrumbs: [
                     {
                         text: 'Sayfalar',
@@ -474,8 +522,6 @@
                     theme: 'snow'
                 },
                 required,
-                isSpinnerShow: true,
-                title: '',
                 isShowPostName: false,
                 domainName: window.location.origin,
                 parentPostName: '',
@@ -539,6 +585,81 @@
             }
         },
         methods: {
+            allTopPosts() {
+                this.isTopPageSelectLoading = true;
+                axios.get('/admin/post-alltopposts',
+                    {
+                        params: {
+                            postId: null
+                        }
+                    })
+                    .then((response) => {
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.topPosts = response.data.PostListDto.Data.Posts;
+                        } else {
+                            this.topPosts = [];
+                            this.nullPageMessage = response.data.PostListDto.Message;
+                        }
+                        this.isTopPageSelectLoading = false
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Ebeveyn sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            }
+                        })
+                    });
+            },
+            getSchemaPageType() {
+                this.isSchemaPageSelectLoading = true;
+                axios.get('/admin/post-getschemapagetype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaPageTypes = response.data;
+                        } else {
+                            this.schemaPageTypes = [];
+                        }
+                        this.isSchemaPageSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            getSchemaArticleType() {
+                this.isSchemaArticleSelectLoading = true;
+                axios.get('/admin/post-getschemaarticletype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaArticleTypes = response.data;
+                        } else {
+                            this.schemaArticleTypes = [];
+                        }
+                        this.isSchemaArticleSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
             postNameEdit() {
                 this.oldPostName = this.postAddDto.PostName;
                 var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.PostName);
@@ -558,30 +679,6 @@
                     var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.Title);
                     this.postAddDto.PostName = seoPostName;
                 }
-            },
-            allTopPosts() {
-                axios.get('/admin/post-alltopposts',
-                    {
-                        params: {
-                            postId: null
-                        }
-                    })
-                    .then((response) => {
-                        if (response.data.PostListDto.ResultStatus === 0) {
-                            this.topPosts = response.data.PostListDto.Data.Posts;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Ebeveyn sayfalar listenirken hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
             },
             imageChange(id, name, altText) {
                 if (this.isFeaturedImageChoose == true) {
@@ -624,42 +721,8 @@
                     this.twitterImage.fileName = null;
                     this.twitterImage.altText = null;
                 }
-            },
-            getSchemaPageType() {
-                axios.get('/admin/post-getschemapagetype')
-                    .then((response) => {
-                        this.schemaPageTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getSchemaArticleType() {
-                axios.get('/admin/post-getschemaarticletype')
-                    .then((response) => {
-                        this.schemaArticleTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            validationForm: function (e) {
+            },           
+            validationForm: function (e) {                
                 this.postAddDto.FeaturedImageId = this.featuredImage.id;
                 this.pageSeoSettingAddDto.FocusKeyword = this.keywords.toString();
                 this.pageSeoSettingAddDto.OpenGraphImageId = this.openGraphImage.id;
@@ -674,6 +737,8 @@
                 }
                 this.$refs.pageAddForm.validate().then(success => {
                     if (success) {
+                        this.buttonDisabled = true;
+                        this.saveButtonVariant = 'outline-secondary';
                         axios.post('/admin/post-new',
                             {
                                 PostAddDto: this.postAddDto,

@@ -121,7 +121,14 @@
                                         Durum
                                         <feather-icon icon="ChevronDownIcon" />
                                         <span>{{ checkedRowsCount }}</span>
-
+                                    </b-button>
+                                    <b-button v-b-tooltip.hover
+                                              title="Seçili makelelerin durumlarını değiştirmenizi sağlar."
+                                              v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                              variant="flat-secondary"
+                                              size="sm"
+                                              class="btn-icon rounded-circle ml-0">
+                                        <feather-icon icon="InfoIcon" />
                                     </b-button>
                                 </template>
                                 <b-dropdown-item v-if="$can('update', 'Article') && $route.query.status !== 'publish' && $route.query.status !== 'trash'"
@@ -159,15 +166,7 @@
                                                  @click="multiDeleteData">
                                     Kalıcı Olarak Sil
                                 </b-dropdown-item>
-                            </b-dropdown>
-                            <b-button v-b-tooltip.hover
-                                      title="Seçili makelelerin durumlarını değiştirmenizi sağlar."
-                                      v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                      variant="flat-secondary"
-                                      size="sm"
-                                      class="btn-icon rounded-circle ml-0">
-                                <feather-icon icon="InfoIcon" />
-                            </b-button>
+                            </b-dropdown>                            
                         </b-form-group>
                     </div>
                 </b-card-body>

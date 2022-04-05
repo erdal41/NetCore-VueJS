@@ -18,7 +18,7 @@
                             </b-breadcrumb-item>
                             <b-breadcrumb-item :to="{ name: 'pages-article-list' }">Makaleler</b-breadcrumb-item>
                             <b-breadcrumb-item active>Düzenle</b-breadcrumb-item>
-                            <b-button v-show="$can('create', 'Article')"
+                            <b-button v-if="$can('create', 'Article')"
                                       v-b-tooltip.hover
                                       title="Yeni Makale Ekle"
                                       v-ripple.400="'rgba(113, 102, 240, 0.15)'"
@@ -94,7 +94,7 @@
                     <b-overlay :show="showOverlay"
                                size="sm">
                         <b-card>
-                            <validation-observer ref="articleAddForm">
+                            <validation-observer ref="articleEditForm">
                                 <b-form>
                                     <b-row>
                                         <b-col cols="12">
@@ -114,8 +114,8 @@
 
                                             </b-form-group>
                                             <b-form-group>
-                                                <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postUpdateDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postUpdateDto.PostName }}</span></a>
-                                                <b-button v-show="isSlugEditActive == false"
+                                                <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postUpdateDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-if="isSlugEditActive == false">{{  postUpdateDto.PostName }}</span></a>
+                                                <b-button v-if="isSlugEditActive == false"
                                                           v-b-tooltip.hover
                                                           title="Gönderinin linkini değiştirmenizi sağlar."
                                                           v-ripple.400="'rgba(113, 102, 240, 0.15)'"
@@ -125,7 +125,7 @@
                                                           @click="isSlugEditActive = !isSlugEditActive">
                                                     Düzenle
                                                 </b-button>
-                                                <div v-show="isSlugEditActive == true"
+                                                <div v-if="isSlugEditActive == true"
                                                      class="card-border p-1">
                                                     <b-form-input type="text"
                                                                   v-model="postUpdateDto.PostName"
@@ -158,7 +158,7 @@
                     </b-overlay>
                     <b-overlay :show="showOverlay"
                                size="sm">
-                        <b-card-actions v-show="$can('update', 'Seo')"
+                        <b-card-actions v-if="$can('update', 'Seo')"
                                         title="SEO Ayarları"
                                         action-collapse
                                         collapsed>
@@ -608,7 +608,8 @@
              class="error-message">
             <p>Bu gönderi şu anda çöp kutusunda. Düzenleyebilmeniz için geri yüklemeniz gerekir. </p>
 
-            <b-button id="untrash"
+            <b-button v-if="$can('update','Article')"
+                      id="untrash"
                       variant="warning"
                       class="mr-1"
                       @click="postStatusChange">
@@ -639,7 +640,8 @@
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
     import { required } from '@validations';
     import {
-        BBreadcrumb, BBreadcrumbItem, BDropdown, BDropdownItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BOverlay, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
+        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BDropdown, BDropdownItem, BOverlay, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BFormInput,
+        BInputGroupPrepend, BFormTextarea, BFormTags, BFormCheckbox, BCollapse, BImg, BTabs, BTab, BPagination, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
     import axios from 'axios';
     import Ripple from 'vue-ripple-directive';
@@ -651,41 +653,39 @@
 
     export default {
         components: {
-            BBreadcrumb,
-            BBreadcrumbItem,
-            BDropdown,
-            BDropdownItem,
-            BCollapse,
-            AppCollapse,
-            AppCollapseItem,
-            quillEditor,
             ModalMedia,
-            BCardActions,
-            BSpinner,
-            BImg,
-            BTabs,
-            BTab,
-            BFormTags,
-            BCardTitle,
-            BForm,
-            BFormSelect,
-            BButton,
-            BFormCheckbox,
-            BFormTextarea,
-            BOverlay,
-            BCard,
-            BRow,
-            BCol,
-            BCardBody,
-            BFormGroup,
-            BPagination,
-            BInputGroup,
-            BFormInput,
-            BInputGroupPrepend,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
             vSelect,
+            quillEditor,
+            BCardActions,
+            AppCollapse,
+            AppCollapseItem,
+            BRow,
+            BCol,
+            BBreadcrumb,
+            BBreadcrumbItem,
+            BSpinner,
+            BButton,
+            BDropdown,
+            BDropdownItem,
+            BOverlay,
+            BCard,
+            BCardBody,
+            BForm,
+            BFormGroup,
+            BInputGroup,
+            BFormInput,
+            BInputGroupPrepend,
+            BFormCheckbox,
+            BFormTextarea,
+            BFormTags,
+            BCollapse,
+            BImg,
+            BTabs,
+            BTab,
+            BPagination,
             BLink
         },
         directives: {
@@ -712,9 +712,7 @@
                     theme: 'snow'
                 },
                 required,
-                isSpinnerShow: true,
                 saveButtonText: '',
-                title: '',
                 domainName: window.location.origin,
                 parentPostName: '',
                 isSlugEditActive: false,
@@ -918,6 +916,7 @@
                     });
             },
             allCategories() {
+                this.isCategorySelectLoading = true;
                 axios.get('/admin/term-allterms', {
                     params: {
                         termType: 'category'
@@ -1103,7 +1102,6 @@
             validationForm: function (e) {
                 this.buttonDisabled = true;
                 this.saveButtonVariant = 'outline-secondary';
-
                 this.postUpdateDto.FeaturedImageId = this.featuredImage.id;
                 this.seoObjectSettingUpdateDto.FocusKeyword = this.keywords.toString();
                 this.seoObjectSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
@@ -1115,7 +1113,7 @@
                     this.postUpdateDto.PostStatus = "draft";
                 }
 
-                this.$refs.articleAddForm.validate().then(success => {
+                this.$refs.articleEditForm.validate().then(success => {
                     if (success) {
                         axios.post('/admin/post-edit',
                             {

@@ -1,6 +1,13 @@
 ﻿export default [
 
     {
+        title: 'Dashboard',
+        icon: 'HomeIcon',
+        route: 'pages-dashboard',
+        resource: 'Dashboard',
+        action: 'read',
+    },
+    {
         title: 'Media',
         icon: 'FolderIcon',
         route: 'pages-media-list',
@@ -74,14 +81,14 @@
         ],
     },
     {
-        title: 'Yorumlar',
+        title: 'Comments',
         icon: 'MessageCircleIcon',
         route: 'pages-comment-list',
         resource: 'Urlredirect',
         action: 'read',
     },
     {
-        title: 'Menü',
+        title: 'Menu',
         icon: 'MenuIcon',
         route: 'pages-menu',
         resource: 'Otherpage',

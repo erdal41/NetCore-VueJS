@@ -120,7 +120,6 @@
                                         Durum
                                         <feather-icon icon="ChevronDownIcon" />
                                         <span>{{ checkedRowsCount }}</span>
-
                                     </b-button>
                                     <b-button v-if="$can('update', 'Otherpage') && $can('delete', 'Otherpage')"
                                               v-b-tooltip.hover

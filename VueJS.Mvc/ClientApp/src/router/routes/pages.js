@@ -11,6 +11,17 @@ export default [
         },
     },
 
+    //Dashboard
+    {
+        path: '/admin/dashboard',
+        name: 'pages-dashboard',
+        component: () => import('@/views/dashboard/analytics/Analytics.vue'),
+        meta: {
+            resource: 'Dashboard',
+            action: 'read',
+        },
+    },
+
     // Media
     {
         path: '/admin/media',

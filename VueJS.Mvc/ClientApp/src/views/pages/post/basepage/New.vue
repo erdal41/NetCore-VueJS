@@ -29,7 +29,11 @@
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="6"
                cols="12">
+            <b-spinner v-if="buttonDisabled"
+                       variant="secondary"
+                       class="align-middle mr-1" />
             <b-button id="draft"
+                      :disabled="buttonDisabled"
                       variant="outline-primary"
                       class="mr-1"
                       size="sm"
@@ -38,15 +42,14 @@
                 Taslak Olarak Kaydet
             </b-button>
             <b-button id="save"
-                      variant="primary"
+                      :disabled="buttonDisabled"
+                      :variant="saveButtonVariant"
                       type="submit"
                       @click.prevent="validationForm">
                 Yayınla
             </b-button>
         </b-col>
-        <modal-media v-bind:show="modalShow"
-                     @changeImage="imageChange"
-                     ref="modalMedia"></modal-media>
+        <modal-media @changeImage="imageChange"></modal-media>
         <b-col md="12"
                lg="8">
             <b-card>
@@ -63,9 +66,43 @@
                                                       v-model="postAddDto.Title"
                                                       :state="errors.length > 0 ? false:null"
                                                       type="text"
-                                                      placeholder="Başlık" />
+                                                      placeholder="Başlık"
+                                                      @blur="changePostName" />
                                         <small class="text-danger">{{ errors[0] }}</small>
                                     </validation-provider>
+                                </b-form-group>
+                                <b-form-group v-if="isShowPostName">
+                                    <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postAddDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postAddDto.PostName }}</span></a>
+                                    <b-button v-if="isSlugEditActive == false"
+                                              v-b-tooltip.hover
+                                              title="Gönderinin linkini değiştirmenizi sağlar."
+                                              v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+                                              variant="outline-primary"
+                                              size="sm"
+                                              class="ml-1"
+                                              @click="isSlugEditActive = !isSlugEditActive">
+                                        Düzenle
+                                    </b-button>
+                                    <div v-show="isSlugEditActive == true"
+                                         class="card-border p-1">
+                                        <b-form-input type="text"
+                                                      v-model="postAddDto.PostName"
+                                                      placeholder="Gönderi Linki"
+                                                      size="sm">
+                                        </b-form-input>
+                                        <b-button variant="primary"
+                                                  class="mt-1"
+                                                  size="sm"
+                                                  @click="postNameEdit">
+                                            Tamam
+                                        </b-button>
+                                        <b-button variant="flat-secondary"
+                                                  size="sm"
+                                                  class="ml-1 mt-1"
+                                                  @click="postNameEditCancel">
+                                            İptal
+                                        </b-button>
+                                    </div>
                                 </b-form-group>
                                 <quill-editor v-model="postAddDto.Content"
                                               :options="editorOption" />
@@ -173,7 +210,19 @@
                                       :options="schemaPageTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Sayfa Türü Seçiniz..." />
+                                      placeholder="— Sayfa Türü —"
+                                      :disabled="isSchemaPageSelectLoading"
+                                      :loading="isSchemaPageSelectLoading">
+                                <template #spinner="{ loading }">
+                                    <div v-if="isSchemaPageSelectLoading"
+                                         style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                         class="vs__spinner">
+                                    </div>
+                                </template>
+                                <template #no-options="{ search, searching, loading }">
+                                    {{ nullSchemaMessage }}
+                                </template>
+                            </v-select>
                         </b-form-group>
                         <b-form-group label="Makale Türü">
                             <v-select id="schemaArticleType"
@@ -181,7 +230,19 @@
                                       :options="schemaArticleTypes"
                                       label="Name"
                                       :reduce="(option) => option.Id"
-                                      placeholder="Makale Türü Seçiniz..." />
+                                      placeholder="— Makale Türü —"
+                                      :disabled="isSchemaArticleSelectLoading"
+                                      :loading="isSchemaArticleSelectLoading">
+                                <template #spinner="{ loading }">
+                                    <div v-if="isSchemaArticleSelectLoading"
+                                         style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                         class="vs__spinner">
+                                    </div>
+                                </template>
+                                <template #no-options="{ search, searching, loading }">
+                                    {{ nullSchemaMessage }}
+                                </template>
+                            </v-select>
                         </b-form-group>
                     </b-tab>
                     <b-tab title="Sosyal Medya">
@@ -190,37 +251,37 @@
                                 <b-row class="kb-search-content-info match-height">
                                     <b-col lg="4"
                                            md="4"
-                                           sm="6"
-                                           class="image-thumb ml-1">
-                                        <b-img rounded
-                                               v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
-                                               :alt="openGraphImage.altText" />
-                                    </b-col>
-                                    <b-col lg="3"
-                                           md="3"
                                            sm="6">
-                                        <b-button id="selectOpenGraphImage"
-                                                  v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                                  variant="primary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  v-b-modal.modal-media
-                                                  @click="selectImage">
-                                            Resim Seç
-                                        </b-button>
-                                        <!--/ upload button -->
-                                        <!-- reset -->
-                                        <b-button id="removeOpenGraphImage"
-                                                  v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  @click="removeImage">
-                                            Resmi Kaldır
-                                        </b-button>
-                                        <b-form-input type="text"
-                                                      hidden
-                                                      v-model="openGraphImage.id"></b-form-input>
+                                        <div class="image-preview">
+                                            <div class="image-thumbnail select-opengraph-image"
+                                                 v-b-modal.modal-media
+                                                 @click="selectImage">
+                                                <b-img rounded
+                                                       v-bind:src="openGraphImage.fileName == null ? noImage : require('@/assets/images/media/' + openGraphImage.fileName)"
+                                                       :alt="openGraphImage.altText"
+                                                       class="select-opengraph-image" />
+                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                          variant="relief-primary"
+                                                          size="sm"
+                                                          class="btn-icon rounded-circle select-image select-opengraph-image">
+                                                    <feather-icon icon="Edit2Icon"
+                                                                  class="select-opengraph-image"
+                                                                  size="11" />
+                                                </b-button>
+                                            </div>
+                                            <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                      variant="relief-secondary"
+                                                      size="sm"
+                                                      class="btn-icon rounded-circle remove-image remove-opengraph-image"
+                                                      @click="removeImage">
+                                                <feather-icon icon="XIcon"
+                                                              class="remove-opengraph-image"
+                                                              size="11" />
+                                            </b-button>
+                                            <b-form-input type="text"
+                                                          hidden
+                                                          v-model="openGraphImage.id"></b-form-input>
+                                        </div>
                                     </b-col>
                                 </b-row>
                                 <b-form-group class="mt-1">
@@ -240,37 +301,37 @@
                                 <b-row class="kb-search-content-info match-height">
                                     <b-col lg="4"
                                            md="4"
-                                           sm="6"
-                                           class="image-thumb ml-1">
-                                        <b-img rounded
-                                               v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
-                                               :alt="twitterImage.altText" />
-                                    </b-col>
-                                    <b-col lg="3"
-                                           md="3"
                                            sm="6">
-                                        <b-button id="selectTwitterImage"
-                                                  v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                                                  variant="primary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  v-b-modal.modal-media
-                                                  @click="selectImage">
-                                            Resim Seç
-                                        </b-button>
-                                        <!--/ upload button -->
-                                        <!-- reset -->
-                                        <b-button id="removeTwitterImage"
-                                                  v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  class="mb-75 mr-75"
-                                                  @click="removeImage">
-                                            Resmi Kaldır
-                                        </b-button>
-                                        <b-form-input type="text"
-                                                      hidden
-                                                      v-model="twitterImage.id"></b-form-input>
+                                        <div class="image-preview">
+                                            <div class="image-thumbnail select-twitter-image"
+                                                 v-b-modal.modal-media
+                                                 @click="selectImage">
+                                                <b-img rounded
+                                                       v-bind:src="twitterImage.fileName == null ? noImage : require('@/assets/images/media/' + twitterImage.fileName)"
+                                                       :alt="twitterImage.altText"
+                                                       class="select-twitter-image" />
+                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                          variant="relief-primary"
+                                                          size="sm"
+                                                          class="btn-icon rounded-circle select-image select-twitter-image">
+                                                    <feather-icon icon="Edit2Icon"
+                                                                  class="select-twitter-image"
+                                                                  size="11" />
+                                                </b-button>
+                                            </div>
+                                            <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                      variant="relief-secondary"
+                                                      size="sm"
+                                                      class="btn-icon rounded-circle remove-image remove-twitter-image"
+                                                      @click="removeImage">
+                                                <feather-icon icon="XIcon"
+                                                              class="remove-twitter-image"
+                                                              size="11" />
+                                            </b-button>
+                                            <b-form-input type="text"
+                                                          hidden
+                                                          v-model="twitterImage.id"></b-form-input>
+                                        </div>
                                     </b-col>
                                 </b-row>
                                 <b-form-group class="mt-1">
@@ -300,35 +361,58 @@
                               :options="topPosts"
                               label="Title"
                               :reduce="(option) => option.Id"
-                              placeholder="— Ebeveyn Sayfa —" />
+                              placeholder="— Ebeveyn Sayfa —"
+                              :disabled="isTopPageSelectLoading"
+                              :loading="isTopPageSelectLoading">
+                        <template #spinner="{ loading }">
+                            <div v-if="isTopPageSelectLoading"
+                                 style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                 class="vs__spinner">
+                            </div>
+                        </template>
+                        <template #no-options="{ search, searching, loading }">
+                            {{ nullPageMessage }}
+                        </template>
+                    </v-select>
                 </b-form-group>
             </b-card-actions>
             <b-card-actions title="Resim"
                             action-collapse>
-                <div class="image-thumb">
-                    <b-img rounded
-                           v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
-                           :alt="featuredImage.altText" />
-                </div>
-                <div class="mt-1">
-                    <b-button id="selectFeaturedImage"
-                              v-ripple.400="'rgba(255, 255, 255, 0.15)'"
-                              variant="primary"
+                <b-form-group>
+                    <b-form-checkbox v-model="postAddDto.IsShowFeaturedImage"
+                                     name="check-button"
+                                     switch
+                                     inline>
+                        Görsel gönderide gösterilsin mi?
+                    </b-form-checkbox>
+                </b-form-group>
+                <div class="image-preview mt-1">
+                    <div class="image-thumbnail select-featured-image"
+                         v-b-modal.modal-media
+                         @click="selectImage">
+                        <b-img v-bind:src="featuredImage.fileName == null ? noImage : require('@/assets/images/media/' + featuredImage.fileName)"
+                               :alt="featuredImage.altText"
+                               rounded
+                               class="select-featured-image"
+                               v-b-modal.modal-media
+                               @click="selectImage" />
+                        <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                  variant="relief-primary"
+                                  size="sm"
+                                  class="btn-icon rounded-circle select-image select-featured-image">
+                            <feather-icon icon="Edit2Icon"
+                                          class="select-featured-image"
+                                          size="11" />
+                        </b-button>
+                    </div>
+                    <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                              variant="relief-secondary"
                               size="sm"
-                              class="mb-75 mr-75"
-                              v-b-modal.modal-media
-                              @click="selectImage">
-                        Resim Seç
-                    </b-button>
-                    <!--/ upload button -->
-                    <!-- reset -->
-                    <b-button id="removeFeaturedImage"
-                              v-ripple.400="'rgba(186, 191, 199, 0.15)'"
-                              variant="outline-secondary"
-                              size="sm"
-                              class="mb-75 mr-75"
+                              class="btn-icon rounded-circle remove-image remove-featured-image"
                               @click="removeImage">
-                        Resmi Kaldır
+                        <feather-icon icon="XIcon"
+                                      class="remove-featured-image"
+                                      size="11" />
                     </b-button>
                     <b-form-input type="text"
                                   hidden
@@ -350,22 +434,23 @@
 </template>
 
 <script>
+    import ModalMedia from '../../media/ModalMedia.vue';
+    import UrlHelper from '@/helper/url-helper';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
+    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
+    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
+    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
+    import { quillEditor } from 'vue-quill-editor';
     import 'quill/dist/quill.snow.css'
-
+    import vSelect from 'vue-select';
     import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
     import { required } from '@validations';
     import {
-        BBreadcrumb, BBreadcrumbItem, BCollapse, BSpinner, BImg, BTabs, BTab, BFormTags, BFormCheckbox, BButton, BCard, BCardBody, BCardTitle, BRow, BCol, BForm, BFormSelect, BFormGroup, BFormTextarea, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, VBToggle, VBTooltip, BLink
+        BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BDropdown, BDropdownItem, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BFormInput,
+        BInputGroupPrepend, BFormTextarea, BFormTags, BFormCheckbox, BCollapse, BImg, BTabs, BTab, BPagination, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
-    import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
     import axios from 'axios';
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
-    import vSelect from 'vue-select';
     import Ripple from 'vue-ripple-directive';
-    import { quillEditor } from 'vue-quill-editor';
-    import ModalMedia from '../../media/ModalMedia.vue';
-    import AppCollapse from '@core/components/app-collapse/AppCollapse.vue';
-    import AppCollapseItem from '@core/components/app-collapse/AppCollapseItem.vue';
 
     extend('required', {
         ...required,
@@ -374,38 +459,38 @@
 
     export default {
         components: {
-            BBreadcrumb,
-            BBreadcrumbItem,
-            BCollapse,
-            AppCollapse,
-            AppCollapseItem,
-            quillEditor,
             ModalMedia,
-            BCardActions,
-            BSpinner,
-            BImg,
-            BTabs,
-            BTab,
-            BFormTags,
-            BCardTitle,
-            BForm,
-            BFormSelect,
-            BButton,
-            BFormCheckbox,
-            BFormTextarea,
-            BCard,
-            BRow,
-            BCol,
-            BCardBody,
-            BFormGroup,
-            BPagination,
-            BInputGroup,
-            BFormInput,
-            BInputGroupPrepend,
             ToastificationContent,
             ValidationProvider,
             ValidationObserver,
             vSelect,
+            quillEditor,
+            BCardActions,
+            AppCollapse,
+            AppCollapseItem,
+            BRow,
+            BCol,
+            BBreadcrumb,
+            BBreadcrumbItem,
+            BSpinner,
+            BButton,
+            BDropdown,
+            BDropdownItem,
+            BCard,
+            BCardBody,
+            BForm,
+            BFormGroup,
+            BInputGroup,
+            BFormInput,
+            BInputGroupPrepend,
+            BFormCheckbox,
+            BFormTextarea,
+            BFormTags,
+            BCollapse,
+            BImg,
+            BTabs,
+            BTab,
+            BPagination,
             BLink
         },
         directives: {
@@ -415,10 +500,17 @@
         },
         data() {
             return {
+                buttonDisabled: false,
+                saveButtonVariant: 'primary',
+                isTopPageSelectLoading: false,
+                isSchemaPageSelectLoading: false,
+                isSchemaArticleSelectLoading: false,
+                nullPageMessage: 'Hiçbir temel sayfa bulunamadı.',
+                nullSchemaMessage: 'Hiçbir şema türü bulunamadı.',
                 breadcrumbs: [
                     {
                         text: 'Sayfalar',
-                        to: { name: 'pages-page-list' }
+                        to: { name: 'pages-basepage-list' }
                     },
                     {
                         text: 'Sayfa Ekle',
@@ -430,13 +522,17 @@
                     theme: 'snow'
                 },
                 required,
-                isSpinnerShow: true,
-                title: '',
+                isShowPostName: false,
+                domainName: window.location.origin,
+                parentPostName: '',
+                isSlugEditActive: false,
+                oldPostName: '',
                 postAddDto: {
+                    PostName: '',
                     Title: '',
                     Content: '',
                     BottomContent: '',
-                    PostType: 'page',
+                    PostType: 'basepage',
                     PostStatus: null,
                     ParentId: '',
                     FeaturedImageId: '',
@@ -471,7 +567,6 @@
                 },
                 isFeaturedImageChoose: false,
                 keywords: [],
-                modalShow: false,
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
                 openGraphImage: {
                     id: null,
@@ -491,6 +586,7 @@
         },
         methods: {
             allTopPosts() {
+                this.isTopPageSelectLoading = true;
                 axios.get('/admin/post-alltopposts',
                     {
                         params: {
@@ -498,10 +594,13 @@
                         }
                     })
                     .then((response) => {
-                        console.log(response.data);
-                        if (response.data.ResultStatus === 0) {
-                            this.topPosts = response.data.Posts;
+                        if (response.data.PostListDto.ResultStatus === 0) {
+                            this.topPosts = response.data.PostListDto.Data.Posts;
+                        } else {
+                            this.topPosts = [];
+                            this.nullPageMessage = response.data.PostListDto.Message;
                         }
+                        this.isTopPageSelectLoading = false
                     })
                     .catch((error) => {
                         this.$toast({
@@ -514,6 +613,72 @@
                             }
                         })
                     });
+            },
+            getSchemaPageType() {
+                this.isSchemaPageSelectLoading = true;
+                axios.get('/admin/post-getschemapagetype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaPageTypes = response.data;
+                        } else {
+                            this.schemaPageTypes = [];
+                        }
+                        this.isSchemaPageSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            getSchemaArticleType() {
+                this.isSchemaArticleSelectLoading = true;
+                axios.get('/admin/post-getschemaarticletype')
+                    .then((response) => {
+                        if (response.data != null) {
+                            this.schemaArticleTypes = response.data;
+                        } else {
+                            this.schemaArticleTypes = [];
+                        }
+                        this.isSchemaArticleSelectLoading = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            postNameEdit() {
+                this.oldPostName = this.postAddDto.PostName;
+                var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.PostName);
+                this.postAddDto.PostName = seoPostName;
+                this.isSlugEditActive = false;
+            },
+            postNameEditCancel() {
+                this.isSlugEditActive = false;
+                this.postAddDto.PostName = this.oldPostName;
+            },
+            changePostName() {
+                if (!this.postAddDto.Title) {
+                    this.isShowPostName = false;
+                }
+                else {
+                    this.isShowPostName = true;
+                    var seoPostName = UrlHelper.friendlySEOUrl(this.postAddDto.Title);
+                    this.postAddDto.PostName = seoPostName;
+                }
             },
             imageChange(id, name, altText) {
                 if (this.isFeaturedImageChoose == true) {
@@ -534,65 +699,30 @@
                 this.isTwitterImageChoose = false;
             },
             selectImage: function (e) {
-                if (e.target.id == "selectFeaturedImage") {
+                if (e.target._prevClass.includes('select-featured-image')) {
                     this.isFeaturedImageChoose = true;
-                } else if (e.target.id == "selectOpenGraphImage") {
+                } else if (e.target._prevClass.includes('select-opengraph-image')) {
                     this.isOpenGraphImageChoose = true;
-                } else if (e.target.id == "selectTwitterImage") {
+                } else if (e.target._prevClass.includes('select-twitter-image')) {
                     this.isTwitterImageChoose = true;
                 }
-                this.modalShow = true;
             },
             removeImage: function (e) {
-                if (e.target.id == "removeFeaturedImage") {
+                if (e.target._prevClass.includes('remove-featured-image')) {
                     this.featuredImage.id = null;
                     this.featuredImage.fileName = null;
                     this.featuredImage.altText = null;
-                } else if (e.target.id == "removeOpenGraphImage") {
+                } else if (e.target._prevClass.includes('remove-opengraph-image')) {
                     this.openGraphImage.id = null;
                     this.openGraphImage.fileName = null;
                     this.openGraphImage.altText = null;
-                } else if (e.target.id == "removeTwitterImage") {
+                } else if (e.target._prevClass.includes('remove-twitter-image')) {
                     this.twitterImage.id = null;
                     this.twitterImage.fileName = null;
                     this.twitterImage.altText = null;
                 }
-            },
-            getSchemaPageType() {
-                axios.get('/admin/post-getschemapagetype')
-                    .then((response) => {
-                        this.schemaPageTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getSchemaArticleType() {
-                axios.get('/admin/post-getschemaarticletype')
-                    .then((response) => {
-                        this.schemaArticleTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            validationForm: function (e) {
+            },           
+            validationForm: function (e) {                
                 this.postAddDto.FeaturedImageId = this.featuredImage.id;
                 this.pageSeoSettingAddDto.FocusKeyword = this.keywords.toString();
                 this.pageSeoSettingAddDto.OpenGraphImageId = this.openGraphImage.id;
@@ -607,17 +737,20 @@
                 }
                 this.$refs.pageAddForm.validate().then(success => {
                     if (success) {
+                        this.buttonDisabled = true;
+                        this.saveButtonVariant = 'outline-secondary';
                         axios.post('/admin/post-new',
                             {
                                 PostAddDto: this.postAddDto,
                                 SeoObjectSettingAddDto: this.pageSeoSettingAddDto
                             })
                             .then((response) => {
+                                console.log(response.data)
                                 if (response.data.PostDto.ResultStatus === 0) {
-                                    if (this.$can('update', 'Otherpage')) {
-                                        this.$router.push({ name: 'pages-post-edit', query: { edit: response.data.PostDto.Post.Id } });
+                                    if (this.$can('update', 'Basepage')) {
+                                        this.$router.push({ name: 'pages-basepage-edit', query: { edit: response.data.PostDto.Data.Post.Id } });
                                     } else {
-                                        this.$router.push({ name: 'pages-page-list' });
+                                        this.$router.push({ name: 'pages-basepage-list' });
                                     }
                                     this.$toast({
                                         component: ToastificationContent,
@@ -681,7 +814,13 @@
         border-radius: 5px;
     }
 
-    .image-thumb {
+    .image-preview {
+        width: 100%;
+        height: 200px;
+        position: relative;
+    }
+
+    .image-thumbnail {
         width: 100%;
         height: 200px;
         -webkit-box-shadow: 0px 0px 3px 0px rgba(196,196,196,1);
@@ -691,7 +830,7 @@
         border-radius: 5px;
     }
 
-    .image-thumb img {
+    .image-thumbnail img {
         max-height: 100%;
         max-width: 100%;
         position: absolute;
@@ -701,5 +840,19 @@
         right: 0;
         margin: auto;
         padding: 5px;
+    }
+
+    .image-preview .select-image {
+        position: absolute !important;
+        top: -12px;
+        right: -12px;
+        padding: 5px !important;
+    }
+
+    .image-preview .remove-image {
+        position: absolute !important;
+        bottom: -12px;
+        right: -12px;
+        padding: 5px !important;
     }
 </style>

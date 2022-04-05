@@ -51,92 +51,96 @@
                 </b-button>
             </template>
             <div class="media-details container-fluid h-100 p-0">
+
                 <div class="media-view">
-                    <div class="image-view">
-                        <b-img :src="uploadUpdateDto.FileName == null ? '' : require('@/assets/images/media/' + uploadUpdateDto.FileName)" fluid></b-img>
-                    </div>
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <div class="image-view">
+                            <b-img :src="uploadUpdateDto.FileName == null ? '' : require('@/assets/images/media/' + uploadUpdateDto.FileName)" fluid></b-img>
+                        </div>
+                    </b-overlay>
                 </div>
                 <div class="media-info">
-                    <div class="details">
-                        <span><strong>Yüklenen Tarih: </strong>{{createdDate}}</span><br />
-                        <span><strong>Yükleyen: </strong>{{ uploadUpdateDto.User.UserName}}</span><br />
-                        <span><strong>Dosya Adı: </strong>{{ uploadUpdateDto.FileName}}</span><br />
-                        <span><strong>Dosya Türü: </strong>{{ uploadUpdateDto.ContentType}}</span><br />
-                        <span><strong>Dosya Boyutu: </strong>{{sizeConvert}}</span><br />
-                        <span><strong>Ölçüler: </strong>{{ uploadUpdateDto.Width }}x{{ uploadUpdateDto.Height }}px</span>
-                    </div>
-                    <div class="settings">
-                        <b-form-group label-cols="4"
-                                      label-size="sm"
-                                      label="Alternatif Metin"
-                                      label-for="altText">
-                            <b-form-input id="altText"
-                                          v-model="uploadUpdateDto.AltText"
-                                          type="text"
-                                          size="sm"></b-form-input>
-                        </b-form-group>
-                        <b-form-group label-cols="4"
-                                      label-size="sm"
-                                      label="Başlık"
-                                      label-for="title">
-                            <b-form-input id="title"
-                                          v-model="uploadUpdateDto.Title"
-                                          type="text"
-                                          size="sm"></b-form-input>
-                        </b-form-group>
-                        <b-form-group label-cols="4"
-                                      label-size="sm"
-                                      label="Alt Başlık"
-                                      label-for="subTitle">
-                            <b-form-input id="subTitle"
-                                          v-model="uploadUpdateDto.SubTitle"
-                                          type="text"
-                                          size="sm"></b-form-input>
-                        </b-form-group>
-                        <b-form-group label-cols="4"
-                                      label-size="sm"
-                                      label="Açıklama"
-                                      label-for="description">
-                            <b-form-textarea id="description"
-                                             v-model="uploadUpdateDto.Description"
-                                             size="sm"></b-form-textarea>
-                        </b-form-group>
-                        <b-form-group label-cols="4"
-                                      label-size="sm"
-                                      label="Dosya Adresi"
-                                      label-for="fileUrl">
-                            <b-form-input id="fileUrl"
-                                          v-model="altText"
-                                          type="text"
-                                          size="sm"
-                                          readonly></b-form-input>
-                        </b-form-group>
-                    </div>
+                    <b-overlay :show="showOverlay"
+                               size="sm">
+                        <div class="details">
+                            <span><strong>Yüklenen Tarih: </strong>{{createdDate}}</span><br />
+                            <span><strong>Yükleyen: </strong>{{ uploadUpdateDto.User.UserName}}</span><br />
+                            <span><strong>Dosya Adı: </strong>{{ uploadUpdateDto.FileName}}</span><br />
+                            <span><strong>Dosya Türü: </strong>{{ uploadUpdateDto.ContentType}}</span><br />
+                            <span><strong>Dosya Boyutu: </strong>{{sizeConvert}}</span><br />
+                            <span><strong>Ölçüler: </strong>{{ uploadUpdateDto.Width }}x{{ uploadUpdateDto.Height }}px</span>
+                        </div>
+                        <div class="settings">
+                            <b-form-group label-cols="4"
+                                          label-size="sm"
+                                          label="Alternatif Metin"
+                                          label-for="fileUrl">
+                                <b-form-input id="fileUrl"
+                                              v-model="uploadUpdateDto.AltText"
+                                              type="text"
+                                              size="sm"></b-form-input>
+                            </b-form-group>
+                            <b-form-group label-cols="4"
+                                          label-size="sm"
+                                          label="Başlık"
+                                          label-for="title">
+                                <b-form-input id="title"
+                                              v-model="uploadUpdateDto.Title"
+                                              type="text"
+                                              size="sm"></b-form-input>
+                            </b-form-group>
+                            <b-form-group label-cols="4"
+                                          label-size="sm"
+                                          label="Alt Başlık"
+                                          label-for="subTitle">
+                                <b-form-input id="subTitle"
+                                              v-model="uploadUpdateDto.SubTitle"
+                                              type="text"
+                                              size="sm"></b-form-input>
+                            </b-form-group>
+                            <b-form-group label-cols="4"
+                                          label-size="sm"
+                                          label="Açıklama"
+                                          label-for="description">
+                                <b-form-textarea id="description"
+                                                 v-model="uploadUpdateDto.Description"
+                                                 size="sm"></b-form-textarea>
+                            </b-form-group>
+                            <b-form-group label-cols="4"
+                                          label-size="sm"
+                                          label="Dosya Adresi"
+                                          label-for="fileUrl">
+                                <b-form-input id="fileUrl"
+                                              v-model="fileUrl"
+                                              type="text"
+                                              size="sm"
+                                              readonly></b-form-input>
+                            </b-form-group>
+                        </div>
+                    </b-overlay>
                 </div>
             </div>
-
         </b-modal>
     </div>
 </template>
 
 <script>
-    import {
-        BRow, BCol, BImg, BFormGroup, BFormInput, BFormTextarea, BButtonGroup, BButton
-    } from 'bootstrap-vue'
-    //import { codeRowDetailsSupport } from './code'
-    import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
     import moment from 'moment'
+    import { BRow, BCol, BOverlay, BImg, BFormGroup, BFormInput, BFormTextarea, BButtonGroup, BButton } from 'bootstrap-vue'
+    import axios from 'axios'
 
     export default {
         components: {
+            ToastificationContent,
             BRow,
             BCol,
+            BOverlay,
             BImg,
             BFormGroup,
             BFormInput,
             BFormTextarea,
-            ToastificationContent,
             BButtonGroup,
             BButton
         },
@@ -152,6 +156,7 @@
         },
         data() {
             return {
+                showOverlay: false,
                 uploadUpdateDto: {
                     AltText: null,
                     ContentType: null,
@@ -170,7 +175,7 @@
                 },
                 createdDate: '',
                 sizeConvert: '',
-                altText: '',
+                fileUrl: '',
                 uploadIds: [],
                 uploadIndex: null,
                 isDisabledPreviousButton: false,
@@ -179,17 +184,14 @@
             }
         },
         methods: {
-            mediaPageGetAllData() {
-                this.$emit('mediaGetAllData', this.uploadUpdateDto.Id, this.isDeleted);
-            },
             getAllData() {
                 this.uploadIds = [];
                 this.filteredData.forEach(upload => {
                     this.uploadIds.push(upload.Id);
                 });
-                console.log(this.filteredData)
             },
             getData() {
+                this.showOverlay = true;
                 this.getAllData();
                 this.isDeleted = false;
                 axios.get('/admin/upload-edit', {
@@ -198,79 +200,95 @@
                     }
                 }).then((response) => {
                     console.log(response.data);
-                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Data.Id;
-                    this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.Data.AltText;
-                    this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.Data.ContentType;
-                    this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.Data.CreatedDate;
-                    this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Data.Description;
-                    this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.Data.FileName;
-                    this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.Data.FileUrl;
-                    this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Data.Height;
-                    this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.Data.SubTitle;
-                    this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Data.Title;
-                    this.uploadUpdateDto.User = response.data.UploadUpdateDto.Data.User;
-                    this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.Data.UserId;
-                    this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Data.Width;
-                    this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Data.Size;
-                    var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.Data.FileName)
-                    this.altText = location.origin + imgPath;
-                    this.createdDate = moment(new Date(response.data.UploadUpdateDto.Data.CreatedDate)).format('DD.MM.YYYY');
+                    if (response.data.UploadUpdateDto.ResultStatus === 0) {
+                        this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Data.Id;
+                        this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.Data.AltText;
+                        this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.Data.ContentType;
+                        this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.Data.CreatedDate;
+                        this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Data.Description;
+                        this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.Data.FileName;
+                        this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.Data.FileUrl;
+                        this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Data.Height;
+                        this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.Data.SubTitle;
+                        this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Data.Title;
+                        this.uploadUpdateDto.User = response.data.UploadUpdateDto.Data.User;
+                        this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.Data.UserId;
+                        this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Data.Width;
+                        this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Data.Size;
+                        this.createdDate = moment(new Date(response.data.UploadUpdateDto.Data.CreatedDate)).format('DD.MM.YYYY');
+
+                        var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.Data.FileName);
+                        if (imgPath.includes('png')) {
+                            this.fileUrl = imgPath;
+                        } else {
+                            this.fileUrl = location.origin + imgPath;
+                        }
 
 
-                    var size = response.data.UploadUpdateDto.Data.Size;
-                    if (size >= 1024) {
-                        this.sizeConvert = (size / 1024).toFixed(0) + " KB";
-                    } else if (size >= 1048576) {
-                        this.sizeConvert = (size / 1048576).toFixed(0) + " MB";
-                    }
-                    else if (size > 1073741824) {
-                        this.sizeConvert = (size / 1073741824).toFixed(0) + " GB";
-                    }
-                    else {
-                        this.sizeConvert = size + " Bayt";
-                    }
+                        var size = response.data.UploadUpdateDto.Data.Size;
+                        if (size >= 1024) {
+                            this.sizeConvert = (size / 1024).toFixed(0) + " KB";
+                        } else if (size >= 1048576) {
+                            this.sizeConvert = (size / 1048576).toFixed(0) + " MB";
+                        }
+                        else if (size > 1073741824) {
+                            this.sizeConvert = (size / 1073741824).toFixed(0) + " GB";
+                        }
+                        else {
+                            this.sizeConvert = size + " Bayt";
+                        }
 
-                    this.uploadIndex = this.uploadIds.indexOf(this.uploadUpdateDto.Id);
-                    this.isDisabledPreviousButton = this.uploadIndex == 0 ? true : false;
-                    this.isDisabledNextButton = this.uploadIndex == this.uploadIds.length - 1 ? true : false;
+                        this.uploadIndex = this.uploadIds.indexOf(this.uploadUpdateDto.Id);
+                        this.isDisabledPreviousButton = this.uploadIndex == 0 ? true : false;
+                        this.isDisabledNextButton = this.uploadIndex == this.uploadIds.length - 1 ? true : false;
+                        this.showOverlay = false;
+                    }
                 })
             },
             getPrevNextData(id) {
+                this.showOverlay = true;
                 axios.get('/admin/upload-edit', {
                     params: {
                         uploadId: id
                     }
                 }).then((response) => {
-                    this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Data.Id;
-                    this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.Data.AltText;
-                    this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.Data.ContentType;
-                    this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.Data.CreatedDate;
-                    this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Data.Description;
-                    this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.Data.FileName;
-                    this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.Data.FileUrl;
-                    this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Data.Height;
-                    this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.Data.SubTitle;
-                    this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Data.Title;
-                    this.uploadUpdateDto.User = response.data.UploadUpdateDto.Data.User;
-                    this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.Data.UserId;
-                    this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Data.Width;
-                    this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Data.Size;
-                    var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.Data.FileName)
-                    this.altText = location.origin + imgPath;
-                    this.createdDate = moment(new Date(response.data.UploadUpdateDto.Data.CreatedDate)).format('DD.MM.YYYY');
+                    if (response.data.UploadUpdateDto.ResultStatus === 0) {
+                        this.uploadUpdateDto.Id = response.data.UploadUpdateDto.Data.Id;
+                        this.uploadUpdateDto.AltText = response.data.UploadUpdateDto.Data.AltText;
+                        this.uploadUpdateDto.ContentType = response.data.UploadUpdateDto.Data.ContentType;
+                        this.uploadUpdateDto.CreatedDate = response.data.UploadUpdateDto.Data.CreatedDate;
+                        this.uploadUpdateDto.Description = response.data.UploadUpdateDto.Data.Description;
+                        this.uploadUpdateDto.FileName = response.data.UploadUpdateDto.Data.FileName;
+                        this.uploadUpdateDto.FileUrl = response.data.UploadUpdateDto.Data.FileUrl;
+                        this.uploadUpdateDto.Height = response.data.UploadUpdateDto.Data.Height;
+                        this.uploadUpdateDto.SubTitle = response.data.UploadUpdateDto.Data.SubTitle;
+                        this.uploadUpdateDto.Title = response.data.UploadUpdateDto.Data.Title;
+                        this.uploadUpdateDto.User = response.data.UploadUpdateDto.Data.User;
+                        this.uploadUpdateDto.UserId = response.data.UploadUpdateDto.Data.UserId;
+                        this.uploadUpdateDto.Width = response.data.UploadUpdateDto.Data.Width;
+                        this.uploadUpdateDto.Size = response.data.UploadUpdateDto.Data.Size;
+                        this.createdDate = moment(new Date(response.data.UploadUpdateDto.Data.CreatedDate)).format('DD.MM.YYYY');
 
+                        var imgPath = require('@/assets/images/media/' + response.data.UploadUpdateDto.Data.FileName)
+                        if (imgPath.includes('png')) {
+                            this.fileUrl = imgPath;
+                        } else {
+                            this.fileUrl = location.origin + imgPath;
+                        }
 
-                    var size = response.data.UploadUpdateDto.Data.Size;
-                    if (size >= 1024) {
-                        this.sizeConvert = (size / 1024).toFixed(0) + " KB";
-                    } else if (size >= 1048576) {
-                        this.sizeConvert = (size / 1048576).toFixed(0) + " MB";
-                    }
-                    else if (size > 1073741824) {
-                        this.sizeConvert = (size / 1073741824).toFixed(0) + " GB";
-                    }
-                    else {
-                        this.sizeConvert = size + " Bayt";
+                        var size = response.data.UploadUpdateDto.Data.Size;
+                        if (size >= 1024) {
+                            this.sizeConvert = (size / 1024).toFixed(0) + " KB";
+                        } else if (size >= 1048576) {
+                            this.sizeConvert = (size / 1048576).toFixed(0) + " MB";
+                        }
+                        else if (size > 1073741824) {
+                            this.sizeConvert = (size / 1073741824).toFixed(0) + " GB";
+                        }
+                        else {
+                            this.sizeConvert = size + " Bayt";
+                        }
+                        this.showOverlay = false;
                     }
                 })
             },
@@ -296,6 +314,16 @@
                 }
                 this.isDisabledPreviousButton = this.uploadIndex == 0 ? true : false;
                 this.isDisabledNextButton = this.uploadIndex == this.uploadIds.length - 1 ? true : false;
+            },
+            handleKeydown(e) {
+                switch (e.keyCode) {
+                    case 37:
+                        this.prevNextButtonClick('Pre');
+                        break;
+                    case 39:
+                        this.prevNextButtonClick('Next');
+                        break;
+                }
             },
             updateData() {
                 console.log(this.uploadUpdateDto);
@@ -370,7 +398,7 @@
                                             variant: 'success',
                                             title: 'Başarılı İşlem!',
                                             icon: 'CheckIcon',
-                                            text: response.data.Message
+                                            text: response.data.Data.FileFullName + ' adlı dosya silindi.'
                                         }
                                     });
                                     this.$refs['upload-modal'].hide()
@@ -401,15 +429,8 @@
                     }
                 })
             },
-            handleKeydown(e) {
-                switch (e.keyCode) {
-                    case 37:
-                        this.prevNextButtonClick('Pre');
-                        break;
-                    case 39:
-                        this.prevNextButtonClick('Next');
-                        break;
-                }
+            mediaPageGetAllData() {
+                this.$emit('mediaGetAllData', this.uploadUpdateDto.Id, this.isDeleted);
             }
         },
         beforeMount() {
@@ -417,8 +438,6 @@
         },
         beforeDestroy() {
             window.removeEventListener('keydown', this.handleKeydown);
-        },
-        mounted() {
         }
     }
 </script>
@@ -538,38 +557,4 @@
                 bottom: 0;
                 right: 0;
             }
-    /* #upload-modal .modal-dialog {
-        max-width: 100%;
-        height: 100vh;
-        margin: 0;
-        padding: 30px !important;
-        display: flex;
-    }
-
-
-
-    #upload-modal .modal-body {
-        border-top: 1px solid #dcdcde;
-        padding: 0 14px 0 14px !important
-    }
-
-    .media-details {
-        box-shadow: inset 0 4px 4px -4px rgb(0 0 0 / 10%);
-    }
-
-    .image-info {
-        background-color: #f2f2f2;
-        padding-top: 10px;
-        border-left: 1px solid #dcdcde;
-    }
-
-    .image-view {
-        text-align: center;
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-
-        .image-view img {
-            max-height: 743px !important;
-        }*/
 </style>

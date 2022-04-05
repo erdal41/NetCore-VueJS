@@ -79,9 +79,11 @@ namespace VueJS.Mvc.Areas.Admin.Controllers
         [HttpPost("/admin/upload-delete")]
         public async Task<JsonResult> Delete(int uploadId)
         {
-            var result = await _uploadService.DeleteAsync(uploadId);
+            var result = await ImageHelper.Delete(uploadId);
             if (result.ResultStatus == ResultStatus.Success)
-                await ImageHelper.Delete(uploadId);
+            {
+                await _uploadService.DeleteAsync(uploadId);
+            }
             return Json(result);
         }
 

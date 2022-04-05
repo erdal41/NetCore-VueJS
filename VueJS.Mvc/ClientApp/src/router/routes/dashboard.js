@@ -1,7 +1,7 @@
 export default [
     {
         path: '/admin/dashboard',
-        name: 'dashboard-analytics',
+        name: 'pages-da',
         component: () => import('@/views/dashboard/analytics/Analytics.vue'),
         meta: {
             resource: 'Dashboard',

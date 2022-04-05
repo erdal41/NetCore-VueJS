@@ -34,7 +34,7 @@
                        class="align-middle mr-1" />
             <b-button id="draft"
                       :disabled="buttonDisabled"
-                      :variant="draftButtonVariant"
+                      variant="outline-primary"
                       class="mr-1"
                       size="sm"
                       type="submit"
@@ -614,7 +614,6 @@
             return {
                 buttonDisabled: false,
                 saveButtonVariant: 'primary',
-                draftButtonVariant: 'outline-primary',
                 isCategorySelectLoading: false,
                 isTagSelectLoading: false,
                 isSchemaPageSelectLoading: false,
@@ -1006,6 +1005,8 @@
                 }
                 this.$refs.articleAddForm.validate().then(success => {
                     if (success) {
+                        this.buttonDisabled = true;
+                        this.saveButtonVariant = 'outline-secondary';
                         axios.post('/admin/post-new',
                             {
                                 PostAddDto: this.postAddDto,
