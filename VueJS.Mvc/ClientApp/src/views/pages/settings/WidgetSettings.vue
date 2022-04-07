@@ -22,16 +22,19 @@
                 <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                        md="4"
                        cols="12">
+                    <b-spinner v-if="buttonDisabled"
+                               variant="secondary"
+                               class="align-middle mr-1" />
                     <b-button v-if="$can('update', 'Seo')"
-                              variant="primary"
+                              :disabled="buttonDisabled"
+                              :variant="updateButtonVariant"
                               type="button"
-                              :disabled="overlayShow"
                               @click.prevent="updateData">
                         Güncelle
                     </b-button>
                 </b-col>
             </b-row>
-            <b-overlay :show="overlayShow"
+            <b-overlay :show="showOverlay"
                        rounded="sm"
                        opacity="0.80"
                        variant="white"
@@ -199,7 +202,7 @@
 <script>
     import vSelect from 'vue-select';
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
-    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BButton, BOverlay, BCard, BFormGroup, BFormInput, BFormDatepicker, BFormSpinbutton } from 'bootstrap-vue';
+    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BOverlay, BCard, BFormGroup, BFormInput, BFormDatepicker, BFormSpinbutton } from 'bootstrap-vue';
     import axios from 'axios';
 
     export default {
@@ -210,6 +213,7 @@
             BCol,
             BBreadcrumb,
             BBreadcrumbItem,
+            BSpinner,
             BButton,
             BOverlay,
             BCard,
@@ -220,7 +224,9 @@
         },
         data() {
             return {
-                overlayShow: true,
+                buttonDisabled: false,
+                updateButtonVariant: 'primary',
+                showOverlay: true,
                 articleRightSideBarWidgetOptionsDto: {
                     Header: '',
                     TakeSize: '',
@@ -243,6 +249,43 @@
             }
         },
         methods: {
+            getData() {
+                this.showOverlay = true;
+                axios.get('/admin/settings-widget')
+                    .then((response) => {
+                        if (response.data.ArticleRightSideBarWidgetOptionsDto != null) {
+                            this.articleRightSideBarWidgetOptionsDto.Header = response.data.ArticleRightSideBarWidgetOptionsDto.Header;
+                            this.articleRightSideBarWidgetOptionsDto.TakeSize = response.data.ArticleRightSideBarWidgetOptionsDto.TakeSize;
+                            this.articleRightSideBarWidgetOptionsDto.CategoryId = response.data.ArticleRightSideBarWidgetOptionsDto.CategoryId;
+                            this.articleRightSideBarWidgetOptionsDto.TagId = response.data.ArticleRightSideBarWidgetOptionsDto.TagId;
+                            this.articleRightSideBarWidgetOptionsDto.FilterBy = response.data.ArticleRightSideBarWidgetOptionsDto.FilterBy;
+                            this.articleRightSideBarWidgetOptionsDto.OrderBy = response.data.ArticleRightSideBarWidgetOptionsDto.OrderBy;
+                            this.articleRightSideBarWidgetOptionsDto.IsAscending = response.data.ArticleRightSideBarWidgetOptionsDto.IsAscending;
+                            this.articleRightSideBarWidgetOptionsDto.StartAt = response.data.ArticleRightSideBarWidgetOptionsDto.StartAt;
+                            this.articleRightSideBarWidgetOptionsDto.EndAt = response.data.ArticleRightSideBarWidgetOptionsDto.EndAt;
+                            this.articleRightSideBarWidgetOptionsDto.MinViewCount = response.data.ArticleRightSideBarWidgetOptionsDto.MinViewCount;
+                            this.articleRightSideBarWidgetOptionsDto.MaxViewCount = response.data.ArticleRightSideBarWidgetOptionsDto.MaxViewCount;
+                            this.articleRightSideBarWidgetOptionsDto.MinCommentCount = response.data.ArticleRightSideBarWidgetOptionsDto.MinCommentCount;
+                            this.articleRightSideBarWidgetOptionsDto.MaxCommentCount = response.data.ArticleRightSideBarWidgetOptionsDto.MaxCommentCount;
+
+                            this.categories = response.data.ArticleRightSideBarWidgetOptionsDto.Categories;
+                            this.tags = response.data.ArticleRightSideBarWidgetOptionsDto.Tags;
+                        }
+                        this.showOverlay = false;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Form ayarları yüklenirken hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+
+            },
             getFilterBy() {
                 axios.get('/admin/settings-getfilter')
                     .then((response) => {
@@ -277,44 +320,9 @@
                         })
                     });
             },
-            getData() {
-                axios.get('/admin/settings-widget')
-                    .then((response) => {
-                        if (response.data.ArticleRightSideBarWidgetOptionsDto != null) {
-                            this.articleRightSideBarWidgetOptionsDto.Header = response.data.ArticleRightSideBarWidgetOptionsDto.Header;
-                            this.articleRightSideBarWidgetOptionsDto.TakeSize = response.data.ArticleRightSideBarWidgetOptionsDto.TakeSize;
-                            this.articleRightSideBarWidgetOptionsDto.CategoryId = response.data.ArticleRightSideBarWidgetOptionsDto.CategoryId;
-                            this.articleRightSideBarWidgetOptionsDto.TagId = response.data.ArticleRightSideBarWidgetOptionsDto.TagId;
-                            this.articleRightSideBarWidgetOptionsDto.FilterBy = response.data.ArticleRightSideBarWidgetOptionsDto.FilterBy;
-                            this.articleRightSideBarWidgetOptionsDto.OrderBy = response.data.ArticleRightSideBarWidgetOptionsDto.OrderBy;
-                            this.articleRightSideBarWidgetOptionsDto.IsAscending = response.data.ArticleRightSideBarWidgetOptionsDto.IsAscending;
-                            this.articleRightSideBarWidgetOptionsDto.StartAt = response.data.ArticleRightSideBarWidgetOptionsDto.StartAt;
-                            this.articleRightSideBarWidgetOptionsDto.EndAt = response.data.ArticleRightSideBarWidgetOptionsDto.EndAt;
-                            this.articleRightSideBarWidgetOptionsDto.MinViewCount = response.data.ArticleRightSideBarWidgetOptionsDto.MinViewCount;
-                            this.articleRightSideBarWidgetOptionsDto.MaxViewCount = response.data.ArticleRightSideBarWidgetOptionsDto.MaxViewCount;
-                            this.articleRightSideBarWidgetOptionsDto.MinCommentCount = response.data.ArticleRightSideBarWidgetOptionsDto.MinCommentCount;
-                            this.articleRightSideBarWidgetOptionsDto.MaxCommentCount = response.data.ArticleRightSideBarWidgetOptionsDto.MaxCommentCount;
-
-                            this.categories = response.data.ArticleRightSideBarWidgetOptionsDto.Categories;
-                            this.tags = response.data.ArticleRightSideBarWidgetOptionsDto.Tags;
-
-                            this.overlayShow = false;
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Form ayarları yüklenirken hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-                
-            },
             updateData() {
+                this.buttonDisabled = true;
+                this.updateButtonVariant = 'outline-secondary';
                 axios.post('/admin/settings-widget', {
                     ArticleRightSideBarWidgetOptionsDto: this.articleRightSideBarWidgetOptionsDto
                 })
@@ -329,8 +337,9 @@
                                     text: 'Form ayarları güncellendi.'
                                 }
                             });
-                            this.overlayShow = false;
                         }
+                        this.buttonDisabled = false;
+                        this.updateButtonVariant = 'primary';
                     })
                     .catch((error) => {
                         this.$toast({
@@ -346,9 +355,9 @@
             }
         },
         mounted() {
+            this.getData();
             this.getFilterBy();
             this.getOrderBy();
-            this.getData();
         }
     }
 </script>

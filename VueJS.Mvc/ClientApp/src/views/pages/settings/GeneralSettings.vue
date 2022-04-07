@@ -22,11 +22,15 @@
         <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                md="4"
                cols="12">
-            <b-button v-if="$can('create', 'User')"
-                      variant="primary"
+            <b-spinner v-if="buttonDisabled"
+                       variant="secondary"
+                       class="align-middle mr-1" />
+            <b-button v-if="$can('update', 'Seo')"
+                      :disabled="buttonDisabled"
+                      :variant="updateButtonVariant"
                       type="button"
-                      :to="{name: 'pages-user-add'}">
-                Yeni Ekle
+                      @click.prevent="updateData">
+                Güncelle
             </b-button>
         </b-col>
         <b-col cols="12">
@@ -86,7 +90,7 @@
                                                       size="11" />
 
                                     </b-button>
-                                    <b-button 
+                                    <b-button v-if="logoImage.id != null"
                                               v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                               variant="relief-secondary"
                                               size="sm"
@@ -120,7 +124,7 @@
                                                       class="select-mobilelogo-image"
                                                       size="11" />
                                     </b-button>
-                                    <b-button 
+                                    <b-button v-if="mobileLogoImage.id != null"
                                               v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                               variant="relief-secondary"
                                               size="sm"
@@ -137,7 +141,7 @@
                             </b-col>
                             <b-col cols="12" class="mt-3">
                                 <b-form-group>
-                                    <b-form-checkbox v-model="isUseLogoAdminPanel"
+                                    <b-form-checkbox v-model="generalSettingUpdateDto.IsUseLogoAdminPanel"
                                                      name="check-button"
                                                      switch
                                                      inline>
@@ -172,7 +176,7 @@
                                                       class="select-icon-image"
                                                       size="11" />
                                     </b-button>
-                                    <b-button 
+                                    <b-button v-if="iconImage.id != null"
                                               v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                               variant="relief-secondary"
                                               size="sm"
@@ -189,7 +193,7 @@
                             </b-col>
                             <b-col cols="12" class="mt-3">
                                 <b-form-group>
-                                    <b-form-checkbox v-model="isUseIconAdminPanel"
+                                    <b-form-checkbox v-model="generalSettingUpdateDto.IsUseIconAdminPanel"
                                                      name="check-button"
                                                      switch
                                                      inline>
@@ -219,7 +223,7 @@
                         <b-row>
                             <b-col cols="12">
                                 <b-form-group>
-                                    <b-form-checkbox v-model="isActiveArticleComments"
+                                    <b-form-checkbox v-model="generalSettingUpdateDto.IsActiveArticleComments"
                                                      name="check-button"
                                                      switch
                                                      inline>
@@ -227,7 +231,7 @@
                                     </b-form-checkbox>
                                 </b-form-group>
                                 <b-form-group>
-                                    <b-form-checkbox v-model="isShowArticleAuthor"
+                                    <b-form-checkbox v-model="generalSettingUpdateDto.IsShowArticleAuthor"
                                                      name="check-button"
                                                      switch
                                                      inline>
@@ -235,7 +239,7 @@
                                     </b-form-checkbox>
                                 </b-form-group>
                                 <b-form-group>
-                                    <b-form-checkbox v-model="isShowArticleDate"
+                                    <b-form-checkbox v-model="generalSettingUpdateDto.IsShowArticleDate"
                                                      name="check-button"
                                                      switch
                                                      inline>
@@ -243,7 +247,7 @@
                                     </b-form-checkbox>
                                 </b-form-group>
                                 <b-form-group>
-                                    <b-form-checkbox v-model="isShowArticleCommentCount"
+                                    <b-form-checkbox v-model="generalSettingUpdateDto.IsShowArticleCommentCount"
                                                      name="check-button"
                                                      switch
                                                      inline>
@@ -251,7 +255,7 @@
                                     </b-form-checkbox>
                                 </b-form-group>
                                 <b-form-group>
-                                    <b-form-checkbox v-model="isAdminCommentApprove"
+                                    <b-form-checkbox v-model="generalSettingUpdateDto.IsAdminCommentApprove"
                                                      name="check-button"
                                                      switch
                                                      inline>
@@ -325,6 +329,8 @@
         },
         data() {
             return {
+                buttonDisabled: false,
+                updateButtonVariant: 'primary',
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
                 isLogoImageChoose: false,
                 isMobileLogoImageChoose: false,
@@ -344,18 +350,72 @@
                     fileName: null,
                     altText: null,
                 },
-                isUseLogoAdminPanel: false,
-                isUseIconAdminPanel: false,
-                isActiveArticleComments: false,
-                isShowArticleAuthor: false,
-                isShowArticleDate: false,
-                isShowArticleCommentCount: false,
-                isAdminCommentApprove: false,
+                generalSettingUpdateDto: {
+                    Id: 1,
+                    LogoId: '',
+                    MobileLogoId: '',
+                    IconId: '',
+                    IsUseLogoAdminPanel: false,
+                    IsUseIconAdminPanel: false,
+                    IsActiveArticleComments: false,
+                    IsShowArticleDate: false,
+                    IsShowArticleAuthor: false,
+                    IsShowArticleCommentCount: false,
+                    IsAdminCommentApprove: false,
+                },
                 JSCode: '',
                 CSSCode: '',
             }
         },
         methods: {
+            getData() {
+                this.showOverlay = true;
+                axios.get('/admin/settings-general')
+                    .then((response) => {
+                        console.log(response.data)
+                        if (response.data.GeneralSettingUpdateDto.ResultStatus === 0) {
+                            this.generalSettingUpdateDto.IsUseLogoAdminPanel = response.data.GeneralSettingUpdateDto.Data.IsUseLogoAdminPanel;
+                            this.generalSettingUpdateDto.IsUseIconAdminPanel = response.data.GeneralSettingUpdateDto.Data.IsUseIconAdminPanel;
+                            this.generalSettingUpdateDto.IsActiveArticleComments = response.data.GeneralSettingUpdateDto.Data.IsActiveArticleComments;
+                            this.generalSettingUpdateDto.IsShowArticleDate = response.data.GeneralSettingUpdateDto.Data.IsShowArticleDate;
+                            this.generalSettingUpdateDto.IsShowArticleAuthor = response.data.GeneralSettingUpdateDto.Data.IsShowArticleAuthor;
+                            this.generalSettingUpdateDto.IsShowArticleCommentCount = response.data.GeneralSettingUpdateDto.Data.IsShowArticleCommentCount;
+                            this.generalSettingUpdateDto.IsAdminCommentApprove = response.data.GeneralSettingUpdateDto.Data.IsAdminCommentApprove;
+
+                            if (response.data.GeneralSettingUpdateDto.Data.Logo != null) {
+                                this.logoImage.id = response.data.GeneralSettingUpdateDto.Data.Logo.Id
+                                this.logoImage.fileName = response.data.GeneralSettingUpdateDto.Data.Logo.FileName
+                                this.logoImage.altText = response.data.GeneralSettingUpdateDto.Data.Logo.AltText
+                            }
+
+                            if (response.data.GeneralSettingUpdateDto.Data.MobileLogo != null) {
+                                this.mobileLogoImage.id = response.data.GeneralSettingUpdateDto.Data.MobileLogo.Id
+                                this.mobileLogoImage.fileName = response.data.GeneralSettingUpdateDto.Data.MobileLogo.FileName
+                                this.mobileLogoImage.altText = response.data.GeneralSettingUpdateDto.Data.MobileLogo.AltText
+                            }
+
+                            if (response.data.GeneralSettingUpdateDto.Data.Icon != null) {
+                                this.iconImage.id = response.data.GeneralSettingUpdateDto.Data.Icon.Id
+                                this.iconImage.fileName = response.data.GeneralSettingUpdateDto.Data.Icon.FileName
+                                this.iconImage.altText = response.data.GeneralSettingUpdateDto.Data.Icon.AltText
+                            }
+                        }
+                        this.showOverlay = false;
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        console.log(error.request)
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Form ayarları yüklenirken hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },            
             imageChange(id, name, altText) {
                 if (this.isLogoImageChoose == true) {
                     this.logoImage.id = id;
@@ -400,8 +460,46 @@
                     this.iconImage.altText = null;
                 }
             },
+            updateData() {
+                this.buttonDisabled = true;
+                this.updateButtonVariant = 'outline-secondary';
+                this.generalSettingUpdateDto.LogoId = this.logoImage.id;
+                this.generalSettingUpdateDto.MobileLogoId = this.mobileLogoImage.id;
+                this.generalSettingUpdateDto.IconId = this.iconImage.id;
+                axios.post('/admin/settings-general', {
+                    GeneralSettingUpdateDto: this.generalSettingUpdateDto
+                })
+                    .then((response) => {
+                        console.log(response.data)
+                        if (response.data.GeneralSettingDto.ResultStatus === 0) {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'success',
+                                    title: 'Başarılı İşlem!',
+                                    icon: 'CheckIcon',
+                                    text: response.data.GeneralSettingDto.Message
+                                }
+                            });
+                        }
+                        this.buttonDisabled = false;
+                        this.updateButtonVariant = 'primary';
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Form ayarları yüklenirken hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            }
         },
         mounted() {
+            this.getData();
         }
     }
 </script>

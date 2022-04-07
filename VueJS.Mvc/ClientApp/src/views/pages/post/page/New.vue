@@ -49,7 +49,8 @@
                 Yayınla
             </b-button>
         </b-col>
-        <modal-media @changeImage="imageChange"></modal-media>
+        <modal-media :multi-select="multiSelected"
+                     @changeImage="imageChange"></modal-media>
         <b-col md="12"
                lg="8">
             <b-card>
@@ -72,7 +73,7 @@
                                     </validation-provider>
                                 </b-form-group>
                                 <b-form-group v-if="isShowPostName">
-                                    <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postAddDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-show="isSlugEditActive == false">{{  postAddDto.PostName }}</span></a>
+                                    <span class="small">Gönderi linki: </span><a class="small" :href="domainName + parentPostName + '/' + postAddDto.PostName">{{ domainName }}{{ parentPostName }}/<span v-if="isSlugEditActive == false">{{  postAddDto.PostName }}</span></a>
                                     <b-button v-if="isSlugEditActive == false"
                                               v-b-tooltip.hover
                                               title="Gönderinin linkini değiştirmenizi sağlar."
@@ -83,7 +84,7 @@
                                               @click="isSlugEditActive = !isSlugEditActive">
                                         Düzenle
                                     </b-button>
-                                    <div v-show="isSlugEditActive == true"
+                                    <div v-if="isSlugEditActive == true"
                                          class="card-border p-1">
                                         <b-form-input type="text"
                                                       v-model="postAddDto.PostName"
@@ -111,7 +112,44 @@
                     </b-form>
                 </validation-observer>
             </b-card>
-            <b-card-actions v-show="$can('create','Seo')"
+            <b-card header-tag="header">
+                <template #header>
+                    <h4>Galeri</h4>
+                    <div class="ml-auto">
+                        <b-button v-if="galleries.length > 0"
+                                  variant="outline-danger"
+                                  class="mr-1">
+                            Sil
+                        </b-button>
+                        <b-button variant="primary"
+                                  v-b-modal.modal-media
+                                  @click.prevent="multiSelected = true">
+                            Resim Ekle
+                        </b-button>
+                    </div>
+                </template>
+                <div v-if="galleries.length < 1"
+                     class="text-center">
+                    Galeriye henüz resim eklenmedi.
+                </div>
+                <b-list-group v-else
+                              horizontal="md">
+                    <b-list-group-item v-for="upload in galleries" :key="upload.Id"
+                                       class="image-list">
+                        <b-form-radio v-model="selectedImageId"
+                                      name="radio"
+                                      :value="upload.Id"
+                                      class="custom-control-success check-image">
+                        </b-form-radio>
+                        <b-img rounded
+                               :key="upload.Id"
+                               :src="upload.FileName == null ? '' : require('@/assets/images/media/' + upload.FileName)"
+                               :alt="upload.AltText"
+                               class="d-inline-block select-image" />
+                    </b-list-group-item>
+                </b-list-group>
+            </b-card>
+            <b-card-actions v-if="$can('create','Seo')"
                             title="SEO Ayarları"
                             action-collapse
                             collapsed>
@@ -447,7 +485,7 @@
     import { required } from '@validations';
     import {
         BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BDropdown, BDropdownItem, BCard, BCardBody, BForm, BFormGroup, BInputGroup, BFormInput,
-        BInputGroupPrepend, BFormTextarea, BFormTags, BFormCheckbox, BCollapse, BImg, BTabs, BTab, BPagination, VBToggle, VBTooltip, BLink
+        BInputGroupPrepend, BFormTextarea, BFormTags, BFormCheckbox, BListGroup, BListGroupItem, BCollapse, BImg, BTabs, BTab, BPagination, VBToggle, VBTooltip, BLink
     } from 'bootstrap-vue';
     import axios from 'axios';
     import Ripple from 'vue-ripple-directive';
@@ -486,6 +524,8 @@
             BFormCheckbox,
             BFormTextarea,
             BFormTags,
+            BListGroup,
+            BListGroupItem,
             BCollapse,
             BImg,
             BTabs,
@@ -540,6 +580,8 @@
                     IsShowPage: Boolean,
                     IsShowSubPosts: Boolean,
                 },
+                multiSelected: false,
+                galleries: [],
                 pageSeoSettingAddDto: {
                     SeoTitle: '',
                     FocusKeyword: '',

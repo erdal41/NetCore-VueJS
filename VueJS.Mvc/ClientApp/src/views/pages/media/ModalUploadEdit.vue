@@ -11,7 +11,7 @@
                      cols="12"
                      md="6">
                     <h3 class="modal-title float-left">
-                        Medya Detayları
+                        {{ $t('Media Details') }}
                     </h3>
                 </div>
                 <div class="content-header-right text-md-right d-md-block d-none"
@@ -42,12 +42,12 @@
                 <b-button variant="flat-danger"
                           size="sm"
                           @click="deleteData">
-                    Kalıcı Olarak Sil
+                    {{ $t('Delete Permanently') }}
                 </b-button>
                 <b-button variant="primary"
                           size="sm"
                           @click="updateData">
-                    Güncelle
+                    {{ $t('Update') }}
                 </b-button>
             </template>
             <div class="media-details container-fluid h-100 p-0">
@@ -64,17 +64,17 @@
                     <b-overlay :show="showOverlay"
                                size="sm">
                         <div class="details">
-                            <span><strong>Yüklenen Tarih: </strong>{{createdDate}}</span><br />
-                            <span><strong>Yükleyen: </strong>{{ uploadUpdateDto.User.UserName}}</span><br />
-                            <span><strong>Dosya Adı: </strong>{{ uploadUpdateDto.FileName}}</span><br />
-                            <span><strong>Dosya Türü: </strong>{{ uploadUpdateDto.ContentType}}</span><br />
-                            <span><strong>Dosya Boyutu: </strong>{{sizeConvert}}</span><br />
-                            <span><strong>Ölçüler: </strong>{{ uploadUpdateDto.Width }}x{{ uploadUpdateDto.Height }}px</span>
+                            <span><strong>{{ $t('Uploaded Date') }}: </strong>{{createdDate}}</span><br />
+                            <span><strong>{{ $t('Uploaded By') }}: </strong>{{ uploadUpdateDto.User.UserName}}</span><br />
+                            <span><strong>{{ $t('File Name') }}: </strong>{{ uploadUpdateDto.FileName}}</span><br />
+                            <span><strong>{{ $t('File Type') }}: </strong>{{ uploadUpdateDto.ContentType}}</span><br />
+                            <span><strong>{{ $t('File Size') }}: </strong>{{sizeConvert}}</span><br />
+                            <span><strong>{{ $t('Dimensions') }}: </strong>{{ uploadUpdateDto.Width }}x{{ uploadUpdateDto.Height }}px</span>
                         </div>
                         <div class="settings">
                             <b-form-group label-cols="4"
                                           label-size="sm"
-                                          label="Alternatif Metin"
+                                          :label="$t('Alternative Text')"
                                           label-for="fileUrl">
                                 <b-form-input id="fileUrl"
                                               v-model="uploadUpdateDto.AltText"
@@ -83,7 +83,7 @@
                             </b-form-group>
                             <b-form-group label-cols="4"
                                           label-size="sm"
-                                          label="Başlık"
+                                          :label="$t('Title')"
                                           label-for="title">
                                 <b-form-input id="title"
                                               v-model="uploadUpdateDto.Title"
@@ -92,7 +92,7 @@
                             </b-form-group>
                             <b-form-group label-cols="4"
                                           label-size="sm"
-                                          label="Alt Başlık"
+                                          :label="$t('Sub Title')"
                                           label-for="subTitle">
                                 <b-form-input id="subTitle"
                                               v-model="uploadUpdateDto.SubTitle"
@@ -101,7 +101,7 @@
                             </b-form-group>
                             <b-form-group label-cols="4"
                                           label-size="sm"
-                                          label="Açıklama"
+                                          :label="$t('Description')"
                                           label-for="description">
                                 <b-form-textarea id="description"
                                                  v-model="uploadUpdateDto.Description"
@@ -109,7 +109,7 @@
                             </b-form-group>
                             <b-form-group label-cols="4"
                                           label-size="sm"
-                                          label="Dosya Adresi"
+                                          :label="$t('File URL')"
                                           label-for="fileUrl">
                                 <b-form-input id="fileUrl"
                                               v-model="fileUrl"
@@ -338,9 +338,9 @@
                                 component: ToastificationContent,
                                 props: {
                                     variant: 'success',
-                                    title: 'Başarılı İşlem!',
+                                    title: this.$t('Successful Transaction!'),
                                     icon: 'CheckIcon',
-                                    text: this.uploadUpdateDto.FileName + " adlı dosya güncellendi."
+                                    text: this.$t('Updated', { '0': this.uploadUpdateDto.FileName, '1': this.$tc('Media', 0) })
                                 }
                             });
                         }
@@ -349,9 +349,9 @@
                                 component: ToastificationContent,
                                 props: {
                                     variant: 'danger',
-                                    title: 'Başarısız İşlem!',
+                                    title: this.$t('Failed Transaction!'),
                                     icon: 'AlertOctagonIcon',
-                                    text: response.data.UploadDto.Message
+                                    text: this.$t('No such data was found.', { '0': this.$tc('Media', 0) })
                                 },
                             });
                         }
@@ -363,21 +363,21 @@
                             component: ToastificationContent,
                             props: {
                                 variant: 'danger',
-                                title: 'Hata Oluştu!',
+                                title: this.$t('An Error Occurred!'),
                                 icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: this.$t('Something went wrong. Please try again.'),
                             },
                         })
                     });
             },
             deleteData() {
                 this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: this.uploadUpdateDto.FileName + " adlı dosya kalıcı olarak silinecektir?",
+                    title: this.$t('Are you sure you want to delete?'),
+                    text: this.$t('It will be permanently deleted. Do you want to continue?', { '0': this.uploadUpdateDto.FileName, '1': this.$tc('Media', 0) }),
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
+                    confirmButtonText: this.$t('Yes'),
+                    cancelButtonText: this.$t('No'),
                     customClass: {
                         confirmButton: 'btn btn-primary',
                         cancelButton: 'btn btn-outline-danger ml-1',
@@ -396,7 +396,7 @@
                                         component: ToastificationContent,
                                         props: {
                                             variant: 'success',
-                                            title: 'Başarılı İşlem!',
+                                            title: this.$t('Successful Transaction!'),
                                             icon: 'CheckIcon',
                                             text: response.data.Data.FileFullName + ' adlı dosya silindi.'
                                         }
@@ -408,7 +408,7 @@
                                         component: ToastificationContent,
                                         props: {
                                             variant: 'danger',
-                                            title: 'Başarısız İşlem!',
+                                            title: this.$t('Failed Transaction!'),
                                             icon: 'AlertOctagonIcon',
                                             text: response.data.Message
                                         },
@@ -420,9 +420,9 @@
                                     component: ToastificationContent,
                                     props: {
                                         variant: 'danger',
-                                        title: 'Hata Oluştu!',
+                                        title: this.$t('An Error Occurred!'),
                                         icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                        text: this.$t('Something went wrong. Please try again.'),
                                     },
                                 })
                             });

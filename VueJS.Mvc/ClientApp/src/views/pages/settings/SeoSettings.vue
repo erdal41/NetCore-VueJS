@@ -23,16 +23,19 @@
                 <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                        md="4"
                        cols="12">
+                    <b-spinner v-if="buttonDisabled"
+                               variant="secondary"
+                               class="align-middle mr-1" />
                     <b-button v-if="$can('update', 'Seo')"
-                              variant="primary"
+                              :disabled="buttonDisabled"
+                              :variant="updateButtonVariant"
                               type="button"
-                              :disabled="overlayShow"
                               @click.prevent="updateData">
                         Güncelle
                     </b-button>
                 </b-col>
             </b-row>
-            <b-overlay :show="overlayShow"
+            <b-overlay :show="showOverlay"
                        rounded="sm"
                        opacity="0.80"
                        variant="white"
@@ -127,7 +130,19 @@
                                                           label="Name"
                                                           :reduce="(option) => option.Id"
                                                           :clearable="false"
-                                                          placeholder="— Seçim Yapın —" />
+                                                          placeholder="— Seçim Yapın —"
+                                                          :disabled="isSeoTypeSelectLoading"
+                                                          :loading="isSeoTypeSelectLoading">
+                                                    <template #spinner="{ loading }">
+                                                        <div v-if="isSeoTypeSelectLoading"
+                                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                             class="vs__spinner">
+                                                        </div>
+                                                    </template>
+                                                    <template #no-options="{ search, searching, loading }">
+                                                        {{ nullSeoTypeMessage }}
+                                                    </template>
+                                                </v-select>
                                             </b-form-group>
                                             <b-form-group v-if="seoGeneralSettingUpdateDto.SeoType === 0"
                                                           label="Firma Adı"
@@ -156,7 +171,8 @@
                                                                       size="11" />
                                                     </b-button>
                                                 </div>
-                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                <b-button v-if="siteMainImage.id != null"
+                                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-secondary"
                                                           size="sm"
                                                           class="btn-icon rounded-circle remove-image remove-sitemain-image"
@@ -213,7 +229,20 @@
                                                           :options="pageSchemaPageTypes"
                                                           label="Name"
                                                           :reduce="(option) => option.Id"
-                                                          :clearable="false" />
+                                                          :clearable="false" 
+                                                          placeholder="— Sayfa Türü —"
+                                                          :disabled="isSchemaPageSelectLoading"
+                                                          :loading="isSchemaPageSelectLoading">
+                                                    <template #spinner="{ loading }">
+                                                        <div v-if="isSchemaPageSelectLoading"
+                                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                             class="vs__spinner">
+                                                        </div>
+                                                    </template>
+                                                    <template #no-options="{ search, searching, loading }">
+                                                        {{ nullSchemaMessage }}
+                                                    </template>
+                                                </v-select>
                                             </b-form-group>
                                             <b-form-group label="Makale Türü"
                                                           label-for="pageSchemaArticleType">
@@ -223,7 +252,20 @@
                                                           :options="pageSchemaArticleTypes"
                                                           label="Name"
                                                           :reduce="(option) => option.Id"
-                                                          :clearable="false" />
+                                                          :clearable="false" 
+                                                          placeholder="— Makale Türü —"
+                                                          :disabled="isSchemaArticleSelectLoading"
+                                                          :loading="isSchemaArticleSelectLoading">
+                                                    <template #spinner="{ loading }">
+                                                        <div v-if="isSchemaArticleSelectLoading"
+                                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                             class="vs__spinner">
+                                                        </div>
+                                                    </template>
+                                                    <template #no-options="{ search, searching, loading }">
+                                                        {{ nullSchemaMessage }}
+                                                    </template>
+                                                </v-select>
                                             </b-form-group>
 
                                             <h5 class="mt-3 mb-2">Sayfalar İçin Varsayılan Sosyal Medya Ayarları</h5>
@@ -244,7 +286,8 @@
                                                                       size="11" />
                                                     </b-button>
                                                 </div>
-                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                <b-button v-if="pageSocialImage.id != null"
+                                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-secondary"
                                                           size="sm"
                                                           class="btn-icon rounded-circle remove-image remove-pagesocial-image"
@@ -314,7 +357,20 @@
                                                           :options="articleSchemaPageTypes"
                                                           label="Name"
                                                           :reduce="(option) => option.Id"
-                                                          :clearable="false" />
+                                                          :clearable="false" 
+                                                          placeholder="— Sayfa Türü —"
+                                                          :disabled="isSchemaPageSelectLoading"
+                                                          :loading="isSchemaPageSelectLoading">
+                                                    <template #spinner="{ loading }">
+                                                        <div v-if="isSchemaPageSelectLoading"
+                                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                             class="vs__spinner">
+                                                        </div>
+                                                    </template>
+                                                    <template #no-options="{ search, searching, loading }">
+                                                        {{ nullSchemaMessage }}
+                                                    </template>
+                                                </v-select>
                                             </b-form-group>
                                             <b-form-group label="Makale Türü"
                                                           label-for="articleSchemaArticleType">
@@ -324,7 +380,19 @@
                                                           :options="articleSchemaArticleTypes"
                                                           label="Name"
                                                           :reduce="(option) => option.Id"
-                                                          :clearable="false" />
+                                                          :clearable="false" placeholder="— Makale Türü —"
+                                                          :disabled="isSchemaArticleSelectLoading"
+                                                          :loading="isSchemaArticleSelectLoading">
+                                                    <template #spinner="{ loading }">
+                                                        <div v-if="isSchemaArticleSelectLoading"
+                                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                             class="vs__spinner">
+                                                        </div>
+                                                    </template>
+                                                    <template #no-options="{ search, searching, loading }">
+                                                        {{ nullSchemaMessage }}
+                                                    </template>
+                                                </v-select>
                                             </b-form-group>
 
                                             <h5 class="mt-3 mb-2">Makaleler İçin Varsayılan Sosyal Medya Ayarları</h5>
@@ -345,7 +413,8 @@
                                                                       size="11" />
                                                     </b-button>
                                                 </div>
-                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                <b-button v-if="articleSocialImage.id != null"
+                                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-secondary"
                                                           size="sm"
                                                           class="btn-icon rounded-circle remove-image remove-articlesocial-image"
@@ -428,7 +497,8 @@
                                                                       size="11" />
                                                     </b-button>
                                                 </div>
-                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                <b-button v-if="categorySocialImage.id != null"
+                                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-secondary"
                                                           size="sm"
                                                           class="btn-icon rounded-circle remove-image remove-categorysocial-image"
@@ -509,7 +579,8 @@
                                                                       size="11" />
                                                     </b-button>
                                                 </div>
-                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                <b-button v-if="tagSocialImage.id != null"
+                                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-secondary"
                                                           size="sm"
                                                           class="btn-icon rounded-circle remove-image remove-tagsocial-image"
@@ -635,7 +706,8 @@
                                                                       size="11" />
                                                     </b-button>
                                                 </div>
-                                                <b-button v-ripple.400="'rgba(186, 191, 199, 0.15)'"
+                                                <b-button v-if="openGraphImage.id != null"
+                                                          v-ripple.400="'rgba(186, 191, 199, 0.15)'"
                                                           variant="relief-secondary"
                                                           size="sm"
                                                           class="btn-icon rounded-circle remove-image remove-opengraph-image"
@@ -673,7 +745,20 @@
                                                           :options="twitterCardTypes"
                                                           label="Name"
                                                           :reduce="(option) => option.Id"
-                                                          :clearable="false" />
+                                                          :clearable="false" 
+                                                          placeholder="— Seçim Yap —"
+                                                          :disabled="isTwitterCardSelectLoading"
+                                                          :loading="isTwitterCardSelectLoading">
+                                                    <template #spinner="{ loading }">
+                                                        <div v-if="isTwitterCardSelectLoading"
+                                                             style="border-left-color: rgba(88, 151, 251, 0.71)"
+                                                             class="vs__spinner">
+                                                        </div>
+                                                    </template>
+                                                    <template #no-options="{ search, searching, loading }">
+                                                        {{ nullTwitterCardMessage }}
+                                                    </template>
+                                                </v-select>
                                             </b-form-group>
                                         </b-card>
                                     </b-tab>
@@ -705,11 +790,11 @@
 
 <script>
     import ModalMedia from '../media/ModalMedia.vue';
+    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
     import BCardActions from '@core/components/b-card-actions/BCardActions.vue';
     import vSelect from 'vue-select';
-    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BOverlay, BButton, BTabs, BTab, BCard, BSpinner, BImg, BFormGroup, BFormInput, BFormCheckbox, BFormTextarea } from 'bootstrap-vue';
+    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BOverlay, BTabs, BTab, BCard, BImg, BFormGroup, BFormInput, BFormCheckbox, BFormTextarea } from 'bootstrap-vue';
     import axios from 'axios';
-    import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
     import Ripple from 'vue-ripple-directive'
 
     export default {
@@ -721,12 +806,12 @@
             BCol,
             BBreadcrumb,
             BBreadcrumbItem,
-            BOverlay,
+            BSpinner,
             BButton,
+            BOverlay,
             BTabs,
             BTab,
             BCard,
-            BSpinner,
             BImg,
             BFormGroup,
             BFormInput,
@@ -738,7 +823,16 @@
         },
         data() {
             return {
-                overlayShow: true,
+                isSeoTypeSelectLoading: false,
+                isSchemaPageSelectLoading: false,
+                isSchemaArticleSelectLoading: false,
+                isTwitterCardSelectLoading: false,
+                nullSeoTypeMessage: 'Hiçbir SEO Türü bulunamadı.',
+                nullSchemaMessage: 'Hiçbir şema türü bulunamadı.',
+                nullTwitterCardMessage: 'Hiçbir Twitter Kartı bulunamadı.',
+                buttonDisabled: false,
+                updateButtonVariant: 'primary',
+                showOverlay: true,
                 noImage: require('@/assets/images/default/default-post-image.jpg'),
                 isSiteMainImageChoose: false,
                 isPageSocialImageChoose: false,
@@ -841,153 +935,8 @@
             }
         },
         methods: {
-            imageChange(id, name, altText) {
-                if (this.isSiteMainImageChoose == true) {
-                    this.siteMainImage.id = id;
-                    this.siteMainImage.fileName = name;
-                    this.siteMainImage.altText = altText;
-                } else if (this.isPageSocialImageChoose == true) {
-                    this.pageSocialImage.id = id;
-                    this.pageSocialImage.fileName = name;
-                    this.pageSocialImage.altText = altText;
-                } else if (this.isArticleSocialImageChoose == true) {
-                    this.articleSocialImage.id = id;
-                    this.articleSocialImage.fileName = name;
-                    this.articleSocialImage.altText = altText;
-                } else if (this.isCategorySocialImageChoose == true) {
-                    this.categorySocialImage.id = id;
-                    this.categorySocialImage.fileName = name;
-                    this.categorySocialImage.altText = altText;
-                } else if (this.isTagSocialImageChoose == true) {
-                    this.tagSocialImage.id = id;
-                    this.tagSocialImage.fileName = name;
-                    this.tagSocialImage.altText = altText;
-                } else if (this.isOpenGraphImageChoose == true) {
-                    this.openGraphImage.id = id;
-                    this.openGraphImage.fileName = name;
-                    this.openGraphImage.altText = altText;
-                }
-
-                this.isSiteMainImageChoose = false;
-                this.isPageSocialImageChoose = false;
-                this.isArticleSocialImageChoose = false;
-                this.isCategorySocialImageChoose = false;
-                this.isTagSocialImageChoose = false;
-                this.isOpenGraphImageChoose = false;
-            },
-            selectImage(e) {
-                if (e.target._prevClass.includes('select-sitemain-image')) {
-                    this.isSiteMainImageChoose = true;
-                } else if (e.target._prevClass.includes('select-pagesocial-image')) {
-                    this.isPageSocialImageChoose = true;
-                } else if (e.target._prevClass.includes('select-articlesocial-image')) {
-                    this.isArticleSocialImageChoose = true;
-                } else if (e.target._prevClass.includes('select-categorysocial-image')) {
-                    this.isCategorySocialImageChoose = true;
-                } else if (e.target._prevClass.includes('select-tagsocial-image')) {
-                    this.isTagSocialImageChoose = true;
-                } else if (e.target._prevClass.includes('select-opengraph-image')) {
-                    this.isOpenGraphImageChoose = true;
-                }
-            },
-            removeImage: function (e) {
-                if (e.target._prevClass.includes('remove-sitemain-image')) {
-                    this.siteMainImage.id = null;
-                    this.siteMainImage.fileName = null;
-                    this.siteMainImage.altText = null;
-                } else if (e.target._prevClass.includes('remove-pagesocial-image')) {
-                    this.pageSocialImage.id = null;
-                    this.pageSocialImage.fileName = null;
-                    this.pageSocialImage.altText = null;
-                } else if (e.target._prevClass.includes('remove-articlesocial-image')) {
-                    this.articleSocialImage.id = null;
-                    this.articleSocialImage.fileName = null;
-                    this.articleSocialImage.altText = null;
-                } else if (e.target._prevClass.includes('remove-categorysocial-image')) {
-                    this.categorySocialImage.id = null;
-                    this.categorySocialImage.fileName = null;
-                    this.categorySocialImage.altText = null;
-                } else if (e.target._prevClass.includes('remove-tagsocial-image')) {
-                    this.tagSocialImage.id = null;
-                    this.tagSocialImage.fileName = null;
-                    this.tagSocialImage.altText = null;
-                } else if (e.target._prevClass.includes('remove-opengraph-image')) {
-                    this.openGraphImage.id = null;
-                    this.openGraphImage.fileName = null;
-                    this.openGraphImage.altText = null;
-                }
-            },
-            getSeoType() {
-                axios.get('/admin/settings-getseotype')
-                    .then((response) => {
-                        this.seoTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getSchemaPageType() {
-                axios.get('/admin/settings-getschemapagetype')
-                    .then((response) => {
-                        this.pageSchemaPageTypes = response.data;
-                        this.articleSchemaPageTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getSchemaArticleType() {
-                axios.get('/admin/settings-getschemaarticletype')
-                    .then((response) => {
-                        this.pageSchemaArticleTypes = response.data;
-                        this.articleSchemaArticleTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
-            getTwitterCardType() {
-                axios.get('/admin/settings-gettwittercardtype')
-                    .then((response) => {
-                        this.twitterCardTypes = response.data;
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
-                            }
-                        })
-                    });
-            },
             getAllData() {
+                this.showOverlay = true;
                 axios.get('/admin/settings-seogeneral')
                     .then((response) => {
                         console.log(response.data)
@@ -1075,8 +1024,8 @@
                                 this.openGraphImage.fileName = response.data.SeoGeneralSettingUpdateDto.Data.OpenGraphImage.FileName
                                 this.openGraphImage.altText = response.data.SeoGeneralSettingUpdateDto.Data.OpenGraphImage.AltText
                             }
-                            this.overlayShow = false;
                         }
+                        this.showOverlay = false;
                     }).catch((error) => {
                         this.$toast({
                             component: ToastificationContent,
@@ -1089,54 +1038,200 @@
                         })
                     });
             },
+            getSeoType() {
+                axios.get('/admin/settings-getseotype')
+                    .then((response) => {
+                        this.seoTypes = response.data;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            getSchemaPageType() {
+                axios.get('/admin/settings-getschemapagetype')
+                    .then((response) => {
+                        this.pageSchemaPageTypes = response.data;
+                        this.articleSchemaPageTypes = response.data;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            getSchemaArticleType() {
+                axios.get('/admin/settings-getschemaarticletype')
+                    .then((response) => {
+                        this.pageSchemaArticleTypes = response.data;
+                        this.articleSchemaArticleTypes = response.data;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            getTwitterCardType() {
+                axios.get('/admin/settings-gettwittercardtype')
+                    .then((response) => {
+                        this.twitterCardTypes = response.data;
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Hata oluştu. Lütfen tekrar deneyin.',
+                            }
+                        })
+                    });
+            },
+            imageChange(id, name, altText) {
+                if (this.isSiteMainImageChoose == true) {
+                    this.siteMainImage.id = id;
+                    this.siteMainImage.fileName = name;
+                    this.siteMainImage.altText = altText;
+                } else if (this.isPageSocialImageChoose == true) {
+                    this.pageSocialImage.id = id;
+                    this.pageSocialImage.fileName = name;
+                    this.pageSocialImage.altText = altText;
+                } else if (this.isArticleSocialImageChoose == true) {
+                    this.articleSocialImage.id = id;
+                    this.articleSocialImage.fileName = name;
+                    this.articleSocialImage.altText = altText;
+                } else if (this.isCategorySocialImageChoose == true) {
+                    this.categorySocialImage.id = id;
+                    this.categorySocialImage.fileName = name;
+                    this.categorySocialImage.altText = altText;
+                } else if (this.isTagSocialImageChoose == true) {
+                    this.tagSocialImage.id = id;
+                    this.tagSocialImage.fileName = name;
+                    this.tagSocialImage.altText = altText;
+                } else if (this.isOpenGraphImageChoose == true) {
+                    this.openGraphImage.id = id;
+                    this.openGraphImage.fileName = name;
+                    this.openGraphImage.altText = altText;
+                }
+
+                this.isSiteMainImageChoose = false;
+                this.isPageSocialImageChoose = false;
+                this.isArticleSocialImageChoose = false;
+                this.isCategorySocialImageChoose = false;
+                this.isTagSocialImageChoose = false;
+                this.isOpenGraphImageChoose = false;
+            },
+            selectImage(e) {
+                if (e.target._prevClass.includes('select-sitemain-image')) {
+                    this.isSiteMainImageChoose = true;
+                } else if (e.target._prevClass.includes('select-pagesocial-image')) {
+                    this.isPageSocialImageChoose = true;
+                } else if (e.target._prevClass.includes('select-articlesocial-image')) {
+                    this.isArticleSocialImageChoose = true;
+                } else if (e.target._prevClass.includes('select-categorysocial-image')) {
+                    this.isCategorySocialImageChoose = true;
+                } else if (e.target._prevClass.includes('select-tagsocial-image')) {
+                    this.isTagSocialImageChoose = true;
+                } else if (e.target._prevClass.includes('select-opengraph-image')) {
+                    this.isOpenGraphImageChoose = true;
+                }
+            },
+            removeImage: function (e) {
+                if (e.target._prevClass.includes('remove-sitemain-image')) {
+                    this.siteMainImage.id = null;
+                    this.siteMainImage.fileName = null;
+                    this.siteMainImage.altText = null;
+                } else if (e.target._prevClass.includes('remove-pagesocial-image')) {
+                    this.pageSocialImage.id = null;
+                    this.pageSocialImage.fileName = null;
+                    this.pageSocialImage.altText = null;
+                } else if (e.target._prevClass.includes('remove-articlesocial-image')) {
+                    this.articleSocialImage.id = null;
+                    this.articleSocialImage.fileName = null;
+                    this.articleSocialImage.altText = null;
+                } else if (e.target._prevClass.includes('remove-categorysocial-image')) {
+                    this.categorySocialImage.id = null;
+                    this.categorySocialImage.fileName = null;
+                    this.categorySocialImage.altText = null;
+                } else if (e.target._prevClass.includes('remove-tagsocial-image')) {
+                    this.tagSocialImage.id = null;
+                    this.tagSocialImage.fileName = null;
+                    this.tagSocialImage.altText = null;
+                } else if (e.target._prevClass.includes('remove-opengraph-image')) {
+                    this.openGraphImage.id = null;
+                    this.openGraphImage.fileName = null;
+                    this.openGraphImage.altText = null;
+                }
+            },
             updateData() {
+                this.buttonDisabled = true;
+                this.updateButtonVariant = 'outline-secondary';
                 this.seoGeneralSettingUpdateDto.SiteMainImageId = this.siteMainImage.id;
                 this.seoGeneralSettingUpdateDto.ArticleSocialImageId = this.pageSocialImage.id;
                 this.seoGeneralSettingUpdateDto.PageSocialImageId = this.articleSocialImage.id;
                 this.seoGeneralSettingUpdateDto.CategorySocialImageId = this.categorySocialImage.id;
                 this.seoGeneralSettingUpdateDto.TagSocialImageId = this.tagSocialImage.id;
                 this.seoGeneralSettingUpdateDto.OpenGraphImageId = this.openGraphImage.id;
-                if (this.overlayShow === false) {
-                    this.overlayShow = true;
-                    axios.post('/admin/settings-seogeneral',
-                        {
-                            SeoGeneralSettingUpdateDto: this.seoGeneralSettingUpdateDto,
-                        }).then((response) => {
-                            if (response.data.SeoGeneralSettingDto.ResultStatus === 0) {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'success',
-                                        title: 'Başarılı İşlem!',
-                                        icon: 'CheckIcon',
-                                        text: response.data.SeoGeneralSettingDto.Message
-                                    }
-                                });
-                                this.overlayShow = false;
-                            }
-                            else {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Başarısız İşlem!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: response.data.SeoGeneralSettingDto.Message
-                                    },
-                                })
-                            }
-                        }).catch((error) => {
+                axios.post('/admin/settings-seogeneral',
+                    {
+                        SeoGeneralSettingUpdateDto: this.seoGeneralSettingUpdateDto,
+                    }).then((response) => {
+                        if (response.data.SeoGeneralSettingDto.ResultStatus === 0) {
+                            this.$toast({
+                                component: ToastificationContent,
+                                props: {
+                                    variant: 'success',
+                                    title: 'Başarılı İşlem!',
+                                    icon: 'CheckIcon',
+                                    text: response.data.SeoGeneralSettingDto.Message
+                                }
+                            });
+                        }
+                        else {
                             this.$toast({
                                 component: ToastificationContent,
                                 props: {
                                     variant: 'danger',
-                                    title: 'Hata Oluştu!',
+                                    title: 'Başarısız İşlem!',
                                     icon: 'AlertOctagonIcon',
-                                    text: 'Veriler güncellenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                                    text: response.data.SeoGeneralSettingDto.Message
                                 },
                             })
-                        });
-                }
+                        }
+                        this.buttonDisabled = false;
+                        this.updateButtonVariant = 'primary';
+                    }).catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: 'Hata Oluştu!',
+                                icon: 'AlertOctagonIcon',
+                                text: 'Veriler güncellenirken hata oluştu. Lütfen tekrar deneyiniz.',
+                            },
+                        })
+                    });
             }
         },
         mounted() {

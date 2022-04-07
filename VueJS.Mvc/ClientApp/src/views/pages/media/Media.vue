@@ -9,7 +9,7 @@
             <b-row class="breadcrumbs-top">
                 <b-col cols="12">
                     <h2 class="content-header-title float-left pr-1 mb-0">
-                        {{ $t('Media') }}
+                        {{ $tc('Media', 0) }}
                     </h2>
                     <div class="breadcrumb-wrapper">
                         <b-breadcrumb>
@@ -18,12 +18,7 @@
                                               size="16"
                                               class="align-text-top" />
                             </b-breadcrumb-item>
-                            <b-breadcrumb-item v-for="item in breadcrumbs"
-                                               :key="item.text"
-                                               :active="item.active"
-                                               :to="item.to">
-                                {{ item.text }}
-                            </b-breadcrumb-item>
+                            <b-breadcrumb-item active>{{ $tc('Media', 0) }}</b-breadcrumb-item>
                         </b-breadcrumb>
                     </div>
                 </b-col>
@@ -63,7 +58,7 @@
                                   variant="primary"
                                   size="sm"
                                   :disabled="selectedImages.length <= 0"
-                                  @click="multiDeleteData"> {{ selectedImagesCount }} {{  $t('Permanently Delete') }}</b-button>
+                                  @click="multiDeleteData"> {{ selectedImagesCount }} {{  $t('Delete Permanently') }}</b-button>
                         <b-button v-if="$can('create', 'Basepage')"
                                   variant="outline-primary"
                                   class=" ml-1"
@@ -109,8 +104,8 @@
                          class="text-center mt-2 mb-2">
                         <b-spinner variant="secondary" />
                     </div>
-                    <div v-else>
-                        <ul class="gallery">
+                        <ul v-else
+                            class="gallery">
                             <li v-for="upload in filteredData" :key="upload.Id"
                                 class="gallery-item"
                                 @click="imageClick($event, upload.Id)"
@@ -139,11 +134,11 @@
                                 </div>
                             </li>
                         </ul>
-                    </div>
                 </b-card-body>
 
-                <div v-if="filteredData.length < 1"
-                     class="text-center mt-2 mb-5">{{ dataNullMessage  }}
+                <div v-if="filteredData.length < 1 && isSpinnerShow === false"
+                     class="text-center mt-2 mb-5">
+                    {{ $t('No records were found', { '0': $tc('Media', 0) })  }}
                 </div>
                     <div class="d-flex justify-content-between flex-wrap ml-1">
                         <label> {{ $t('Number of Files') + ': ' + filteredData.length }}</label>
@@ -195,12 +190,6 @@
             return {
                 addButtonDisabled: false,
                 addButtonVariant: 'btn btn-primary',
-                breadcrumbs: [
-                    {
-                        text: 'Medya',
-                        active: true,
-                    }
-                ],
                 isShowModal: false,
                 uploadId: 0,
                 isImageProgress: false,
@@ -212,12 +201,10 @@
                 uploads: [],
                 shortedData: [],
                 newFiles: [],
-                dataNullMessage: 'Hiçbir medya bulunamadı.',
                 selected: '',
                 selectedValue: null,
                 isHiddenMultiDeleteButton: false,
                 isHiddenRowActions: false,
-                name: "",
                 checkedRows: [],
                 checkedRowsCount: 0,
                 selectedImages: [],
@@ -245,15 +232,15 @@
                         },
                         onUploadProgress: (uploadEvent) => {
                             this.isImageProgress = true;
-                            this.progressPercent = uploadEvent.loaded / uploadEvent.total * 100;                            
+                            this.progressPercent = uploadEvent.loaded / uploadEvent.total * 100;
                         }
-                    }).then((response) => {                        
+                    }).then((response) => {
                         console.log(event.target.files)
                         console.log(event)
                         console.log('eeee')
                         console.log(response.data)
                         if (response.data.UploadDtos != null) {
-                            response.data.UploadDtos.forEach(uploadDto => {                                
+                            response.data.UploadDtos.forEach(uploadDto => {
                                 this.newFiles.push(uploadDto.Upload.Id);
                                 this.uploads.unshift({
                                     Id: uploadDto.Upload.Id,
@@ -263,7 +250,7 @@
                                 if (this.progressPercent === 100) {
                                     this.isImageProgress = false;
                                     //this.uploads.unshift(uploadDto.Upload);
-                                    
+
                                     setTimeout(() => {
                                         this.uploads.forEach(upload => {
 
@@ -310,21 +297,12 @@
                         console.log(response.data)
                         if (response.data.ResultStatus === 0) {
                             this.uploads = response.data.Data.Uploads;
-                            this.isSpinnerShow = false;
-                            this.selectedImages = [];
-                            this.filterText = "";
+                        } else {
+                            this.uploads = [];
                         }
-                        else {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: 'Dosyalar listelenirken hata oluştu. ',
-                                }
-                            })
-                        }
+                        this.isSpinnerShow = false;
+                        this.filterText = "";
+                        this.selectedImages = [];
                     })
                     .catch((error) => {
                         console.log(error)
@@ -333,9 +311,9 @@
                             component: ToastificationContent,
                             props: {
                                 variant: 'danger',
-                                title: 'Hata Oluştu!',
+                                title: this.$t('An Error Occurred!'),
                                 icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
+                                text: this.$t('Something went wrong. Please try again.'),
                             }
                         })
                     });
@@ -347,12 +325,12 @@
             },
             multiDeleteData() {
                 this.$swal({
-                    title: this.$t('Are you sure you want to delete the selected media files?'),
-                    text: this.$t('Permanently delete file?', { '0': this.selectedImagesCount }),
+                    title: this.$t('Data is selected', { '0': this.selectedImagesCount, '1': this.$tc('Media', 0) }),
+                    text: this.$t('Are you sure you want to permanently delete the selected data?', { '0': this.$tc('Media', 2) }),
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
+                    confirmButtonText: this.$t('Yes'),
+                    cancelButtonText: this.$t('No'),
                     customClass: {
                         confirmButton: 'btn btn-primary',
                         cancelButton: 'btn btn-outline-danger ml-1',
@@ -378,7 +356,6 @@
                 if (this.filterText.length === 0) {
                     return true;
                 }
-
                 return (data.FileName.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
             },
         },
@@ -403,7 +380,7 @@
         margin-bottom: 20px;
     }
 
-    .gallery {
+    #upload-list > .card-body > ul {
         padding: 2px;
         right: 0;
         margin-right: 0;
@@ -411,25 +388,25 @@
         grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
     }
 
-    .gallery-item {
-        padding: 8px;      
-        list-style: none;        
+    #upload-list > .card-body > ul > li {
+        padding: 8px;
+        list-style: none;
     }
 
-    .media {
+    #upload-list > .card-body > ul > li > .media {
         position: relative;
         box-shadow: inset 0 0 15px rgb(0 0 0 / 10%), inset 0 0 0 1px rgb(0 0 0 / 5%);
         background: #f0f0f1;
         cursor: pointer;
     }
 
-    .media:before {
+    #upload-list > .card-body > ul > li > .media:before {
         content: "";
         display: block;
         padding-top: 100%;
     }
 
-    .thumbnail {
+    #upload-list > .card-body > ul > li > .media > .thumbnail {
         overflow: hidden;
         position: absolute;
         top: 0;
@@ -440,13 +417,13 @@
         transition: opacity .1s;
     }
 
-    .thumbnail:hover {
+    #upload-list > .card-body > ul > li > .media > .thumbnail:hover {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         -moz-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
     }
 
-    .thumbnail:after {
+    #upload-list > .card-body > ul > li > .media > .thumbnail:after {
         content: "";
         display: block;
         position: absolute;
@@ -458,7 +435,7 @@
         overflow: hidden;
     }
 
-    .thumbnail .centered {
+    #upload-list > .card-body > ul > li > .media > .thumbnail > .centered {
         position: absolute;
         top: 0;
         left: 0;
@@ -467,7 +444,7 @@
         transform: translate(50%,50%);
     }
 
-    .thumbnail img {
+    #upload-list > .card-body > ul > li > .media > .thumbnail > .centered > img {
         transform: translate(-50%,-50%);
         max-height: 100%;
     }
@@ -476,21 +453,21 @@
     .img-progress {
         position: relative;
         top: 25%;
-    }    
+    }
 
-    .check-image {
+    #upload-list > .card-body > ul > li > .media > .check-image {
         position: absolute !important;
         top: -11px;
         right: -16px;
     }
 
-    .checked-image {
+    #upload-list > .card-body > ul > li > .checked-image {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         -moz-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
     }
 
-    .checked-image .custom-control-label::after {
+    #upload-list > .card-body > ul > li > .checked-image > .check-image > .custom-control-label::after {
         -webkit-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         -moz-box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);
         box-shadow: 0px 0px 2px 2px rgba(115,103,240,1);

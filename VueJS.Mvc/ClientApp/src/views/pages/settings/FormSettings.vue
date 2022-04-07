@@ -22,16 +22,19 @@
                 <b-col class="content-header-right text-md-right d-md-block d-none mb-1"
                        md="4"
                        cols="12">
+                    <b-spinner v-if="buttonDisabled"
+                               variant="secondary"
+                               class="align-middle mr-1" />
                     <b-button v-if="$can('update', 'Seo')"
-                              variant="primary"
+                               :disabled="buttonDisabled"
+                              :variant="updateButtonVariant"
                               type="button"
-                              :disabled="overlayShow"
                               @click.prevent="updateData">
                         Güncelle
                     </b-button>
                 </b-col>
             </b-row>
-            <b-overlay :show="overlayShow"
+            <b-overlay :show="showOverlay"
                        rounded="sm"
                        opacity="0.80"
                        variant="white"
@@ -158,7 +161,7 @@
 <script>
     import 'quill/dist/quill.snow.css'
 
-    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BButton, BOverlay, BTabs, BTab, BCard, BFormGroup, BFormInput, BFormCheckbox } from 'bootstrap-vue';
+    import { BRow, BCol, BBreadcrumb, BBreadcrumbItem, BSpinner, BButton, BOverlay, BTabs, BTab, BCard, BFormGroup, BFormInput, BFormCheckbox } from 'bootstrap-vue';
     import axios from 'axios';
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue';
 
@@ -169,6 +172,7 @@
             BCol,
             BBreadcrumb,
             BBreadcrumbItem,
+            BSpinner,
             BButton,
             BOverlay,
             BTabs,
@@ -180,7 +184,9 @@
         },
         data() {
             return {
-                overlayShow: true,
+                buttonDisabled: false,
+                updateButtonVariant: 'primary',
+                showOverlay: true,
                 smtpSettings: {
                     SenderEmail: '',
                     Server: '',
@@ -197,6 +203,7 @@
         },
         methods: {
             getData() {
+                this.showOverlay = true;
                 axios.get('/admin/settings-form')
                     .then((response) => {
                         if (response.data.SmtpSettings != null && response.data.ReCaptcha != null) {
@@ -209,9 +216,8 @@
 
                             this.reCaptcha.SiteKey = response.data.ReCaptcha.SiteKey;
                             this.reCaptcha.SecretKey = response.data.ReCaptcha.SecretKey;
-
-                            this.overlayShow = false;
                         }
+                        this.showOverlay = false;
                     })
                     .catch((error) => {
                         this.$toast({
@@ -224,9 +230,10 @@
                             }
                         })
                     });
-                
             },
             updateData() {
+                this.buttonDisabled = true;
+                this.updateButtonVariant = 'outline-secondary';
                 axios.post('/admin/settings-form', {
                     SmtpSettings: this.smtpSettings,
                     ReCaptcha: this.reCaptcha
@@ -242,7 +249,6 @@
                                     text: 'Form ayarları güncellendi.'
                                 }
                             });
-                            this.overlayShow = false;
                         }
                     })
                     .catch((error) => {

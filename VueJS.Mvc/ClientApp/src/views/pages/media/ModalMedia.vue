@@ -3,22 +3,35 @@
         <b-modal id="modal-media"
                  scrollable
                  size="xl"
-                 ok-title="Seç"
+                 :ok-disabled="selectedImageId === ''"
+                 :ok-title="$t('Select')"
                  ok-variant="primary"
-                 cancel-title="İptal"
+                 :cancel-title="$t('Cancel')"
                  cancel-variant="outline-secondary"
-                 @ok="selectedImage( )">
+                 @ok="selectedImage"
+                 @hidden="selectedImageId = ''">
             <template v-slot:modal-header>
                 <h3 class="modal-title">
-                    <b>Medya</b>
+                    <b>{{ $tc('Media', 0) }}</b>
                 </h3>
                 <div class="ml-auto">
-                    <b-input-group size="sm">
+                    <b-input-group size="sm"
+                                   class="input-group-merge"
+                                   v-on:mouseover="isShowSearchTextClearButton = true"
+                                   v-on:mouseleave="isShowSearchTextClearButton = false">
                         <b-input-group-prepend is-text>
                             <feather-icon icon="SearchIcon" />
                         </b-input-group-prepend>
-                        <b-form-input placeholder="Ara..."
+                        <b-form-input :placeholder="$t('Search') + '...'"
                                       v-model="filterText" />
+                        <b-input-group-append is-text>
+                            <feather-icon v-if="isShowSearchTextClearButton"
+                                          icon="XIcon"
+                                          v-b-tooltip.hover
+                                          :title="$t('Clear')"
+                                          class="cursor-pointer"
+                                          @click="filterText = ''" />
+                        </b-input-group-append>
                     </b-input-group>
                 </div>
                 <div class="ml-auto">
@@ -38,11 +51,23 @@
                 </div>
             </template>
             <template>
-                <b-list-group horizontal="md">
+                <div v-if="isSpinnerShow == true"
+                     class="text-center mt-2 mb-2">
+                    <b-spinner variant="secondary" />
+                </div>
+                <b-list-group v-else
+                              horizontal="md">
                     <b-list-group-item v-for="upload in filteredData" :key="upload.Id"
                                        class="image-list"
                                        @click="imageClick(upload.Id, upload.FileName, upload.AltText)">
-                        <b-form-radio v-model="selectedImageId"
+                        <b-form-checkbox v-if="multiSelect"
+                                         v-model="selectedImages"
+                                         name="checkbox"
+                                         :value="upload.Id"
+                                         class="custom-control-success check-image">
+                        </b-form-checkbox>
+                        <b-form-radio v-else
+                                      v-model="selectedImageId"
                                       name="radio"
                                       :value="upload.Id"
                                       class="custom-control-success check-image">
@@ -54,6 +79,10 @@
                                class="d-inline-block select-image" />
                     </b-list-group-item>
                 </b-list-group>
+                <div v-if="filteredData.length < 1 && isSpinnerShow === false"
+                     class="text-center mt-2 mb-5">
+                    {{ $t('No records were found', { '0': $tc('Media', 0) })  }}
+                </div>
             </template>
         </b-modal>
     </div>
@@ -61,32 +90,25 @@
 </template>
 
 <script>
-    import {
-        BFormCheckbox, BFormRadio, BButton, BImg, BRow, BCol, BFormGroup, BListGroup, BListGroupItem, BPagination, BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, VBTooltip, BLink
-    } from 'bootstrap-vue'
-    //import { codeRowDetailsSupport } from './code'
-    import axios from 'axios'
     import ToastificationContent from '@core/components/toastification/ToastificationContent.vue'
+    import { BInputGroup, BFormInput, BInputGroupPrepend, BInputGroupAppend, BButton, BSpinner, BListGroup, BListGroupItem, BFormCheckbox, BFormRadio, BImg, VBTooltip } from 'bootstrap-vue'
+    import axios from 'axios'
     import Ripple from 'vue-ripple-directive'
 
     export default {
         components: {
-            BInputGroupPrepend,
-            BImg,
-            BButton,
-            BFormCheckbox,
-            BFormRadio,
-            BRow,
-            BCol,
-            BFormGroup,
-            BPagination,
+            ToastificationContent,
             BInputGroup,
             BFormInput,
+            BInputGroupPrepend,
             BInputGroupAppend,
-            ToastificationContent,
-            BLink,
+            BButton,
+            BSpinner,
             BListGroup,
-            BListGroupItem
+            BListGroupItem,
+            BFormCheckbox,
+            BFormRadio,
+            BImg
         },
         directives: {
             'b-tooltip': VBTooltip,
@@ -94,15 +116,12 @@
         },
         data() {
             return {
-                perPage: 10,
-                pageOptions: [10, 20, 50, 100],
-                totalRows: 1,
-                currentPage: 1,
-                filter: null,
+                isSpinnerShow: true,
+                isShowSearchTextClearButton: false,
                 filterText: '',
-                filterOn: [],
                 uploads: [],
                 multiSelect: false,
+                selectedImages: [],
                 selectedImageId: null,
                 selectedImageFileName: '',
                 selectedImageAltText: '',
@@ -112,10 +131,46 @@
                 checkedRowsCount: 0
             }
         },
+        props: {
+            multiSelect: {
+                type: Boolean
+            }
+        },
         methods: {
+            getAllData() {
+                this.isSpinnerShow = true;
+                axios.get('/admin/upload-alluploads')
+                    .then((response) => {
+                        if (response.data.ResultStatus === 0) {
+                            this.uploads = response.data.Data.Uploads;
+                        } else {
+                            this.uploads = [];
+                        }
+                        this.isSpinnerShow = false;
+                        this.filterText = "";
+                        this.selectedImages = [];
+                        console.log(this.multiSelect)
+                    })
+                    .catch((error) => {
+                        this.$toast({
+                            component: ToastificationContent,
+                            props: {
+                                variant: 'danger',
+                                title: this.$t('An Error Occurred!'),
+                                icon: 'AlertOctagonIcon',
+                                text: this.$t('Something went wrong. Please try again.'),
+                            }
+                        })
+                    });
+            },
+            filterByName: function (data) {
+                if (this.filterText.length === 0) {
+                    return true;
+                }
+                return (data.FileName.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
+            },
             selectedImage() {
                 this.$emit('changeImage', this.selectedImageId, this.selectedImageFileName, this.selectedImageAltText);
-                this.selectedImageId = '';
             },
             imageClick(id, name, altText) {
                 this.selectedImageId = id;
@@ -144,156 +199,7 @@
                     this.isHidden = false;
                 }
                 this.checkChange();
-            },
-            singleDeleteData(id, name) {
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: name + " isimli etiket kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post('/admin/upload/delete?uploadId=' + id)
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
-            multiDeleteData() {
-                this.$swal({
-                    title: 'Silmek istediğinize emin misiniz?',
-                    text: this.checkedRowsCount + " etiket kalıcı olarak silinecektir?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Evet',
-                    cancelButtonText: 'Hayır',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-outline-danger ml-1',
-                    },
-                    buttonsStyling: false,
-                }).then(result => {
-                    if (result.value) {
-                        axios.post(`/admin/upload/delete`, {
-                            termsId: this.checkedRows
-                        })
-                            .then((response) => {
-                                if (response.data.ResultStatus === 0) {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'success',
-                                            title: 'Başarılı İşlem!',
-                                            icon: 'CheckIcon',
-                                            text: response.data.Message
-                                        }
-                                    })
-                                    this.getAllData();
-                                }
-                                else {
-                                    this.$toast({
-                                        component: ToastificationContent,
-                                        props: {
-                                            variant: 'danger',
-                                            title: 'Başarısız İşlem!',
-                                            icon: 'AlertOctagonIcon',
-                                            text: response.data.TermDto.Message
-                                        },
-                                    })
-                                }
-                            })
-                            .catch((error) => {
-                                this.$toast({
-                                    component: ToastificationContent,
-                                    props: {
-                                        variant: 'danger',
-                                        title: 'Hata Oluştu!',
-                                        icon: 'AlertOctagonIcon',
-                                        text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                                    },
-                                })
-                            });
-                    }
-                })
-            },
-            getAllData() {
-                axios.get('/admin/upload-alluploads')
-                    .then((response) => {
-                        if (response.data.ResultStatus === 0) {
-                            this.uploads = response.data.Data.Uploads;
-                        }
-                        else {
-                            this.$toast({
-                                component: ToastificationContent,
-                                props: {
-                                    variant: 'danger',
-                                    title: 'Hata Oluştu!',
-                                    icon: 'AlertOctagonIcon',
-                                    text: 'Dosyalar listelenirken hata oluştu. ',
-                                }
-                            })
-                        }
-                    })
-                    .catch((error) => {
-                        this.$toast({
-                            component: ToastificationContent,
-                            props: {
-                                variant: 'danger',
-                                title: 'Hata Oluştu!',
-                                icon: 'AlertOctagonIcon',
-                                text: 'Hata oluştu. Lütfen tekrar deneyiniz.',
-                            }
-                        })
-                    });
-            },
-            filterByName: function (data) {
-                if (this.filterText.length === 0) {
-                    return true;
-                }
-
-                return (data.FileName.toLowerCase().indexOf(this.filterText.toLowerCase()) > -1);
-            },
+            },            
         },
         computed: {
             filteredData: function () {

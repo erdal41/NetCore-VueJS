@@ -8,7 +8,7 @@
         action: 'read',
     },
     {
-        title: 'Media',
+        title: 'Medias',
         icon: 'FolderIcon',
         route: 'pages-media-list',
         resource: 'Basepage',
